@@ -1,0 +1,64 @@
+{
+  "model": "claude-sonnet-4-6",
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(pnpm *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git branch*)",
+      "Bash(git checkout *)",
+      "Bash(supabase *)",
+      "Bash(docker *)",
+      "Bash(turbo *)",
+      "Bash(vitest *)",
+      "Bash(playwright *)",
+      "Bash(tsc *)",
+      "Bash(eslint *)",
+      "Bash(prettier *)",
+      "Bash(semgrep *)",
+      "Bash(gitleaks *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(* --service-role-key *)"
+    ],
+    "ask": [
+      "Bash(git push*)",
+      "Bash(supabase db reset*)",
+      "Bash(supabase migration new*)",
+      "Bash(pnpm publish*)",
+      "Bash(npm publish*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[hook] file changed — recuerda correr /pre-commit antes de commitear' 1>&2"
+          }
+        ]
+      }
+    ]
+  }
+}

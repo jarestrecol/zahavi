@@ -1,0 +1,7 @@
+packages:
+  - 'apps/*'
+  - 'packages/domain/*'
+  - 'packages/application'
+  - 'packages/ports'
+  - 'packages/shared'
+  - 'packages/adapters/*'
