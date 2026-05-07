@@ -2,11 +2,18 @@
   "name": "@zahavi/application",
   "version": "0.0.0",
   "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run --passWithNoTests"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@zahavi/domain-identity": "workspace:*",
+    "@zahavi/ports": "workspace:*"
+  }
 }

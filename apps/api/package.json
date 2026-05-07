@@ -2,11 +2,29 @@
   "name": "@zahavi/api",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^8.0.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@zahavi/adapter-persistence-supabase": "workspace:*",
+    "@zahavi/application": "workspace:*",
+    "@zahavi/domain-identity": "workspace:*",
+    "@zahavi/ports": "workspace:*",
+    "fastify": "^4.28.1",
+    "fastify-plugin": "^4.5.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0"
+  }
 }

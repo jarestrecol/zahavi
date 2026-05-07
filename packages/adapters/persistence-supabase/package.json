@@ -2,11 +2,27 @@
   "name": "@zahavi/adapter-persistence-supabase",
   "version": "0.0.0",
   "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run --passWithNoTests"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@zahavi/domain-identity": "workspace:*",
+    "@zahavi/ports": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "kysely": "^0.27.4",
+    "otplib": "^12.0.1",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^25.0.0",
+    "@types/pg": "^8.11.13"
+  }
 }
