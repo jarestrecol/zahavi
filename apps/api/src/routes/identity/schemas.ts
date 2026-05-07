@@ -43,7 +43,8 @@ export const iniciarSesionSchema = z.discriminatedUnion('tipo', [
     tipo: z.literal('navegador'),
     email: z.string().email().max(254),
     contrasenaEnClaro: contrasenaSchema,
-    codigoTotp: z.string().length(6),
+    // Opcional: requerido solo si el usuario tiene TOTP enrolado (SUPERADMIN siempre debe enviarlo)
+    codigoTotp: z.string().length(6).optional(),
   }),
   z.object({
     tipo: z.literal('tablet'),

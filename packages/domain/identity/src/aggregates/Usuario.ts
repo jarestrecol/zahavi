@@ -347,7 +347,12 @@ export class Usuario {
 
   estaOperativo(): boolean {
     if (this.estado !== 'activo') return false;
-    if (this.credencial.tipo === 'navegador' && !this.credencial.totpVerificado) return false;
+    if (this.credencial.tipo === 'navegador') {
+      // TOTP enrolado pero no confirmado bloquea a cualquier rol (enrolamiento incompleto)
+      if (this.credencial.secretoTotp !== null && !this.credencial.totpVerificado) return false;
+      // SUPERADMIN siempre requiere TOTP enrolado y verificado
+      if (this.rol === 'SUPERADMIN' && this.credencial.secretoTotp === null) return false;
+    }
     return true;
   }
 

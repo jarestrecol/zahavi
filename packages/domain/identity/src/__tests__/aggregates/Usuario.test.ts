@@ -298,24 +298,44 @@ describe('Usuario — invariante: acción sobre sí mismo no permitida', () => {
 });
 
 // ──────────────────────────────────────────────────────────────
-// Invariante 5: estaOperativo() require TOTP verificado para ADMIN/SUPERADMIN
+// Invariante 5: estaOperativo() — reglas de TOTP por rol
+// ADMIN sin TOTP enrolado → operativo (TOTP opcional para no-SUPERADMIN)
+// ADMIN con TOTP enrolado pero sin confirmar → NO operativo (enrolamiento incompleto)
+// SUPERADMIN sin TOTP enrolado → NO operativo (2FA obligatorio)
 // ──────────────────────────────────────────────────────────────
 
 describe('Usuario — estaOperativo()', () => {
-  it('ADMIN activo con TOTP NO verificado NO está operativo', () => {
+  it('ADMIN activo sin TOTP enrolado SÍ está operativo (TOTP opcional para ADMIN)', () => {
     const result = crearUsuario({
       id: ID_ADMIN,
       rol: 'ADMIN',
-      credencial: credencialNavegador(),
+      credencial: credencialNavegador(), // secretoTotp: null, totpVerificado: false
       actorRol: 'SUPERADMIN',
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    // credencialNavegador() tiene totpVerificado: false
+    expect(result.value.estaOperativo()).toBe(true);
+  });
+
+  it('ADMIN activo con TOTP enrolado pero NO confirmado NO está operativo', () => {
+    const credConTotpSinConfirmar: import('../../aggregates/Usuario.js').Credencial = {
+      tipo: 'navegador',
+      hashDeContrasena: HashDeContrasena.deCadenaYaHasheada('$argon2id$v=19$hash'),
+      secretoTotp: SecretoTotp.de('JBSWY3DPEHPK3PXP'),
+      totpVerificado: false, // enrolado pero no confirmado
+    };
+    const result = crearUsuario({
+      id: ID_ADMIN,
+      rol: 'ADMIN',
+      credencial: credConTotpSinConfirmar,
+      actorRol: 'SUPERADMIN',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
     expect(result.value.estaOperativo()).toBe(false);
   });
 
-  it('SUPERADMIN activo con TOTP NO verificado NO está operativo', () => {
+  it('SUPERADMIN activo sin TOTP enrolado NO está operativo', () => {
     const result = crearUsuario({
       rol: 'SUPERADMIN',
       credencial: credencialNavegador(),

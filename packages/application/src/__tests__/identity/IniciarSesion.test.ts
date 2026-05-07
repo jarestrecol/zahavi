@@ -131,15 +131,65 @@ describe('IniciarSesion', () => {
       expect(result.error.code).toBe('IDENTITY_USUARIO_NO_ACTIVO');
     });
 
-    it('retorna TotpNoVerificadoError cuando TOTP no está enrolado', async () => {
+    it('happy path ADMIN sin TOTP: inicia sesión solo con contraseña', async () => {
+      // ADMIN sin TOTP enrolado puede iniciar sesión sin código TOTP
+      const { uc, reposSesiones } = makeUseCase({
+        usuario: crearUsuarioNavegador({ rol: 'ADMIN', totpVerificado: false, secretoTotp: null }),
+      });
+      const result = await uc.execute({
+        tipo: 'navegador',
+        email: 'test@zahavi.co',
+        contrasenaEnClaro: 'MiContraseña123!',
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.rol).toBe('ADMIN');
+      expect(reposSesiones.guardar).toHaveBeenCalledOnce();
+    });
+
+    it('retorna TotpNoVerificadoError cuando SUPERADMIN no tiene TOTP enrolado', async () => {
       const { uc } = makeUseCase({
-        usuario: crearUsuarioNavegador({ totpVerificado: false, secretoTotp: null }),
+        usuario: crearUsuarioNavegador({
+          rol: 'SUPERADMIN',
+          totpVerificado: false,
+          secretoTotp: null,
+        }),
+      });
+      const result = await uc.execute({
+        tipo: 'navegador',
+        email: 'test@zahavi.co',
+        contrasenaEnClaro: 'MiContraseña123!',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.code).toBe('IDENTITY_TOTP_NO_VERIFICADO');
+    });
+
+    it('retorna TotpNoVerificadoError cuando TOTP está enrolado pero no verificado', async () => {
+      const { uc } = makeUseCase({
+        usuario: crearUsuarioNavegador({ totpVerificado: false }),
       });
       const result = await uc.execute(ENTRADA_NAVEGADOR);
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.error.code).toBe('IDENTITY_TOTP_NO_VERIFICADO');
+    });
+
+    it('retorna CredencialesInvalidasError cuando tiene TOTP enrolado pero no envía código', async () => {
+      const { uc } = makeUseCase(); // TOTP enrolado y verificado por defecto
+      const result = await uc.execute({
+        tipo: 'navegador',
+        email: 'test@zahavi.co',
+        contrasenaEnClaro: 'MiContraseña123!',
+        // codigoTotp omitido — debe fallar porque el usuario tiene TOTP enrolado
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.code).toBe('IDENTITY_CREDENCIALES_INVALIDAS');
     });
 
     it('retorna CredencialesInvalidasError cuando el código TOTP es inválido', async () => {

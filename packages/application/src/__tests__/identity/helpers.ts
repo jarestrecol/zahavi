@@ -18,11 +18,6 @@ import {
   type Credencial,
   type Rol,
 } from '@zahavi/domain-identity';
-
-function unwrap<T>(result: Result<T, DomainError>): T {
-  if (!result.ok) throw new Error(`unwrap en test falló: ${result.error.message}`);
-  return result.value;
-}
 import type {
   RepositorioDeUsuarios,
   RepositorioDeSesiones,
@@ -35,6 +30,11 @@ import type {
   PoliticaDeSesionPorRol,
   PublicadorDeDomainEvents,
 } from '@zahavi/ports';
+
+function unwrap<T>(result: Result<T, DomainError>): T {
+  if (!result.ok) throw new Error(`unwrap en test falló: ${result.error.message}`);
+  return result.value;
+}
 
 // ── UUIDs fijos para tests ────────────────────────────────────────
 

@@ -41,7 +41,7 @@ export type EntradaIniciarSesion =
       tipo: 'navegador';
       email: string;
       contrasenaEnClaro: string;
-      codigoTotp: string;
+      codigoTotp?: string | undefined; // Requerido solo si el usuario tiene TOTP enrolado; SUPERADMIN siempre necesita TOTP
     }
   | {
       tipo: 'tablet';
@@ -121,20 +121,27 @@ export class IniciarSesion {
       return err(new UsuarioNoActivoErrorImpl(usuario.id.toString()));
     }
 
-    if (!usuario.credencial.totpVerificado || usuario.credencial.secretoTotp === null) {
+    const ahora = this.reloj.ahora();
+
+    if (usuario.credencial.secretoTotp !== null) {
+      // TOTP enrolado: verificar que esté confirmado y que el código sea válido
+      if (!usuario.credencial.totpVerificado) {
+        return err(new TotpNoVerificadoErrorImpl());
+      }
+      if (entrada.codigoTotp === undefined) return err(new CredencialesInvalidasErrorImpl());
+      const codigoResult = CodigoTotp.of(entrada.codigoTotp);
+      if (!codigoResult.ok) return err(new CredencialesInvalidasErrorImpl());
+      const totpOk = await this.verificadorTotp.verificar(
+        codigoResult.value,
+        usuario.credencial.secretoTotp,
+        ahora,
+      );
+      if (!totpOk) return err(new CredencialesInvalidasErrorImpl());
+    } else if (usuario.rol === 'SUPERADMIN') {
+      // SUPERADMIN sin TOTP enrolado: bloquear — 2FA es obligatorio
       return err(new TotpNoVerificadoErrorImpl());
     }
-
-    const codigoResult = CodigoTotp.of(entrada.codigoTotp);
-    if (!codigoResult.ok) return err(new CredencialesInvalidasErrorImpl());
-
-    const ahora = this.reloj.ahora();
-    const totpOk = await this.verificadorTotp.verificar(
-      codigoResult.value,
-      usuario.credencial.secretoTotp,
-      ahora,
-    );
-    if (!totpOk) return err(new CredencialesInvalidasErrorImpl());
+    // ADMIN sin TOTP: permitir login con solo contraseña
 
     return this._abrirSesion(usuario.id, usuario.rol, null, 'personal', ahora);
   }
