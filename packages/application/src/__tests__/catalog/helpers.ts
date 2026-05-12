@@ -19,9 +19,6 @@ import {
   ProductVariant,
   RecipeLine,
   ComboItem,
-  ok,
-  DomainError,
-  type Result,
 } from '@zahavi/domain-catalog';
 import type {
   IProductRepository,
@@ -31,11 +28,6 @@ import type {
   IPublicadorDeDomainEventsCatalog,
   IConsultorDeCostosDeIngredientes,
 } from '@zahavi/ports';
-
-function unwrap<T>(result: Result<T, DomainError>): T {
-  if (!result.ok) throw new Error(`unwrap en test falló: ${result.error.message}`);
-  return result.value;
-}
 
 // ── UUIDs fijos para tests ────────────────────────────────────────
 
@@ -300,9 +292,7 @@ export function makeMockCategoryRepo(
   };
 }
 
-export function makeMockRecipeRepo(
-  overrides: Partial<IRecipeRepository> = {},
-): IRecipeRepository {
+export function makeMockRecipeRepo(overrides: Partial<IRecipeRepository> = {}): IRecipeRepository {
   return {
     save: vi.fn().mockResolvedValue(undefined),
     getById: vi.fn().mockResolvedValue(null),
@@ -313,9 +303,7 @@ export function makeMockRecipeRepo(
   };
 }
 
-export function makeMockComboRepo(
-  overrides: Partial<IComboRepository> = {},
-): IComboRepository {
+export function makeMockComboRepo(overrides: Partial<IComboRepository> = {}): IComboRepository {
   return {
     save: vi.fn().mockResolvedValue(undefined),
     getById: vi.fn().mockResolvedValue(null),

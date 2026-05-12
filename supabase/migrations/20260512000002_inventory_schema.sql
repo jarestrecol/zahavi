@@ -78,6 +78,7 @@ CREATE TABLE inventory.stock_items (
   unidad_nativa          TEXT         NOT NULL,
   costo_promedio_cop     BIGINT       NOT NULL DEFAULT 0  CHECK (costo_promedio_cop >= 0),
   version                INTEGER      NOT NULL DEFAULT 1  CHECK (version >= 1),
+  creado_en              TIMESTAMPTZ  NOT NULL DEFAULT now(),
   actualizado_en         TIMESTAMPTZ  NOT NULL DEFAULT now(),
 
   CONSTRAINT stock_items_pkey PRIMARY KEY (id),
@@ -91,6 +92,10 @@ COMMENT ON COLUMN inventory.stock_items.version IS 'Número de versión para det
 
 CREATE INDEX stock_items_ingredient_idx ON inventory.stock_items (ingredient_id);
 CREATE INDEX stock_items_bunit_idx ON inventory.stock_items (business_unit_id);
+
+CREATE TRIGGER stock_items_updated_at
+  BEFORE UPDATE ON inventory.stock_items
+  FOR EACH ROW EXECUTE FUNCTION inventory.set_actualizado_en();
 
 -- ── 6. Tabla: inventory.stock_movements (append-only) ────────
 CREATE TABLE inventory.stock_movements (
@@ -138,9 +143,43 @@ CREATE INDEX stock_movements_ingredient_idx ON inventory.stock_movements (ingred
 CREATE INDEX stock_movements_bunit_idx ON inventory.stock_movements (business_unit_id, ocurrido_en DESC);
 CREATE INDEX stock_movements_tipo_idx ON inventory.stock_movements (tipo_movimiento);
 
--- Garantizar que stock_movements sea append-only: prohibir UPDATE y DELETE
-CREATE RULE stock_movements_no_update AS ON UPDATE TO inventory.stock_movements DO INSTEAD NOTHING;
-CREATE RULE stock_movements_no_delete AS ON DELETE TO inventory.stock_movements DO INSTEAD NOTHING;
+-- Garantizar que stock_movements sea append-only: lanzar excepción explícita en UPDATE y DELETE.
+-- Se usa trigger en lugar de RULE porque RULE DO INSTEAD NOTHING silencia el error sin avisar al llamador.
+CREATE OR REPLACE FUNCTION inventory.stock_movements_enforce_append_only()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  RAISE EXCEPTION 'stock_movements es append-only: UPDATE y DELETE están prohibidos (id=%)', OLD.id
+    USING ERRCODE = 'restrict_violation';
+END;
+$$;
+
+CREATE TRIGGER stock_movements_no_update
+  BEFORE UPDATE ON inventory.stock_movements_y2026m05
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+CREATE TRIGGER stock_movements_no_delete
+  BEFORE DELETE ON inventory.stock_movements_y2026m05
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+
+CREATE TRIGGER stock_movements_no_update
+  BEFORE UPDATE ON inventory.stock_movements_y2026m06
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+CREATE TRIGGER stock_movements_no_delete
+  BEFORE DELETE ON inventory.stock_movements_y2026m06
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+
+CREATE TRIGGER stock_movements_no_update
+  BEFORE UPDATE ON inventory.stock_movements_y2026m07
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+CREATE TRIGGER stock_movements_no_delete
+  BEFORE DELETE ON inventory.stock_movements_y2026m07
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+
+CREATE TRIGGER stock_movements_no_update
+  BEFORE UPDATE ON inventory.stock_movements_default
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
+CREATE TRIGGER stock_movements_no_delete
+  BEFORE DELETE ON inventory.stock_movements_default
+  FOR EACH ROW EXECUTE FUNCTION inventory.stock_movements_enforce_append_only();
 
 -- ── 7. Tabla: inventory.stock_alerts ─────────────────────────
 CREATE TABLE inventory.stock_alerts (
@@ -165,6 +204,7 @@ CREATE UNIQUE INDEX stock_alerts_open_unique ON inventory.stock_alerts (ingredie
 
 CREATE INDEX stock_alerts_estado_idx ON inventory.stock_alerts (estado);
 CREATE INDEX stock_alerts_ingredient_idx ON inventory.stock_alerts (ingredient_id);
+CREATE INDEX stock_alerts_bunit_idx ON inventory.stock_alerts (business_unit_id);
 
 -- ══════════════════════════════════════════════════════════════
 -- RLS — Row Level Security
@@ -218,10 +258,19 @@ CREATE POLICY stock_items_select ON inventory.stock_items
     )
   );
 
-CREATE POLICY stock_items_write_admin ON inventory.stock_items
-  FOR ALL TO authenticated
+-- INSERT/UPDATE: ADMIN + SUPERADMIN. DELETE: solo SUPERADMIN (proteger integridad de datos históricos).
+CREATE POLICY stock_items_insert_admin ON inventory.stock_items
+  FOR INSERT TO authenticated
+  WITH CHECK (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'));
+
+CREATE POLICY stock_items_update_admin ON inventory.stock_items
+  FOR UPDATE TO authenticated
   USING   (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'))
   WITH CHECK (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'));
+
+CREATE POLICY stock_items_delete_superadmin ON inventory.stock_items
+  FOR DELETE TO authenticated
+  USING (identity.jwt_rol() = 'SUPERADMIN');
 
 -- ── Políticas: inventory.stock_movements ────────────────────
 CREATE POLICY stock_movements_select ON inventory.stock_movements
@@ -237,10 +286,19 @@ CREATE POLICY stock_movements_select ON inventory.stock_movements
     )
   );
 
--- INSERT solo para ADMIN/SUPERADMIN (no hay UPDATE ni DELETE por regla)
+-- INSERT solo para ADMIN/SUPERADMIN. UPDATE y DELETE bloqueados por trigger (append-only).
+-- Las políticas explícitas son necesarias aunque el trigger ya bloquea, para dejar claro el modelo de acceso.
 CREATE POLICY stock_movements_insert ON inventory.stock_movements
   FOR INSERT TO authenticated
   WITH CHECK (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'));
+
+CREATE POLICY stock_movements_no_update_policy ON inventory.stock_movements
+  FOR UPDATE TO authenticated
+  USING (false);
+
+CREATE POLICY stock_movements_no_delete_policy ON inventory.stock_movements
+  FOR DELETE TO authenticated
+  USING (false);
 
 -- ── Políticas: inventory.stock_alerts ───────────────────────
 CREATE POLICY stock_alerts_select ON inventory.stock_alerts
@@ -256,9 +314,47 @@ CREATE POLICY stock_alerts_select ON inventory.stock_alerts
     )
   );
 
-CREATE POLICY stock_alerts_write_admin ON inventory.stock_alerts
-  FOR ALL TO authenticated
+-- INSERT/UPDATE: ADMIN + SUPERADMIN. DELETE: solo SUPERADMIN.
+CREATE POLICY stock_alerts_insert_admin ON inventory.stock_alerts
+  FOR INSERT TO authenticated
+  WITH CHECK (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'));
+
+CREATE POLICY stock_alerts_update_admin ON inventory.stock_alerts
+  FOR UPDATE TO authenticated
   USING   (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'))
   WITH CHECK (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'));
+
+CREATE POLICY stock_alerts_delete_superadmin ON inventory.stock_alerts
+  FOR DELETE TO authenticated
+  USING (identity.jwt_rol() = 'SUPERADMIN');
+
+-- ══════════════════════════════════════════════════════════════
+-- GRANTs — Acceso PostgREST
+-- ══════════════════════════════════════════════════════════════
+
+GRANT USAGE ON SCHEMA inventory TO authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON inventory.suppliers       TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON inventory.ingredients     TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON inventory.stock_items     TO authenticated;
+GRANT SELECT, INSERT              ON inventory.stock_movements    TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON inventory.stock_alerts    TO authenticated;
+
+-- ══════════════════════════════════════════════════════════════
+-- DOWN (rollback manual — ejecutar solo si se requiere revertir)
+-- ══════════════════════════════════════════════════════════════
+-- REVOKE ALL ON ALL TABLES IN SCHEMA inventory FROM authenticated;
+-- REVOKE USAGE ON SCHEMA inventory FROM authenticated;
+-- DROP TRIGGER IF EXISTS stock_items_updated_at ON inventory.stock_items;
+-- DROP TRIGGER IF EXISTS suppliers_updated_at ON inventory.suppliers;
+-- DROP TRIGGER IF EXISTS ingredients_updated_at ON inventory.ingredients;
+-- DROP TABLE IF EXISTS inventory.stock_alerts;
+-- DROP TABLE IF EXISTS inventory.stock_movements;          -- borra particiones en cascada
+-- DROP TABLE IF EXISTS inventory.stock_items;
+-- DROP TABLE IF EXISTS inventory.ingredients;
+-- DROP TABLE IF EXISTS inventory.suppliers;
+-- DROP FUNCTION IF EXISTS inventory.stock_movements_enforce_append_only();
+-- DROP FUNCTION IF EXISTS inventory.set_actualizado_en();
+-- DROP SCHEMA IF EXISTS inventory;
 
 -- ── Fin de migración ─────────────────────────────────────────

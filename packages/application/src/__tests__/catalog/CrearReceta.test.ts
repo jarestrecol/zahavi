@@ -44,7 +44,7 @@ function makeUseCase(
 
 describe('CrearReceta', () => {
   it('crea receta exitosamente con una línea', async () => {
-    const { uc, recipeRepo, publicador } = makeUseCase();
+    const { uc, recipeRepo } = makeUseCase();
     const result = await uc.execute(entradaBase);
 
     expect(result.ok).toBe(true);
@@ -74,7 +74,7 @@ describe('CrearReceta', () => {
 
   it('falla con rol WORKER', async () => {
     const { uc } = makeUseCase();
-    const result = await uc.execute({ ...entradaBase, actorRol: 'WORKER' as any });
+    const result = await uc.execute({ ...entradaBase, actorRol: 'WORKER' });
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('CATALOG_ROL_NO_AUTORIZADO');
@@ -93,9 +93,7 @@ describe('CrearReceta', () => {
   it('falla si variante no existe en el producto', async () => {
     const { uc } = makeUseCase({
       productOverride: {
-        getById: vi.fn().mockResolvedValue(
-          createTestProduct({ id: UUID_PRODUCTO }),
-        ),
+        getById: vi.fn().mockResolvedValue(createTestProduct({ id: UUID_PRODUCTO })),
       },
     });
     const result = await uc.execute({
@@ -110,9 +108,11 @@ describe('CrearReceta', () => {
   it('falla si la variante ya tiene receta vinculada', async () => {
     const { uc } = makeUseCase({
       productOverride: {
-        getById: vi.fn().mockResolvedValue(
-          createTestProduct({ varianteRecetaId: '00000000-0000-0000-0000-000000000005' }),
-        ),
+        getById: vi
+          .fn()
+          .mockResolvedValue(
+            createTestProduct({ varianteRecetaId: '00000000-0000-0000-0000-000000000005' }),
+          ),
       },
     });
     const result = await uc.execute(entradaBase);

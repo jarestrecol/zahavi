@@ -6,13 +6,11 @@ import type {
   CategoryId,
   ProductId,
   RecipeId,
-  RecipeLineId,
   ComboId,
   ProductVariantId,
   NombreDeCatalogo,
   FechaHora,
 } from '@zahavi/domain-catalog';
-import type { Result } from '@zahavi/domain-catalog';
 
 /**
  * Puerto: Repositorio de Productos.
@@ -40,10 +38,7 @@ export interface IProductRepository {
    * Recuperar un Product por nombre normalizado dentro de una categoría.
    * Devuelve null si no existe (usado para validar unicidad en caso de uso).
    */
-  getByNameInCategory(
-    nombre: NombreDeCatalogo,
-    categoryId: CategoryId,
-  ): Promise<Product | null>;
+  getByNameInCategory(nombre: NombreDeCatalogo, categoryId: CategoryId): Promise<Product | null>;
 
   /**
    * Recuperar todos los Products en estado "activo".

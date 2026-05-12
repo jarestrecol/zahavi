@@ -3,11 +3,7 @@ import { Money, FechaHora } from '@zahavi/domain-shared-kernel';
 import { Ingredient } from '../../aggregates/Ingredient.js';
 import { IngredientId } from '../../value-objects/ids.js';
 import { UnidadNativa } from '../../value-objects/enums.js';
-import {
-  CostoUnitarioNegativoError,
-  UmbralDeAlertaInvalidoError,
-  IngredienteYaEnEstadoError,
-} from '../../errors/index.js';
+import { UmbralDeAlertaInvalidoError, IngredienteYaEnEstadoError } from '../../errors/index.js';
 
 const ING_ID = '00000000-0000-0000-0000-000000000001';
 const EVT = '00000000-0000-0000-0000-0000000000ff';

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { CrearCombo } from '../../catalog/CrearCombo.js';
 import {
   makeMockComboRepo,
@@ -57,7 +57,7 @@ describe('CrearCombo', () => {
 
   it('falla con rol WORKER', async () => {
     const { uc } = makeUseCase();
-    const result = await uc.execute({ ...entradaBase, actorRol: 'WORKER' as any });
+    const result = await uc.execute({ ...entradaBase, actorRol: 'WORKER' });
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('CATALOG_ROL_NO_AUTORIZADO');

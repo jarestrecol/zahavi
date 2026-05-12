@@ -304,4 +304,43 @@ CREATE POLICY combo_items_write_admin ON catalog.combo_items
   USING   (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'))
   WITH CHECK (identity.jwt_rol() IN ('SUPERADMIN', 'ADMIN'));
 
+-- ══════════════════════════════════════════════════════════════
+-- GRANTs — Acceso PostgREST
+-- Sin estos GRANTs, PostgREST no puede leer el schema aunque RLS esté configurado.
+-- ══════════════════════════════════════════════════════════════
+
+GRANT USAGE ON SCHEMA catalog TO authenticated;
+GRANT USAGE ON SCHEMA catalog TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.categories       TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.products         TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.product_variants TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.recipes          TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.recipe_lines     TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.combos           TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalog.combo_items      TO authenticated;
+
+-- anon solo puede ver categorías (para menú público eventual).
+GRANT SELECT ON catalog.categories TO anon;
+
+-- ══════════════════════════════════════════════════════════════
+-- DOWN (rollback manual — ejecutar solo si se requiere revertir)
+-- ══════════════════════════════════════════════════════════════
+-- REVOKE ALL ON ALL TABLES IN SCHEMA catalog FROM authenticated, anon;
+-- REVOKE USAGE ON SCHEMA catalog FROM authenticated, anon;
+-- DROP TRIGGER IF EXISTS combo_items_updated_at ON catalog.combo_items;       -- no existe: ok
+-- DROP TRIGGER IF EXISTS combos_updated_at ON catalog.combos;
+-- DROP TRIGGER IF EXISTS product_variants_updated_at ON catalog.product_variants;
+-- DROP TRIGGER IF EXISTS products_updated_at ON catalog.products;
+-- DROP TRIGGER IF EXISTS categories_updated_at ON catalog.categories;
+-- DROP TABLE IF EXISTS catalog.combo_items;
+-- DROP TABLE IF EXISTS catalog.combos;
+-- DROP TABLE IF EXISTS catalog.recipe_lines;
+-- DROP TABLE IF EXISTS catalog.recipes;
+-- DROP TABLE IF EXISTS catalog.product_variants;
+-- DROP TABLE IF EXISTS catalog.products;
+-- DROP TABLE IF EXISTS catalog.categories;
+-- DROP FUNCTION IF EXISTS catalog.set_actualizado_en();
+-- DROP SCHEMA IF EXISTS catalog;
+
 -- ── Fin de migración ─────────────────────────────────────────
