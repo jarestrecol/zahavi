@@ -156,6 +156,9 @@ importers:
 
   packages/application:
     dependencies:
+      '@zahavi/domain-catalog':
+        specifier: workspace:*
+        version: link:../domain/catalog
       '@zahavi/domain-identity':
         specifier: workspace:*
         version: link:../domain/identity
@@ -167,11 +170,19 @@ importers:
 
   packages/domain/auditing: {}
 
-  packages/domain/catalog: {}
+  packages/domain/catalog:
+    dependencies:
+      '@zahavi/domain-shared-kernel':
+        specifier: workspace:*
+        version: link:../shared-kernel
 
   packages/domain/identity: {}
 
-  packages/domain/inventory: {}
+  packages/domain/inventory:
+    dependencies:
+      '@zahavi/domain-shared-kernel':
+        specifier: workspace:*
+        version: link:../shared-kernel
 
   packages/domain/production: {}
 
@@ -181,9 +192,18 @@ importers:
 
   packages/ports:
     dependencies:
+      '@zahavi/domain-catalog':
+        specifier: workspace:*
+        version: link:../domain/catalog
       '@zahavi/domain-identity':
         specifier: workspace:*
         version: link:../domain/identity
+      '@zahavi/domain-inventory':
+        specifier: workspace:*
+        version: link:../domain/inventory
+      '@zahavi/domain-shared-kernel':
+        specifier: workspace:*
+        version: link:../domain/shared-kernel
 
   packages/shared: {}
 

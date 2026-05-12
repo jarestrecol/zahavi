@@ -17,7 +17,7 @@ Reglas:
 - Si algo del BOOTSTRAP.md es ambiguo en el contexto real (Node version local, Docker disponible, etc.), pregúntame antes de inventar.
 - Al final de la Etapa 7, invoca al architect-guardian para validar que la estructura está correcta y al doc-writer para crear el ADR-0001.
 
-Empezamos por la Etapa 0.
+Empezamos por la Etapa 0.           
 ```
 
 ---

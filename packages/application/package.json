@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@zahavi/domain-identity": "workspace:*",
+    "@zahavi/domain-catalog": "workspace:*",
     "@zahavi/ports": "workspace:*"
   }
 }
