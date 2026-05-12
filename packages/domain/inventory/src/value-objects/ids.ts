@@ -15,6 +15,10 @@ export class IngredientId {
     return ok(new IngredientId(value));
   }
 
+  static nuevo(): IngredientId {
+    return new IngredientId(crypto.randomUUID());
+  }
+
   toString(): string {
     return this._value;
   }
@@ -53,6 +57,10 @@ export class StockItemId {
   static of(value: string): Result<StockItemId, IdInvalidoError> {
     if (!UUID_RE.test(value)) return err(new IdInvalidoError('StockItemId'));
     return ok(new StockItemId(value));
+  }
+
+  static nuevo(): StockItemId {
+    return new StockItemId(crypto.randomUUID());
   }
 
   toString(): string {
@@ -95,6 +103,10 @@ export class SupplierId {
     return ok(new SupplierId(value));
   }
 
+  static nuevo(): SupplierId {
+    return new SupplierId(crypto.randomUUID());
+  }
+
   toString(): string {
     return this._value;
   }
@@ -115,6 +127,10 @@ export class StockMovementId {
     return ok(new StockMovementId(value));
   }
 
+  static nuevo(): StockMovementId {
+    return new StockMovementId(crypto.randomUUID());
+  }
+
   toString(): string {
     return this._value;
   }
@@ -133,6 +149,10 @@ export class StockAlertId {
   static of(value: string): Result<StockAlertId, IdInvalidoError> {
     if (!UUID_RE.test(value)) return err(new IdInvalidoError('StockAlertId'));
     return ok(new StockAlertId(value));
+  }
+
+  static nuevo(): StockAlertId {
+    return new StockAlertId(crypto.randomUUID());
   }
 
   toString(): string {

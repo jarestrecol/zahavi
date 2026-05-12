@@ -6,3 +6,5 @@ export type {
   IStockAlertRepository,
   ISupplierRepository,
 } from './repositories.js';
+
+export type { IPublicadorDeDomainEventsInventory } from './publishers.js';
