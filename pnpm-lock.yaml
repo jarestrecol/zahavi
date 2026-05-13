@@ -121,9 +121,18 @@ importers:
 
   packages/adapters/persistence-supabase:
     dependencies:
+      '@zahavi/domain-catalog':
+        specifier: workspace:*
+        version: link:../../domain/catalog
       '@zahavi/domain-identity':
         specifier: workspace:*
         version: link:../../domain/identity
+      '@zahavi/domain-inventory':
+        specifier: workspace:*
+        version: link:../../domain/inventory
+      '@zahavi/domain-shared-kernel':
+        specifier: workspace:*
+        version: link:../../domain/shared-kernel
       '@zahavi/ports':
         specifier: workspace:*
         version: link:../../ports
@@ -162,6 +171,12 @@ importers:
       '@zahavi/domain-identity':
         specifier: workspace:*
         version: link:../domain/identity
+      '@zahavi/domain-inventory':
+        specifier: workspace:*
+        version: link:../domain/inventory
+      '@zahavi/domain-shared-kernel':
+        specifier: workspace:*
+        version: link:../domain/shared-kernel
       '@zahavi/ports':
         specifier: workspace:*
         version: link:../ports

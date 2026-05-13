@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "@zahavi/domain-identity": "workspace:*",
+    "@zahavi/domain-catalog": "workspace:*",
+    "@zahavi/domain-inventory": "workspace:*",
+    "@zahavi/domain-shared-kernel": "workspace:*",
     "@zahavi/ports": "workspace:*",
     "bcryptjs": "^2.4.3",
     "kysely": "^0.27.4",

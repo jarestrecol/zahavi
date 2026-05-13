@@ -1,3 +1,11 @@
 ﻿export * from './identity/index.js';
 export { createIdentityAdapters } from './identity/factory.js';
 export type { IdentityAdapters } from './identity/factory.js';
+
+export * from './catalog/index.js';
+export { createCatalogAdapters } from './catalog/factory.js';
+export type { CatalogAdapters } from './catalog/factory.js';
+
+export * from './inventory/index.js';
+export { createInventoryAdapters } from './inventory/factory.js';
+export type { InventoryAdapters } from './inventory/factory.js';
