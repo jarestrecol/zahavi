@@ -5,13 +5,22 @@ import rateLimit from '@fastify/rate-limit';
 import jwtPlugin from './plugins/jwt.js';
 import { errorHandler } from './plugins/error-handler.js';
 import identityRoutes from './routes/identity/index.js';
+import catalogRoutes from './routes/catalog/index.js';
+import inventoryRoutes from './routes/inventory/index.js';
 import type { Env } from './env.js';
 import type { IdentityComposition } from './composition/identity.js';
+import type { CatalogComposition } from './composition/catalog.js';
+import type { InventoryComposition } from './composition/inventory.js';
 
-export function buildServer(env: Env, composition: IdentityComposition) {
+export function buildServer(
+  env: Env,
+  identityComposition: IdentityComposition,
+  catalogComposition: CatalogComposition,
+  inventoryComposition: InventoryComposition,
+) {
   const fastify = Fastify({
-    // HIGH-3: limitar body a 16 KB — auth endpoints solo necesitan email+password+TOTP
-    bodyLimit: 16 * 1024,
+    // HIGH-3: limitar body a 64 KB — aceptamos recetas y combos con varias líneas
+    bodyLimit: 64 * 1024,
     // HIGH-3: timeouts para evitar Slowloris y requests colgados
     connectionTimeout: 10_000,
     requestTimeout: 15_000,
@@ -24,21 +33,23 @@ export function buildServer(env: Env, composition: IdentityComposition) {
         'body.contrasenaEnClaro',
         'body.pinEnClaro',
         'body.codigoTotp',
-        // Secretos TOTP en response (defensa en profundidad)
         'body.secretoBase32',
         'body.otpAuthUrl',
       ],
     },
     // MED-2: un solo salto confiable (load balancer directo)
-    // En producción ajustar al CIDR del LB/proxy
     trustProxy: 1,
   });
 
-  fastify.register(helmet);
+  // HSTS explícito: 1 año, includeSubDomains, preload — requerido por CLAUDE.md §2.2
+  fastify.register(helmet, {
+    hsts: { maxAge: 31_536_000, includeSubDomains: true, preload: true },
+  });
 
   fastify.register(cors, {
     origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(',').map((s) => s.trim()),
-    credentials: true,
+    // SEC: credentials=true solo cuando hay lista explícita de orígenes (no wildcard)
+    credentials: env.CORS_ORIGIN !== '*',
   });
 
   // Rate limit global — las rutas auth tienen su propio límite más estricto
@@ -52,7 +63,12 @@ export function buildServer(env: Env, composition: IdentityComposition) {
 
   fastify.setErrorHandler(errorHandler);
 
-  fastify.register(identityRoutes, { prefix: '/api/identity', composition });
+  fastify.register(identityRoutes, { prefix: '/api/identity', composition: identityComposition });
+  fastify.register(catalogRoutes, { prefix: '/api/catalog', composition: catalogComposition });
+  fastify.register(inventoryRoutes, {
+    prefix: '/api/inventory',
+    composition: inventoryComposition,
+  });
 
   fastify.get('/health', async () => ({ ok: true }));
 

@@ -6,36 +6,42 @@ import type {
   IRecipeRepository,
   IComboRepository,
   IPublicadorDeDomainEventsCatalog,
+  IConsultorDeCostosDeIngredientes,
 } from '@zahavi/ports';
 import type { CatalogDatabase } from './schema.js';
+import type { InventoryDatabase } from '../inventory/schema.js';
 import { RepositorioDeCategorias } from './RepositorioDeCategorias.js';
 import { RepositorioDeProductos } from './RepositorioDeProductos.js';
 import { RepositorioDeRecetas } from './RepositorioDeRecetas.js';
 import { RepositorioDeCombos } from './RepositorioDeCombos.js';
 import { PublicadorDeEventosCatalogNoop } from './PublicadorDeEventosCatalogNoop.js';
+import { ConsultorDeCostosDeIngredientesSupabase } from './ConsultorDeCostosDeIngredientesSupabase.js';
 
 export interface CatalogAdapters {
   repositorioDeCategorias: ICategoryRepository;
   repositorioDeProductos: IProductRepository;
   repositorioDeRecetas: IRecipeRepository;
   repositorioDeCombos: IComboRepository;
+  consultorDeCostos: IConsultorDeCostosDeIngredientes;
   publicadorDeEventos: IPublicadorDeDomainEventsCatalog;
 }
 
 export function createCatalogAdapters(databaseUrl: string): CatalogAdapters {
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined,
-  });
-  const db = new Kysely<CatalogDatabase>({
-    dialect: new PostgresDialect({ pool }),
-  });
+  const ssl = process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined;
+  const pool = new Pool({ connectionString: databaseUrl, ssl });
+
+  // Dos instancias Kysely tipadas distintas comparten el mismo Pool subyacente.
+  // CatalogDatabase: tablas catalog.*
+  // InventoryDatabase: solo se usa para leer inventory.ingredients (ACL del escandallo).
+  const catalogDb = new Kysely<CatalogDatabase>({ dialect: new PostgresDialect({ pool }) });
+  const inventoryDb = new Kysely<InventoryDatabase>({ dialect: new PostgresDialect({ pool }) });
 
   return {
-    repositorioDeCategorias: new RepositorioDeCategorias(db),
-    repositorioDeProductos: new RepositorioDeProductos(db),
-    repositorioDeRecetas: new RepositorioDeRecetas(db),
-    repositorioDeCombos: new RepositorioDeCombos(db),
+    repositorioDeCategorias: new RepositorioDeCategorias(catalogDb),
+    repositorioDeProductos: new RepositorioDeProductos(catalogDb),
+    repositorioDeRecetas: new RepositorioDeRecetas(catalogDb),
+    repositorioDeCombos: new RepositorioDeCombos(catalogDb),
+    consultorDeCostos: new ConsultorDeCostosDeIngredientesSupabase(inventoryDb),
     publicadorDeEventos: new PublicadorDeEventosCatalogNoop(),
   };
 }
