@@ -3,6 +3,7 @@ import { useAuthStore, type Rol } from './stores/auth.js';
 import { Login } from './pages/Login.js';
 import { Products } from './pages/Products.js';
 import { Inventory } from './pages/Inventory.js';
+import { Dashboard } from './pages/Dashboard.js';
 import { AppLayout } from './layouts/AppLayout.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -29,7 +30,15 @@ export default function App() {
             </RequireAuth>
           }
         >
-          <Route index element={<Navigate to="/productos" replace />} />
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/dashboard"
+            element={
+              <RequireRole roles={['ADMIN', 'SUPERADMIN']}>
+                <Dashboard />
+              </RequireRole>
+            }
+          />
           <Route path="/productos" element={<Products />} />
           <Route
             path="/inventario"

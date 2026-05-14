@@ -29,6 +29,8 @@ const DOMAIN_STATUS: Record<string, number> = {
   IDENTITY_SESION_BLOQUEADA: 423,
   // MED-5 de la auditoría: reloj retrocedido → 503 genérico (no 500 que filtraría info de infra)
   IDENTITY_RELOJ_RETROCEDIDO: 503,
+  // Reporting
+  REPORTING_RANGO_FECHAS_INVALIDO: 400,
 };
 
 export function errorHandler(

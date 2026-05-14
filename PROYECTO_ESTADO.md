@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-█████████░░░░░░░░░░░ 48%
+███████████░░░░░░░░░ 55%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -24,7 +24,7 @@
 | **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
 | 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
-| 5 | Dashboard + cierre + reportes     | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
+| 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 | 7 | Refinamiento                      | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 
@@ -102,12 +102,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 **Fecha:** _Se actualiza al inicio de cada sesión._
 **Modo de trabajo:** Autónomo con verificación al cierre.
-**Iteración activa:** Iteración 4 — Sales.
-**Bloque actual:** Iteración 5 — Dashboard + cierre de caja + reportes.
+**Iteración activa:** Iteración 5 — Dashboard + Reportes. ✅ CERRADA.
+**Bloque actual:** Iteración 6 — Despliegue piloto.
 
 ### Próxima acción inmediata
 
-> **Iteración 5**: definir los KPIs a mostrar (ventas del día, métodos de pago, cierre de caja), diseñar los queries SQL de agregación y el BC Reporting si es necesario, o construirlo como Read Model directo desde sales.*
+> **Iteración 6**: preparar el despliegue piloto en un punto físico real. Definir CI/CD pipeline en GitHub Actions (D-005), resolver Docker (D-001), configurar variables de entorno de producción, ejecutar migraciones en Supabase cloud.
 
 ### Reglas de la sesión
 
@@ -129,7 +129,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
 | 3 | Production (planta central) | 100% | ✅ | `b175857` |
 | 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
-| 5 | Dashboard + cierre de caja + reporte ventas | 0% | ⚪ | — |
+| 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | — |
 | 6 | Despliegue piloto en un punto | 0% | ⚪ | — |
 | 7 | Refinamiento (offline-first, DIAN, segundo punto, auditoría forense, endurecimiento) | 0% | ⚪ | — |
 
@@ -540,13 +540,57 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ---
 
-## ⚪ Iteración 5 — Dashboard + Reportes
+## 🟡 Iteración 5 — Dashboard + Reportes
 
 ```
-░░░░░░░░░░░░░░░░░░░░ 0%
+████████████████████ 100%
 ```
 
-KPIs en tiempo real, ventas por hora/día/método, cierre de caja, reporte de gastos.
+### Bloque 5.1 — Port + DTOs ✅
+- ✅ `packages/ports/src/reporting/IReportingRepository.ts` — port con DTOs: DashboardDelDia, ResumenCierreDeCaja, VentaPorMetodo, VentaPorHora
+- ✅ `packages/ports/src/reporting/index.ts`
+- ✅ `packages/ports/src/index.ts` actualizado
+
+### Bloque 5.2 — Query handlers ✅
+- ✅ `packages/application/src/reporting/ConsultarDashboard.ts` — query handler, fecha de hoy por defecto
+- ✅ `packages/application/src/reporting/ConsultarCierreDeCaja.ts` — valida desde <= hasta
+- ✅ `packages/application/src/reporting/index.ts`
+- ✅ `packages/application/src/index.ts` actualizado
+
+### Bloque 5.3 — Adapter Supabase ✅
+- ✅ `ReportingRepositorySupabase.ts` — 6 queries SQL parametrizadas con Kysely sql`...`, agregaciones JSONB pagos expandidos con jsonb_array_elements
+- ✅ `factory.ts` + `index.ts`
+- ✅ `packages/adapters/persistence-supabase/src/index.ts` actualizado
+
+### Bloque 5.4 — HTTP API ✅
+- ✅ `GET /api/reporting/dashboard?fecha=YYYY-MM-DD` (ADMIN/SUPERADMIN)
+- ✅ `GET /api/reporting/cierre-de-caja?desde=YYYY-MM-DD&hasta=YYYY-MM-DD` (ADMIN/SUPERADMIN)
+- ✅ `apps/api/src/composition/reporting.ts`
+- ✅ `apps/api/src/routes/reporting/schemas.ts` — validación Zod con regex YYYY-MM-DD
+- ✅ `apps/api/src/server.ts` + `apps/api/src/index.ts` actualizados
+
+### Bloque 5.5 — Frontend Dashboard ✅
+- ✅ `apps/web/src/pages/Dashboard.tsx` — KPIs (totalVentas, cobros, ticketPromedio, facturas), tabla por método, gráfico por hora con barras CSS
+- ✅ `apps/web/src/App.tsx` — ruta /dashboard con RequireRole ADMIN/SUPERADMIN
+- ✅ `apps/web/src/layouts/AppLayout.tsx` — enlace Dashboard en sidebar (solo ADMIN/SUPERADMIN)
+- ✅ Redirect raíz → /dashboard para ADMIN/SUPERADMIN
+
+### Bloque 5.6 — Tests ✅
+- ✅ `ConsultarDashboard.test.ts` — 4 tests
+- ✅ `ConsultarCierreDeCaja.test.ts` — 4 tests
+- ✅ 458/458 tests verdes (8 nuevos de reporting)
+- ✅ Typecheck: 0 errores en ports, application, adapter, api, web
+
+### Bloque 5.7 — Cierre ✅
+- ✅ architect-guardian APRUEBA (pureza dominio, dependencias, ACL, separación BCs)
+- ✅ code-reviewer OBSERVACIONES aplicadas:
+  - ErrorDeRangoFechas extends DomainError (code REPORTING_RANGO_FECHAS_INVALIDO → 400)
+  - Ambos handlers usan `throw result.error` uniformemente
+  - Query handlers usan Result<T> del shared-kernel en lugar de unión local
+  - Validación de fecha real en Zod con `.refine()`
+  - Tildes corregidas en Dashboard.tsx
+  - D-018, D-019, D-020 registradas como deuda técnica
+- ✅ Commit feat(reporting): iteración 5 completa
 
 ---
 
@@ -591,6 +635,9 @@ Offline-first con SQLite, integración DIAN, segundo punto físico, auditoría f
 | D-015 | `siguienteNumero` en RepositorioDeFacturaSupabase usa COUNT(*)+1 — race condition bajo concurrencia. Reemplazar por SEQUENCE PostgreSQL por (punto_de_venta_id, año) | Media | Iteración 5 |
 | D-016 | `sales.mesas` no tiene columna `actualizada_en` — dificulta auditoría de transiciones de estado | Baja | Iteración 5 |
 | D-017 | Columnas `estado` y `tipo` en tablas Sales usan TEXT en lugar de tipos ENUM PostgreSQL nativos | Baja | Iteración 7 |
+| D-018 | `ReportingRepositorySupabase.factory.ts` crea su propio Pool de BD en lugar de reutilizar el pool de Sales — doble conexión innecesaria | Baja | Iteración 6 |
+| D-019 | `puntoDeVentaId: string` en port IReportingRepository — sin branded type; inconsistente con estrategia de IDs del dominio | Baja | Iteración 7 |
+| D-020 | Tipos `DashboardDelDia` y `VentaPorMetodo` duplicados en `apps/web/src/pages/Dashboard.tsx` — divergen silenciosamente del port si el contrato cambia. Requiere agregar `@zahavi/ports` como devDependency en apps/web o generar tipos desde la API (OpenAPI) | Media | Iteración 5 o 6 |
 
 ---
 

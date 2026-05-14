@@ -37,6 +37,11 @@ export function AppLayout() {
       <div className="flex flex-1">
         {/* Sidebar */}
         <nav className="w-48 bg-white border-r flex flex-col gap-1 p-3 text-sm">
+          {rol !== 'WORKER' && (
+            <Link to="/dashboard" className="px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
+              Dashboard
+            </Link>
+          )}
           <Link to="/productos" className="px-3 py-2 rounded hover:bg-gray-100 text-gray-700">
             Productos
           </Link>
