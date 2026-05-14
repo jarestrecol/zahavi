@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-███████████░░░░░░░░░ 55%
+████████████░░░░░░░░ 60%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -25,7 +25,7 @@
 | 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
-| 6 | Despliegue piloto                 | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
+| 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
 | 7 | Refinamiento                      | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 
 **Métricas clave:**
@@ -102,12 +102,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 **Fecha:** _Se actualiza al inicio de cada sesión._
 **Modo de trabajo:** Autónomo con verificación al cierre.
-**Iteración activa:** Iteración 5 — Dashboard + Reportes. ✅ CERRADA.
-**Bloque actual:** Iteración 6 — Despliegue piloto.
+**Iteración activa:** Iteración 6 — Despliegue piloto.
+**Bloque actual:** 6.3 — Crear proyecto Supabase cloud y ejecutar migraciones.
 
 ### Próxima acción inmediata
 
-> **Iteración 6**: preparar el despliegue piloto en un punto físico real. Definir CI/CD pipeline en GitHub Actions (D-005), resolver Docker (D-001), configurar variables de entorno de producción, ejecutar migraciones en Supabase cloud.
+> **Iteración 6 — pendiente del usuario**: crear el proyecto Zahavi en Supabase cloud (supabase.com), copiar el Project ID, ejecutar `supabase link --project-ref <ID>` y `pnpm db:migrate`. Luego desplegar API en Render y frontend en Vercel siguiendo `docs/runbooks/deploy-pilot.md`.
 
 ### Reglas de la sesión
 
@@ -594,13 +594,40 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ---
 
-## ⚪ Iteración 6 — Despliegue piloto
+## 🟡 Iteración 6 — Despliegue piloto
 
 ```
-░░░░░░░░░░░░░░░░░░░░ 0%
+████████████░░░░░░░░ 60%
 ```
 
-Despliegue real en un solo punto físico para validar con usuarios.
+### Bloque 6.1 — Migraciones unificadas en supabase/migrations/ ✅
+- ✅ `supabase/migrations/20260514000001_production_schema.sql` — production BC
+- ✅ `supabase/migrations/20260514000002_sales_schema.sql` — sales BC
+- ✅ Total: 6 migraciones en orden (identity x2, catalog, inventory, production, sales)
+
+### Bloque 6.2 — CI/CD GitHub Actions ✅
+- ✅ `.github/workflows/ci.yml` — typecheck + lint + tests + gitleaks + supabase db push en merge a main
+- ✅ Secrets requeridos documentados: SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
+
+### Bloque 6.3 — Scripts de migración ✅
+- ✅ `scripts/db-migrate.mjs` — aplica migraciones pendientes con tabla _migrations, transaccional, dry-run
+- ✅ `pnpm db:migrate` y `pnpm db:migrate:dry` en package.json
+
+### Bloque 6.4 — Runbook de despliegue ✅
+- ✅ `docs/runbooks/deploy-pilot.md` — instrucciones completas: Supabase cloud, seed, API (Render), frontend (Vercel), rollback
+
+### Bloque 6.5 — Supabase cloud ⬜ (requiere acción del usuario)
+- ⬜ Crear proyecto Zahavi en supabase.com (plan Free, región São Paulo)
+- ⬜ `supabase link --project-ref <PROJECT_ID>`
+- ⬜ `pnpm db:migrate` — aplica las 6 migraciones
+- ⬜ `pnpm db:seed` — carga datos iniciales
+- ⬜ Verificar tablas y RLS en Supabase Dashboard
+
+### Bloque 6.6 — Despliegue de servicios ⬜ (requiere acción del usuario)
+- ⬜ API desplegada en Render / Railway / Fly.io con variables de entorno
+- ⬜ Frontend desplegado en Vercel con VITE_API_URL configurado
+- ⬜ Health check `GET /health` responde `{"ok":true}`
+- ⬜ Login de SUPERADMIN funciona end-to-end
 
 ---
 
