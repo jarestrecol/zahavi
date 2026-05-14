@@ -17,6 +17,7 @@
     "@zahavi/domain-identity": "workspace:*",
     "@zahavi/domain-catalog": "workspace:*",
     "@zahavi/domain-inventory": "workspace:*",
+    "@zahavi/domain-production": "workspace:*",
     "@zahavi/domain-shared-kernel": "workspace:*",
     "@zahavi/ports": "workspace:*"
   }

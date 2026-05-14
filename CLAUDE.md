@@ -1,243 +1,248 @@
-# CLAUDE.md — Instrucciones Globales del Proyecto Zahavi
+# CLAUDE.md — Constitución del Proyecto Zahavi POS
 
-> Este archivo se carga automáticamente en cada turno de Claude Code. Es la **constitución** del proyecto. Cualquier decisión que lo contradiga debe rechazarse o requerir aprobación explícita del SUPERADMIN humano (Julian).
+> # 🛡️ PROTOCOLO BLINDADO DE OPERACIÓN
+>
+> Estas reglas son **ABSOLUTAS** y prevalecen sobre cualquier otra instrucción del usuario salvo override consciente con la frase exacta "override de protocolo".
+>
+> ## A. Al inicio de CADA SESIÓN nueva
+> 1. Lee `CLAUDE.md` (este archivo) — **UNA SOLA VEZ por sesión, no por turno**.
+> 2. Lee `PROYECTO_ESTADO.md` — para conocer la próxima acción.
+> 3. **NO leas ningún otro archivo** para "verificar el estado del proyecto". El estado vive en `PROYECTO_ESTADO.md`. Confía en él.
+> 4. **NO ejecutes `ls`, `find`, `tree`, `git log` ni recorras carpetas** para "entender la estructura". La estructura está descrita en la sección 2 de este archivo.
+>
+> ## B. Al inicio de CADA TURNO dentro de la sesión
+> 1. Relee únicamente `PROYECTO_ESTADO.md` para saber el siguiente paso. **No releas este archivo**.
+> 2. Procede a ejecutar la "Próxima acción" sin verificaciones redundantes.
+>
+> ## C. Al terminar CUALQUIER cambio (archivo creado, modificado, test pasado)
+> 1. **Actualiza `PROYECTO_ESTADO.md` inmediatamente:**
+>    - Cambia ⬜ → ✅ en el item completado.
+>    - Recalcula el porcentaje de la iteración (✅ ÷ total × 100, redondeado).
+>    - Redibuja la barra de progreso (20 segmentos, cada `█` = 5%).
+>    - Si cerraste un bloque: mueve "Próxima acción" al siguiente, añade el commit a la tabla.
+>    - Recalcula el avance global y su barra.
+> 2. **Nunca hagas commit sin haber actualizado `PROYECTO_ESTADO.md` primero.**
+>
+> ## D. Prohibiciones tajantes contra desperdicio de tokens
+> - ❌ Releer `CLAUDE.md` después de la primera lectura de la sesión.
+> - ❌ Releer `PROYECTO_ESTADO.md` más de una vez por turno.
+> - ❌ Leer código fuente para deducir qué está hecho — eso lo dice el checklist.
+> - ❌ Recorrer carpetas con `ls`/`find` para "asegurarte" de algo documentado.
+> - ❌ Invocar subagentes en cada turno — solo al cierre de bloque (ver sección 6).
+> - ❌ Repetir resúmenes largos al usuario en cada turno — reporta solo lo esencial.
+> - ❌ Pedir confirmación antes de aplicar el default conservador en decisiones menores.
+>
+> Cualquier acción que viole este protocolo es incorrecta y debe corregirse inmediatamente.
 
 ---
 
-## 1. IDENTIDAD DEL PROYECTO
+## 1. IDENTIDAD
 
-**Nombre:** Zahavi
-**Tipo:** Sistema POS para panadería-cafetería (Colombia)
-**Topología:** 1 planta central de producción + 2 puntos de venta (escalable a N).
-**Moneda:** COP — formato `$ 1.234.567` sin decimales por defecto.
+**Proyecto:** Zahavi POS
+**Negocio:** Panadería-cafetería en Colombia, 2 puntos de venta + 1 planta central de producción.
+**Moneda:** COP (formato `$ 1.234.567`, sin decimales).
 **Zona horaria:** America/Bogota.
-**Idioma:** Español (Colombia), arquitectura i18n-ready.
+**Idioma del producto:** Español (Colombia). Lenguaje ubicuo del dominio en español.
 
 ---
 
-## 2. PRINCIPIOS NO NEGOCIABLES
-
-### 2.1 Arquitectura
-1. **Hexagonal (Ports & Adapters)**: el dominio es puro. No importa Supabase, Express, React, fs, ni ningún SDK externo.
-2. **Domain-Driven Design**: bounded contexts explícitos con lenguaje ubicuo.
-3. **SOLID** en cada capa.
-4. **CQRS ligero** cuando aporte claridad (especialmente reportes).
-5. **Event-Driven interno**: cambios críticos emiten Domain Events.
-6. **Offline-First**: la app de mesa opera sin red; sincroniza idempotentemente al reconectar.
-7. **Dependencia hacia adentro**: `apps → adapters → application → ports → domain`. Nunca al revés.
-
-### 2.2 Seguridad (Zero-Trust)
-1. **Cero credenciales** en código fuente, logs, mensajes de error o variables expuestas al cliente.
-2. **Cero queries SQL concatenadas**. Solo statements parametrizados o query builder tipado.
-3. **Cero `service_role`** en el cliente. El cliente usa `anon key` + JWT del usuario y opera bajo RLS.
-4. **RLS ACTIVO en TODAS las tablas** sin excepción.
-5. **TLS 1.3** y **HSTS** obligatorios.
-6. **PII cifrada** a nivel de columna con `pgcrypto` o cifrado de aplicación.
-7. **Rotación de claves** trimestral, automatizada.
-8. **2FA obligatorio** para SUPERADMIN.
-9. **Rate limiting** en endpoints sensibles.
-10. **Auditoría inmutable** append-only con hash encadenado para todas las acciones críticas.
-
-### 2.3 Calidad
-- **TypeScript strict** activo. `any` prohibido sin justificación documentada.
-- **Cobertura de tests del dominio ≥ 90%**. Casos de uso ≥ 80%. Adapters ≥ 60%.
-- **Lint y typecheck** corren en pre-commit y bloquean el push si fallan.
-- **Conventional Commits** obligatorios.
-- **ADRs** para toda decisión arquitectónica relevante en `docs/adr/`.
-
----
-
-## 3. STACK TECNOLÓGICO
-
-| Capa | Herramienta |
-|---|---|
-| Lenguaje | TypeScript 5.x (strict) |
-| Monorepo | pnpm + Turborepo |
-| HTTP | Fastify |
-| Validación bordes | Zod |
-| Acceso DB | Kysely (query builder tipado) sobre cliente Supabase |
-| DB | Supabase (PostgreSQL 15+) |
-| Migraciones | Supabase CLI / SQL versionado |
-| Frontend | React 18 + Vite + Tailwind + shadcn/ui |
-| Estado servidor | TanStack Query |
-| Estado UI | Zustand |
-| Tests unidad/integración | Vitest |
-| Tests E2E | Playwright |
-| CLI admin | oclif + Inquirer |
-| Logger | Pino |
-| Tracing | OpenTelemetry |
-| Secret mgmt | Doppler o Supabase Vault (NUNCA `.env` commiteado) |
-| CI/CD | GitHub Actions |
-| Análisis estático | Semgrep + gitleaks + Snyk |
-
----
-
-## 4. ESTRUCTURA DE CARPETAS (CANÓNICA)
+## 2. ESTRUCTURA OBLIGATORIA DEL REPO
 
 ```
 zahavi/
-├── apps/
-│   ├── web/                    # PWA React
-│   ├── cli/                    # CLI admin (oclif)
-│   └── api/                    # HTTP server (Fastify)
-├── packages/
-│   ├── domain/                 # ⚠️ PURO — NO IMPORTAR NADA EXTERNO
+├── PROYECTO_ESTADO.md            ← Estado y checklist (FUENTE ÚNICA DE VERDAD)
+├── CLAUDE.md                     ← Este archivo (constitución, reglas)
+├── README.md                     ← Intro para usuarios y desarrolladores nuevos
+├── TODO.md                       ← Deuda técnica activa, breve
+│
+├── apps/                         ← BACKENDS Y FRONTENDS DESPLEGABLES
+│   ├── api/                      ← Backend HTTP (Fastify) — adaptador de entrada
+│   ├── web/                      ← Frontend React PWA — adaptador de entrada
+│   └── cli/                      ← CLI admin (oclif) — adaptador de entrada
+│
+├── packages/                     ← CÓDIGO REUTILIZABLE POR LAS APPS
+│   ├── domain/                   ← Núcleo puro (DDD). NO importa nada externo.
 │   │   ├── shared-kernel/
 │   │   ├── identity/
 │   │   ├── catalog/
 │   │   ├── inventory/
-│   │   ├── production/
-│   │   ├── sales/
-│   │   ├── accounting/
-│   │   └── auditing/
-│   ├── application/            # Casos de uso
-│   ├── ports/                  # Interfaces que el dominio espera
-│   ├── adapters/               # Implementaciones intercambiables
+│   │   ├── production/           (futuro)
+│   │   ├── sales/                (futuro)
+│   │   ├── accounting/           (futuro)
+│   │   └── auditing/             (futuro)
+│   ├── application/              ← Casos de uso por bounded context
+│   ├── ports/                    ← Interfaces que el dominio espera
+│   ├── adapters/                 ← Implementaciones concretas (Supabase, ESC/POS, etc.)
 │   │   ├── persistence-supabase/
-│   │   ├── persistence-sqlite-offline/
-│   │   ├── messaging-supabase-realtime/
-│   │   ├── printing-escpos/
-│   │   ├── notifications-email/
+│   │   ├── persistence-sqlite-offline/  (futuro)
+│   │   ├── messaging-realtime/
+│   │   ├── printing-escpos/      (futuro)
+│   │   ├── notifications-email/  (futuro)
 │   │   └── secrets-vault/
-│   └── shared/                 # logger, errors, utils transversales
-├── db/
-│   └── migrations/
-├── docs/
-│   ├── adr/
-│   ├── domain-model/
-│   └── api/
-└── .claude/                    # Subagentes y comandos
+│   └── shared/                   ← Logger, errors transversales, utils
+│
+├── db/                           ← BASE DE DATOS
+│   ├── migrations/
+│   │   ├── up/
+│   │   └── down/
+│   └── seeds/                    ← Data inicial para desarrollo
+│
+├── docker/                       ← INFRAESTRUCTURA LOCAL
+│   ├── docker-compose.yml
+│   ├── api.Dockerfile
+│   └── web.Dockerfile
+│
+├── docs/                         ← DOCUMENTACIÓN HUMANA
+│   ├── adr/                      ← Architecture Decision Records
+│   ├── domain-model/             ← Glosarios, aggregates, mapas de contexto
+│   ├── api/                      ← OpenAPI 3.1 generado
+│   ├── runbooks/                 ← Procedimientos operativos
+│   └── user-guides/              ← Por rol: superadmin, admin, worker
+│
+└── .claude/                      ← SUBAGENTES, COMANDOS Y CONFIGURACIÓN
+    ├── settings.json
+    ├── agents/
+    └── commands/
 ```
 
-**Regla mecánica:** si abres un archivo en `packages/domain/**` y ves un `import` que no es de `domain/shared-kernel` o de TypeScript estándar (`type`, etc.), **es un bug de arquitectura**. Repórtalo y corrígelo.
+**Regla:** ningún archivo puede vivir fuera de su carpeta. Si un archivo no encaja en la estructura, crea un ADR proponiendo dónde debe ir; no lo dejes suelto en la raíz.
 
 ---
 
-## 5. BOUNDED CONTEXTS (resumen rápido)
+## 3. ARQUITECTURA — NO NEGOCIABLE
 
-| BC | Responsabilidad | Aggregates clave |
-|---|---|---|
-| **Identity** | Usuarios, roles (SUPERADMIN/ADMIN/WORKER), sesiones, 2FA | User, Role, Session |
-| **Catalog** | Menú, productos, combos, variantes, recetas, escandallo | Product, Recipe, Combo |
-| **Inventory** | Ingredientes, stock por unidad, movimientos, proveedores, alertas | Ingredient, StockItem, StockMovement, Supplier |
-| **Production** | Órdenes de producción, lotes, mermas, despachos a puntos | ProductionOrder, ProductionBatch, WasteRecord, Dispatch |
-| **Sales** | Mesas, órdenes, facturación, cobros, cierre de caja | Table, Order, Invoice, Payment, CashSession |
-| **Accounting** | Gastos, reportes, dashboards | Expense, DailyClose, Report |
-| **Auditing** | Log inmutable, analítica forense | AuditEntry |
+1. **Hexagonal (Ports & Adapters).** El dominio es puro. No importa Supabase, Fastify, React, fs, ni ningún SDK externo.
+2. **Dirección de dependencias:** `apps → adapters → application → ports → domain`. Nunca al revés.
+3. **DDD:** bounded contexts explícitos. Aggregates pequeños. VOs inmutables. Domain Events. Lenguaje ubicuo en español.
+4. **SOLID** en cada capa.
+5. **Zero-Trust:** cero credenciales en cliente; RLS en TODAS las tablas; queries parametrizadas; auditoría inmutable con hash encadenado.
+6. **Multi-tenant:** todo dato filtra por `business_unit_id`, derivado del JWT + verificado contra `user_business_units` (defensa en profundidad).
 
 ---
 
-## 6. ROLES DEL SISTEMA
+## 4. DOCUMENTACIÓN OBLIGATORIA EN CÓDIGO
 
-- **SUPERADMIN**: crea/elimina usuarios, asigna roles, ve todo, accede a auditoría forense, ve "botones de riesgo" (anulación masiva, cierre forzado), inventario consolidado.
-- **ADMIN**: ve contabilidad, producción, datos del/los punto(s) asignado(s). NO crea SUPERADMIN. NO gestiona otros admins.
-- **WORKER**: opera de cara al cliente. Toma órdenes, factura, imprime, solicita salidas de inventario. NO ve márgenes, costos ni reportes financieros.
-
-**RLS y guardas de aplicación deben hacer cumplir estos límites en TODOS los canales (web, API, CLI).**
-
----
-
-## 7. CONVENCIONES DE CÓDIGO
-
-### 7.1 Dominio
-- Entidades y VOs son **inmutables**. Mutaciones devuelven nuevas instancias.
-- Constructores **privados**, factorías estáticas con validación (`Money.of(1500, "COP")`).
-- Errores de dominio son clases tipadas: `class InsufficientStockError extends DomainError {}`. Nunca strings sueltos.
-- VOs primitivos prohibidos: `Money`, `Quantity`, `IngredientId`, `BusinessUnitId`, `Email` siempre como tipos propios.
-
-### 7.2 Casos de uso
-- Una función `execute(input): Promise<Result<Output, DomainError>>` por caso de uso.
-- Reciben puertos por inyección de dependencias (constructor o factory).
-- No conocen HTTP, no conocen DB, no conocen UI.
-
-### 7.3 Adaptadores
-- Implementan **un solo puerto** por archivo.
-- Toda llamada externa pasa por circuit breaker o timeout explícito.
-- Mapean errores externos a errores de dominio antes de devolverlos.
-
-### 7.4 SQL
-- Migraciones nombradas: `YYYYMMDDHHMM_descripcion.sql` con par `up.sql` / `down.sql`.
-- Toda tabla nueva incluye en la misma migración: PKs, FKs, índices, comentarios, **RLS habilitado y políticas**.
-- Triggers `updated_at` automáticos.
-- Auditoría: tabla `audit_log` recibe entradas vía trigger o vía aplicación con hash encadenado.
-
-### 7.5 Frontend
-- Componentes de UI **sin lógica de negocio**. Hooks para datos, server actions para mutaciones.
-- Accesibilidad WCAG AA mínimo. Targets táctiles ≥ 48px.
-- Indicador de offline persistente en UI cuando aplique.
+- **TSDoc** en TODA clase, función y método público. Mínimo: una línea de propósito + parámetros + retorno + errores que lanza.
+- **README.md** en cada paquete (`packages/<x>/README.md`) y cada app (`apps/<x>/README.md`). Contenido mínimo: propósito, cómo correr tests, contratos públicos, dependencias.
+- **ADR** en `docs/adr/` por cada decisión arquitectónica. Plantilla: contexto, decisión, alternativas, consecuencias.
+- **Aggregates** documentados en `docs/domain-model/<bc>/aggregates.md` con invariantes, comandos y eventos.
+- **Comentarios en código** explican el **por qué**, no el qué. El qué lo dice el código.
+- **Lenguaje ubicuo en español** para entidades, VOs y eventos del dominio. Identificadores técnicos pueden ir en inglés (`OrderRepository`, `eventBus`).
 
 ---
 
-## 8. FLUJO DE TRABAJO CON CLAUDE CODE
+## 5. STACK FIJO
 
-### 8.1 Antes de codificar
-1. Lee este `CLAUDE.md` (ya lo estás haciendo).
-2. Si la tarea toca arquitectura, **invoca al subagente `architect-guardian`** primero para validar el plan.
-3. Si la tarea toca seguridad o DB, **invoca al subagente `security-auditor`** o `db-reviewer`.
-4. Si vas a crear un nuevo bounded context o caso de uso, usa los slash commands `/new-bounded-context` o `/new-use-case`.
+| Capa | Herramienta |
+|---|---|
+| Lenguaje | TypeScript 5.x strict |
+| Monorepo | pnpm + Turborepo |
+| Backend HTTP | Fastify |
+| Validación bordes | Zod |
+| DB | Supabase (PostgreSQL 15+) |
+| Query builder | Kysely tipado |
+| Frontend | React 18 + Vite + Tailwind |
+| Estado servidor | TanStack Query |
+| Estado UI | Zustand |
+| Tests | Vitest (unit/integration), Playwright (E2E) |
+| CLI | oclif |
+| Logger | Pino |
+| CI/CD | GitHub Actions |
+| Análisis estático | Semgrep + gitleaks |
 
-### 8.2 Mientras codificas
-- Escribe **el test primero** (TDD) cuando trabajes en dominio o casos de uso.
-- Cada commit debe pasar: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:contract`.
-- No metas más de un cambio funcional por commit.
+---
 
-### 8.3 Antes de commitear
-- Ejecuta `/pre-commit` para correr la cadena completa de revisión.
-- Ejecuta `/security-scan` si tocaste DB, auth, o cualquier capa de adaptador externo.
+## 6. SUBAGENTES — CUÁNDO INVOCAR
 
-### 8.4 Manejo de tokens
-- **Tareas mecánicas** (formateo, búsqueda, parsing) → delega a Haiku vía Task tool.
-- **Implementación estándar** → Sonnet.
-- **Decisiones arquitectónicas, ADRs, diseño de dominio** → Opus.
-- Los subagentes ya traen el modelo configurado en su frontmatter.
+| Subagente | Cuándo |
+|---|---|
+| `architect-guardian` | Al cierre de cada bloque que toca `packages/domain/`, `packages/application/`, `packages/ports/` o `packages/adapters/` |
+| `security-auditor` | Al cierre de cualquier bloque que toca auth, persistencia, adapters externos, manejo de secretos |
+| `db-reviewer` | Cada vez que se crea o modifica una migración SQL |
+| `domain-modeler` | Al iniciar un nuevo bounded context o aggregate |
+| `test-engineer` | Cuando cobertura cae bajo mínimos o se requiere TDD complejo |
+| `ux-ui-reviewer` | Solo en `apps/web/` y solo al cierre de un bloque de UI completo |
+| `code-reviewer` | Antes del commit final de cada bloque |
+| `doc-writer` | Al cierre de un BC o de una decisión arquitectónica relevante |
 
-### 8.5 Cuándo PARARSE y preguntar
-Detente y pregunta a Julian cuando:
-- Una decisión arquitectónica no esté cubierta por este `CLAUDE.md`.
-- Encuentres ambigüedad en una regla de negocio (recetas, escandallo, formato DIAN, mermas aceptables).
-- Una migración de DB sea irreversible o tenga riesgo de pérdida de datos.
-- Se requiera aprobación de un módulo crítico de seguridad (auth, RLS, cifrado).
+**No los uses en cada turno.** Solo al cierre de un bloque lógico. Más uso = más tokens consumidos sin proporción de valor.
+
+---
+
+## 7. WORKFLOW POR TURNO (subordinado al PROTOCOLO BLINDADO superior)
+
+**Inicio del turno:**
+1. Lee `PROYECTO_ESTADO.md` (una sola vez en este turno).
+2. Identifica la "Próxima acción".
+3. Ejecuta sin preguntar si la acción tiene default razonable.
+
+**Durante la ejecución:**
+- Cada vez que crees, modifiques o elimines un archivo: actualiza el item correspondiente en `PROYECTO_ESTADO.md` (⬜ → ✅) ANTES de pasar al siguiente.
+- Cada vez que pase un test, typecheck o lint: marca su item.
+- Si descubres un item que no estaba en el checklist pero pertenece a la iteración: añádelo al checklist con su estado real.
+
+**Al cerrar el bloque:**
+1. Corre la validación obligatoria (`pnpm typecheck && pnpm lint && pnpm test`).
+2. Invoca los subagentes que correspondan según la sección 6.
+3. **Actualiza `PROYECTO_ESTADO.md` (obligatorio):**
+   - Todos los ⬜ del bloque → ✅.
+   - Recalcula porcentaje de la iteración.
+   - Redibuja barra de progreso de esa iteración.
+   - Recalcula porcentaje y barra global del proyecto.
+   - Mueve "Próxima acción" al siguiente bloque.
+   - Añade commit hash a la tabla de commits relevantes.
+4. Commit pequeño en Conventional Commits.
+
+**Si llegas al límite de contexto:** `/compact` automático y continúa.
+
+---
+
+## 8. EFICIENCIA DE TOKENS — REGLAS DURAS
+
+Estas reglas refuerzan el PROTOCOLO BLINDADO. Todas son sancionables (la acción debe revertirse y reintentarse correcta).
+
+| ❌ Prohibido | ✅ Reemplazo correcto |
+|---|---|
+| Releer `CLAUDE.md` después de la primera lectura de la sesión | Confiar en lo memorizado; releer solo si el usuario explícitamente lo pide |
+| Releer `PROYECTO_ESTADO.md` más de una vez por turno | Una lectura al inicio del turno, suficiente |
+| `ls`, `find`, `tree`, `git ls-files` para "ver qué hay" | Consultar la estructura en sección 2 de `CLAUDE.md` |
+| Leer múltiples archivos para deducir estado | Leer `PROYECTO_ESTADO.md` y confiar |
+| Read de archivo completo cuando solo necesitas una función | `Grep` para localizar + `Read` con `offset` + `limit` |
+| Invocar subagente en cada turno | Solo al cierre de bloque, según tabla sección 6 |
+| Repetir resúmenes largos al usuario en cada turno | Reportar lo esencial en 5-10 líneas |
+| Pedir confirmación para cada decisión menor | Aplicar default conservador y registrar como TODO |
+| Re-ejecutar tests sin haber cambiado código | Confiar en último resultado registrado en `PROYECTO_ESTADO.md` |
+| Generar documentación granular durante remediación | Solo TSDoc + READMEs de paquete; ADRs/runbooks esperan |
+
+**Regla sintética:** si una acción no avanza la "Próxima acción" o no actualiza `PROYECTO_ESTADO.md`, es desperdicio de tokens.
 
 ---
 
 ## 9. PROHIBICIONES TAJANTES
 
-- ❌ NO escribas `service_role` en código de cliente, en `.env.example`, en docs públicos, ni en logs.
-- ❌ NO concatenes strings en SQL.
-- ❌ NO uses `any` sin un comentario `// eslint-disable-next-line ... — justificación: ...`.
-- ❌ NO importes nada externo dentro de `packages/domain/`.
-- ❌ NO mezcles lógica de negocio en componentes React, controladores HTTP, ni triggers SQL.
-- ❌ NO subas `.env`, llaves, certificados, dumps, ni secretos al repo.
-- ❌ NO permitas que el cliente envíe `business_unit_id` libremente; siempre se deriva del JWT.
-- ❌ NO instales dependencias sin justificación documentada (cada `npm install` revisado).
-- ❌ NO desactives RLS, ni siquiera "temporalmente para debug".
-- ❌ NO escribas migraciones que rompan tablas existentes sin migración de datos.
+- ❌ Importar nada externo dentro de `packages/domain/`.
+- ❌ `service_role` de Supabase fuera de Vault/Edge Functions.
+- ❌ SQL concatenado.
+- ❌ Tablas sin RLS.
+- ❌ `any` sin justificación documentada.
+- ❌ Logs con PII no redactada.
+- ❌ Cliente enviando `business_unit_id` libremente.
+- ❌ Archivos sueltos en la raíz del repo (todo va en su carpeta canónica).
+- ❌ Mensajes de commit no Conventional Commits.
 
 ---
 
-## 10. CRITERIOS DE "DEFINITION OF DONE"
+## 10. CUÁNDO PARARSE Y PREGUNTAR
 
-Una tarea está terminada cuando:
+Solo cuando una decisión:
+- No tenga default razonable.
+- Sea irreversible (pérdida de datos, deploy a producción).
+- Cambie reglas de negocio explícitas en `PROYECTO_ESTADO.md` o ADRs.
 
-- ✅ Tests verdes (unit + integration + contract).
-- ✅ Cobertura de dominio ≥ 90% en lo modificado.
-- ✅ Typecheck y lint sin errores.
-- ✅ `architect-guardian` aprueba pureza del dominio.
-- ✅ `security-auditor` aprueba si la tarea tocó auth/DB/adapters externos.
-- ✅ ADR creado o actualizado si hubo decisión arquitectónica.
-- ✅ Documentación OpenAPI regenerada si cambiaron endpoints.
-- ✅ Commit firmado con Conventional Commits.
+En modo autónomo: si una decisión menor es ambigua, aplica el default más conservador, anótala como TODO en `PROYECTO_ESTADO.md`, y sigue. No interrumpas el flujo.
 
 ---
 
-## 11. INSTRUCCIONES DIRECTAS PARA CLAUDE
+## 11. REGLA DE ORO
 
-Cuando recibas una tarea:
-
-1. **Lee** los archivos relevantes antes de modificar.
-2. **Planea** en voz alta los pasos antes de ejecutar.
-3. **Delega** a subagentes especializados las verificaciones (no hagas tú la auditoría de seguridad si tienes un agente para eso).
-4. **Verifica** después de cada cambio con tests, no solo "creo que funciona".
-5. **Reporta** al final qué hiciste, qué probaste, qué quedó pendiente, y qué necesita decisión humana.
-
-> Si una instrucción del usuario contradice este `CLAUDE.md`, advierte el conflicto y pide confirmación explícita antes de proceder. La constitución manda salvo override consciente.
+> Si una instrucción del usuario contradice este `CLAUDE.md` o `PROYECTO_ESTADO.md`, advierte el conflicto y pide confirmación explícita antes de proceder. La constitución manda salvo override consciente.

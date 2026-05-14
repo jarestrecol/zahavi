@@ -20,6 +20,7 @@
     "@zahavi/adapter-persistence-supabase": "workspace:*",
     "@zahavi/application": "workspace:*",
     "@zahavi/domain-identity": "workspace:*",
+    "@zahavi/domain-production": "workspace:*",
     "@zahavi/ports": "workspace:*",
     "fastify": "^4.28.1",
     "fastify-plugin": "^4.5.1",

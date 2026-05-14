@@ -9,3 +9,7 @@ export type { CatalogAdapters } from './catalog/factory.js';
 export * from './inventory/index.js';
 export { createInventoryAdapters } from './inventory/factory.js';
 export type { InventoryAdapters } from './inventory/factory.js';
+
+export * from './production/index.js';
+export { createProductionAdapters } from './production/factory.js';
+export type { ProductionAdapters } from './production/factory.js';

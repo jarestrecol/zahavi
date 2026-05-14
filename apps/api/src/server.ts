@@ -7,16 +7,19 @@ import { errorHandler } from './plugins/error-handler.js';
 import identityRoutes from './routes/identity/index.js';
 import catalogRoutes from './routes/catalog/index.js';
 import inventoryRoutes from './routes/inventory/index.js';
+import productionRoutes from './routes/production/index.js';
 import type { Env } from './env.js';
 import type { IdentityComposition } from './composition/identity.js';
 import type { CatalogComposition } from './composition/catalog.js';
 import type { InventoryComposition } from './composition/inventory.js';
+import type { ProductionComposition } from './composition/production.js';
 
 export function buildServer(
   env: Env,
   identityComposition: IdentityComposition,
   catalogComposition: CatalogComposition,
   inventoryComposition: InventoryComposition,
+  productionComposition: ProductionComposition,
 ) {
   const fastify = Fastify({
     // HIGH-3: limitar body a 64 KB — aceptamos recetas y combos con varias líneas
@@ -68,6 +71,10 @@ export function buildServer(
   fastify.register(inventoryRoutes, {
     prefix: '/api/inventory',
     composition: inventoryComposition,
+  });
+  fastify.register(productionRoutes, {
+    prefix: '/api/production',
+    composition: productionComposition,
   });
 
   fastify.get('/health', async () => ({ ok: true }));

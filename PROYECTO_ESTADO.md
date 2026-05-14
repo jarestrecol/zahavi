@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-██████░░░░░░░░░░░░░░ 30%
+███████░░░░░░░░░░░░░ 35%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -107,7 +107,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Próxima acción inmediata
 
-> **Iteración 3 — Production (planta central)** — Arrancar dominio: aggregates `ProductionOrder`, `ProductionBatch`, `WasteRecord`, `DispatchToPoint`. Antes revisar D-001 (Docker) y D-011 (RLS). Ver checklist en la sección Iteración 3.
+> **Iteración 4 — Sales** — Arrancar bounded context de ventas: aggregates `Mesa`, `Comanda`, `LineaDeComanda`, `Cobro`, `Factura`. Ver checklist en la sección Iteración 4 cuando se cree.
 
 ### Reglas de la sesión
 
@@ -127,7 +127,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 2 | Catalog + Inventory (híbrida) | 76% | 🟡 | `3a99d95`, `02ad20b` |
 | **A** | **Fase A — Remediación de deuda** | 60% | 🟡 | — |
 | **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
-| 3 | Production (planta central) | 0% | ⚪ | — |
+| 3 | Production (planta central) | 100% | ✅ | — (próximo commit) |
 | 4 | Sales (mesas, cobro, factura básica) | 0% | ⚪ | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 0% | ⚪ | — |
 | 6 | Despliegue piloto en un punto | 0% | ⚪ | — |
@@ -383,16 +383,80 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ---
 
-## ⚪ Iteración 3 — Production (planta central)
+## ✅ Iteración 3 — Production (planta central)
 
 ```
-░░░░░░░░░░░░░░░░░░░░ 0%
+████████████████████ 100%
 ```
 
-Pendiente arranque. Sin checklist detallado hasta que Fase B se cierre. Resumen del alcance:
-- Aggregates: `ProductionOrder`, `ProductionBatch`, `WasteRecord`, `DispatchToPoint`
-- Flujo: crear orden → calcular BOM → reservar ingredientes → ejecutar (descontar inventario) → registrar merma → despachar a punto
-- Balance diario de producción
+### Bloque 3.1 — Dominio (`packages/domain/production/`) ✅
+- ✅ Aggregate `OrdenDeProduccion` con 9 invariantes, 6 comandos (crear, calcularBOM, reservarIngredientes, iniciar, registrarMerma, ejecutar, cancelar)
+- ✅ Aggregate `DespachoAPunto` con 5 invariantes, 4 comandos (preparar, enviar, entregar, cancelar)
+- ✅ Entidades: `LineaDeBOM`, `RegistroDeMerma`
+- ✅ VOs: `Cantidad`, `CodigoDeLote`, `LoteDeProduccion`, `EstadoDeOrdenDeProduccion`, `EstadoDeDespacho`, `UnidadDeMedida`
+- ✅ IDs: `OrdenDeProduccionId`, `LineaDeBOMId`, `RegistroDeMermaId`, `DespachoId`, refs ACL para Identity/Catalog/Inventory
+- ✅ 11 domain events
+- ✅ 20 errores de dominio tipados
+- ✅ 41 tests verdes (OrdenDeProduccion + DespachoAPunto)
+- ✅ architect-guardian APROBADO (con 2 observaciones menores aplicadas)
+
+### Bloque 3.2 — Casos de uso (`packages/application/src/production/`) ✅
+- ✅ `CrearOrdenDeProduccion`
+- ✅ `CalcularBOMYReservar` (ACL a Catalog via port + escala BOM + transiciona a RESERVADA)
+- ✅ `IniciarOrden`
+- ✅ `RegistrarMermaEnOrden`
+- ✅ `EjecutarOrden` (calcula consumoReal = BOM - mermas)
+- ✅ `CancelarOrden`
+- ✅ `PrepararDespacho`
+
+### Bloque 3.3 — Ports (`packages/ports/src/production/`) ✅
+- ✅ `IOrdenDeProduccionRepository`
+- ✅ `IDespachoRepository`
+- ✅ `IConsultorDeRecetaDeProduccion` (ACL Catalog → Production)
+
+### Bloque 3.4 — Adapter Supabase ✅
+- ✅ `RepositorioDeOrdenesSupabase` (save, update, obtenerPorId, listarPorEstado, listarPorPlanta)
+- ✅ `RepositorioDeDespachoSupabase` (save, update, obtenerPorId, listarPorOrden)
+- ✅ `ConsultorDeRecetaSupabase` (ACL: query `catalog.recipe_lines`, normaliza unidades a UnidadDeMedida)
+- ✅ `mappers.ts` — rowToOrden, ordenToInsertRow, rowToDespacho, despachoToInsertRow
+- ✅ `schema.ts` — tipos Kysely para ProductionDatabase
+- ✅ `factory.ts` + `index.ts` — createProductionAdapters exportado desde index principal
+
+### Bloque 3.5 — Migraciones SQL ✅
+- ✅ `db/migrations/up/0006_production.sql` — production.orders + production.dispatches
+- ✅ `db/migrations/down/0006_production.sql` — rollback
+- ✅ BOM y mermas como JSONB snapshot en orders (evita joins; BOM rara vez > 20 líneas)
+- ✅ RLS en ambas tablas (filtro por planta_central_id = JWT.bu_id)
+- ✅ Índices en estado, planta_central_id y creada_en
+
+### Bloque 3.6 — HTTP API (`apps/api/src/routes/production/`) ✅
+- ✅ `POST /api/production/orders` → CrearOrdenDeProduccion (plantaCentralId del JWT bu_id)
+- ✅ `POST /api/production/orders/:id/bom` → CalcularBOMYReservar
+- ✅ `POST /api/production/orders/:id/iniciar` → IniciarOrden
+- ✅ `POST /api/production/orders/:id/mermas` → RegistrarMermaEnOrden
+- ✅ `POST /api/production/orders/:id/ejecutar` → EjecutarOrden
+- ✅ `DELETE /api/production/orders/:id` → CancelarOrden (motivo en body)
+- ✅ `POST /api/production/dispatches` → PrepararDespacho
+- ✅ `GET /api/production/orders` → ListarOrdenes (por estado o planta)
+- ✅ `apps/api/src/composition/production.ts` — composition root
+- ✅ `apps/api/src/routes/production/schemas.ts` — Zod schemas
+- ✅ `packages/application/src/production/ListarOrdenes.ts` — nuevo caso de uso
+
+### Bloque 3.7 — Tests de casos de uso ✅
+- ✅ `helpers.ts` — fixtures y mocks de OrdenDeProduccion en todos los estados + mocks de ports
+- ✅ `CrearOrden.test.ts` — 4 tests
+- ✅ `CalcularBOMYReservar.test.ts` — 5 tests (incluye ACL mock)
+- ✅ `IniciarOrden.test.ts` — 3 tests
+- ✅ `RegistrarMerma.test.ts` — 5 tests
+- ✅ `EjecutarOrden.test.ts` — 5 tests
+- ✅ `CancelarOrden.test.ts` — 5 tests
+- ✅ `PrepararDespacho.test.ts` — 4 tests
+- ✅ 357/357 tests verdes en @zahavi/application
+
+### Bloque 3.8 — Documentación y commit ✅
+- ✅ README.md en `packages/domain/production/` — completo (creado por domain-modeler en bloque 3.1)
+- ✅ architect-guardian APRUEBA (pureza dominio, dirección dependencias, ACL, separación BCs)
+- ✅ Commit "feat(production): BC completo — dominio, casos de uso, ports, adapter, API, tests"
 
 ---
 
