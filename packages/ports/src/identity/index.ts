@@ -10,3 +10,4 @@ export type { GeneradorDeIds } from './GeneradorDeIds.js';
 export type { PublicadorDeDomainEvents } from './PublicadorDeDomainEvents.js';
 export type { NotificadorDeIdentidad } from './NotificadorDeIdentidad.js';
 export type { PoliticaDeSesionPorRol } from './PoliticaDeSesionPorRol.js';
+export type { RepositorioDeUnidadesDeNegocio } from './RepositorioDeUnidadesDeNegocio.js';

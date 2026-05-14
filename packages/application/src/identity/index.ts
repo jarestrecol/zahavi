@@ -21,3 +21,9 @@ export type { EntradaRevocarSesion } from './RevocarSesion.js';
 
 export { CerrarSesion } from './CerrarSesion.js';
 export type { EntradaCerrarSesion } from './CerrarSesion.js';
+
+export { CambiarContextoBusinessUnit } from './CambiarContextoBusinessUnit.js';
+export type {
+  EntradaCambiarContextoBusinessUnit,
+  SalidaCambiarContextoBusinessUnit,
+} from './CambiarContextoBusinessUnit.js';

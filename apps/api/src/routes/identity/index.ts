@@ -7,6 +7,7 @@ import {
   asignarRolSchema,
   iniciarSesionSchema,
   confirmarTotpSchema,
+  cambiarContextoSchema,
 } from './schemas.js';
 
 export interface IdentityRouteOptions {
@@ -38,6 +39,7 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
           sub: result.value.usuarioId,
           sesion_id: result.value.sesionId,
           zahavi_rol: result.value.rol,
+          bu_id: result.value.businessUnitId,
         },
         { expiresIn: ttlSeconds },
       );
@@ -154,6 +156,35 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
       });
       if (!result.ok) throw result.error;
       return reply.code(204).send();
+    },
+  });
+
+  // ── POST /contexto/cambiar — CambiarContextoBusinessUnit (ADMIN / SUPERADMIN) ──
+  fastify.route({
+    method: 'POST',
+    url: '/contexto/cambiar',
+    config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
+    preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
+    handler: async (request, reply) => {
+      const body = cambiarContextoSchema.parse(request.body);
+      const result = await composition.cambiarContexto.execute({
+        usuarioId: request.user.sub,
+        nuevoBusinessUnitId: body.nuevoBusinessUnitId,
+      });
+      if (!result.ok) throw result.error;
+
+      // Emitir JWT nuevo con bu_id actualizado; preservar el TTL residual del token original
+      // para evitar "refresh implícito" por switch-context repetido.
+      const { sub, sesion_id, zahavi_rol } = request.user;
+      const originalExp = (request.user as unknown as { exp?: number }).exp;
+      const ahora = Math.floor(Date.now() / 1000);
+      const ttlResidual = originalExp ? Math.max(1, originalExp - ahora) : MAX_TTL_SECONDS;
+      const token = fastify.jwt.sign(
+        { sub, sesion_id, zahavi_rol, bu_id: result.value.businessUnitId },
+        { expiresIn: Math.min(ttlResidual, MAX_TTL_SECONDS) },
+      );
+
+      return reply.code(200).send({ token, businessUnitId: result.value.businessUnitId });
     },
   });
 };

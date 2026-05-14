@@ -8,4 +8,5 @@ export { RelojSistema } from './RelojSistema.js';
 export { GeneradorDeIdsUuid } from './GeneradorDeIdsUuid.js';
 export { PoliticaDeSesionPorRolDefecto } from './PoliticaDeSesionPorRolDefecto.js';
 export { PublicadorDeEventosNoop } from './PublicadorDeEventosNoop.js';
+export { RepositorioDeUnidadesSupabase } from './RepositorioDeUnidadesSupabase.js';
 export type { IdentityDatabase } from './schema.js';

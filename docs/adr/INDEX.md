@@ -12,7 +12,7 @@ Formato: `YYYYMMDD-titulo.md` (fecha de decisión + slug corto).
 |---|---|---|---|---|
 | [ADR-0001](./0001-arquitectura-hexagonal-y-bounded-contexts.md) | 2026-05-05 | Arquitectura Hexagonal y Bounded Contexts | Aceptado | Arquitectura |
 | [ADR-0002](./20260513-acl-cross-bc-escandallo.md) | 2026-05-13 | Patrón ACL cross-BC para CalcularEscandallo | Aceptado | Arquitectura, Integración cross-BC |
-| [ADR-0003](./20260513-business-unit-id-from-jwt.md) | 2026-05-13 | businessUnitId derivado del JWT | Pendiente | Seguridad, Autorización |
+| [ADR-0003](./20260513-business-unit-id-from-jwt.md) | 2026-05-13 | businessUnitId derivado del JWT | Aceptado (RLS defense-in-depth: D-011) | Seguridad, Autorización |
 
 ---
 

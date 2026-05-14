@@ -57,3 +57,7 @@ export const iniciarSesionSchema = z.discriminatedUnion('tipo', [
 export const confirmarTotpSchema = z.object({
   codigoTotp: z.string().length(6),
 });
+
+export const cambiarContextoSchema = z.object({
+  nuevoBusinessUnitId: z.string().uuid('El identificador de unidad debe ser un UUID válido'),
+});

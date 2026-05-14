@@ -7,6 +7,8 @@ export interface JwtPayload {
   sub: string;
   sesion_id: string;
   zahavi_rol: Rol;
+  /** UUID de la unidad de negocio activa. null para SUPERADMIN sin contexto fijado. */
+  bu_id: string | null;
 }
 
 declare module '@fastify/jwt' {

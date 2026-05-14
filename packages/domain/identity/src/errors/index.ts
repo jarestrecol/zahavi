@@ -172,3 +172,17 @@ export class EmailYaRegistradoError extends DomainError {
     super(`El email "${email}" ya está registrado.`);
   }
 }
+
+export class AccesoDenegadoError extends DomainError {
+  readonly code = 'IDENTITY_ACCESO_DENEGADO';
+  constructor(razon: string) {
+    super(`Acceso denegado: ${razon}`);
+  }
+}
+
+export class UnidadDeNegocioNoAsignadaError extends DomainError {
+  readonly code = 'IDENTITY_UNIDAD_NO_ASIGNADA';
+  constructor() {
+    super('El usuario no tiene ninguna unidad de negocio asignada.');
+  }
+}

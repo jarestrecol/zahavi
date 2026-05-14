@@ -4,6 +4,7 @@ import type {
   RepositorioDeUsuarios,
   RepositorioDeSesiones,
   RepositorioDeDispositivosAutorizados,
+  RepositorioDeUnidadesDeNegocio,
   VerificadorDeContrasena,
   VerificadorDePin,
   VerificadorDeTotp,
@@ -16,6 +17,7 @@ import type { IdentityDatabase } from './schema.js';
 import { RepositorioDeUsuariosSupabase } from './RepositorioDeUsuariosSupabase.js';
 import { RepositorioDeSesionesSupabase } from './RepositorioDeSesionesSupabase.js';
 import { RepositorioDeDispositivosSupabase } from './RepositorioDeDispositivosSupabase.js';
+import { RepositorioDeUnidadesSupabase } from './RepositorioDeUnidadesSupabase.js';
 import { VerificadorDeContrasenaBcrypt } from './VerificadorDeContrasenaBcrypt.js';
 import { VerificadorDePinBcrypt } from './VerificadorDePinBcrypt.js';
 import { VerificadorDeTotpOtplib } from './VerificadorDeTotpOtplib.js';
@@ -28,6 +30,7 @@ export interface IdentityAdapters {
   repositorioDeUsuarios: RepositorioDeUsuarios;
   repositorioDeSesiones: RepositorioDeSesiones;
   repositorioDeDispositivos: RepositorioDeDispositivosAutorizados;
+  repositorioDeUnidades: RepositorioDeUnidadesDeNegocio;
   verificadorDeContrasena: VerificadorDeContrasena;
   verificadorDePin: VerificadorDePin;
   verificadorDeTotp: VerificadorDeTotp;
@@ -50,6 +53,7 @@ export function createIdentityAdapters(databaseUrl: string): IdentityAdapters {
     repositorioDeUsuarios: new RepositorioDeUsuariosSupabase(db),
     repositorioDeSesiones: new RepositorioDeSesionesSupabase(db),
     repositorioDeDispositivos: new RepositorioDeDispositivosSupabase(db),
+    repositorioDeUnidades: new RepositorioDeUnidadesSupabase(db),
     verificadorDeContrasena: new VerificadorDeContrasenaBcrypt(),
     verificadorDePin: new VerificadorDePinBcrypt(),
     verificadorDeTotp: new VerificadorDeTotpOtplib(),

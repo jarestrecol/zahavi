@@ -54,9 +54,26 @@ export interface IdentityHistorialEstadosDispositivoTable {
   orden: number;
 }
 
+export interface IdentityBusinessUnitsTable {
+  id: string;
+  nombre: string;
+  tipo: string;
+  estado: string;
+  creado_en: Timestamp;
+}
+
+export interface IdentityUserBusinessUnitsTable {
+  user_id: string;
+  business_unit_id: string;
+  asignado_en: Timestamp;
+  asignado_por: string | null;
+}
+
 export interface IdentityDatabase {
   'identity.usuarios': IdentityUsuariosTable;
   'identity.sesiones': IdentitySesionesTable;
   'identity.dispositivos_autorizados': IdentityDispositivosAutorizadosTable;
   'identity.historial_estados_dispositivo': IdentityHistorialEstadosDispositivoTable;
+  'identity.business_units': IdentityBusinessUnitsTable;
+  'identity.user_business_units': IdentityUserBusinessUnitsTable;
 }

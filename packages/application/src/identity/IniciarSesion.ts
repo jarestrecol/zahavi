@@ -27,6 +27,7 @@ import type {
   RepositorioDeUsuarios,
   RepositorioDeSesiones,
   RepositorioDeDispositivosAutorizados,
+  RepositorioDeUnidadesDeNegocio,
   VerificadorDeContrasena,
   VerificadorDePin,
   VerificadorDeTotp,
@@ -56,6 +57,8 @@ export interface SalidaIniciarSesion {
   rol: Rol;
   dispositivoId: string | null;
   expiraEnAbsolutoMs: number;
+  /** UUID de la unidad activa para el JWT. null para SUPERADMIN o usuarios sin asignacion. */
+  businessUnitId: string | null;
 }
 
 type ErrorIniciarSesion =
@@ -83,6 +86,7 @@ export class IniciarSesion {
     private readonly ids: GeneradorDeIds,
     private readonly politicaPorRol: PoliticaDeSesionPorRol,
     private readonly eventos: PublicadorDeDomainEvents,
+    private readonly reposUnidades: RepositorioDeUnidadesDeNegocio,
   ) {}
 
   async execute(
@@ -213,12 +217,19 @@ export class IniciarSesion {
     await this.reposSesiones.guardar(sesion);
     await this.eventos.publicar(sesion.pullDomainEvents());
 
+    // Derivar la unidad activa del JWT: WORKER y ADMIN con una sola unidad la reciben auto-asignada.
+    // SUPERADMIN y usuarios sin asignacion reciben null y deben usar switch-context explicitamente.
+    const unidades = await this.reposUnidades.listarIdsPorUsuario(usuarioId);
+    const businessUnitId =
+      rol !== 'SUPERADMIN' && unidades.length === 1 ? (unidades[0] ?? null) : null;
+
     return ok({
       sesionId: sesionId.toString(),
       usuarioId: usuarioId.toString(),
       rol,
       dispositivoId: dispositivoId?.toString() ?? null,
       expiraEnAbsolutoMs: sesion.expiraEnAbsoluto.toTimestamp(),
+      businessUnitId,
     });
   }
 

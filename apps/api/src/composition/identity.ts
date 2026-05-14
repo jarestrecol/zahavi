@@ -6,6 +6,7 @@ import {
   ConfirmarTotp,
   RevocarSesion,
   CerrarSesion,
+  CambiarContextoBusinessUnit,
 } from '@zahavi/application';
 import type { IdentityAdapters } from '@zahavi/adapter-persistence-supabase';
 
@@ -17,6 +18,7 @@ export interface IdentityComposition {
   confirmarTotp: ConfirmarTotp;
   revocarSesion: RevocarSesion;
   cerrarSesion: CerrarSesion;
+  cambiarContexto: CambiarContextoBusinessUnit;
 }
 
 export function createIdentityComposition(adapters: IdentityAdapters): IdentityComposition {
@@ -24,6 +26,7 @@ export function createIdentityComposition(adapters: IdentityAdapters): IdentityC
     repositorioDeUsuarios,
     repositorioDeSesiones,
     repositorioDeDispositivos,
+    repositorioDeUnidades,
     verificadorDeContrasena,
     verificadorDePin,
     verificadorDeTotp,
@@ -61,6 +64,7 @@ export function createIdentityComposition(adapters: IdentityAdapters): IdentityC
       generadorDeIds,
       politicaPorRol,
       publicadorDeEventos,
+      repositorioDeUnidades,
     ),
     iniciarEnrolamientoTotp: new IniciarEnrolamientoTotp(
       repositorioDeUsuarios,
@@ -89,5 +93,6 @@ export function createIdentityComposition(adapters: IdentityAdapters): IdentityC
       generadorDeIds,
       publicadorDeEventos,
     ),
+    cambiarContexto: new CambiarContextoBusinessUnit(repositorioDeUsuarios, repositorioDeUnidades),
   };
 }

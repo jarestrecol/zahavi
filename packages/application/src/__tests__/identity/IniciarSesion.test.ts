@@ -4,6 +4,7 @@ import {
   makeMockReposUsuarios,
   makeMockReposSesiones,
   makeMockReposDispositivos,
+  makeMockReposUnidades,
   makeMockVerifContrasena,
   makeMockVerifPin,
   makeMockVerifTotp,
@@ -16,6 +17,7 @@ import {
   UUID_USUARIO,
   UUID_SESION,
   UUID_DISPOSITIVO,
+  UUID_BUSINESS_UNIT,
   HASH_PIN_VALIDO,
 } from './helpers.js';
 
@@ -27,6 +29,7 @@ function makeUseCase(
     pinOk?: boolean;
     totpOk?: boolean;
     conteoSesiones?: number;
+    unidades?: string[];
   } = {},
 ) {
   const usuario = overrides.usuario !== undefined ? overrides.usuario : crearUsuarioNavegador();
@@ -53,6 +56,9 @@ function makeUseCase(
   const ids = makeMockIds();
   const politica = makeMockPolitica();
   const eventos = makeMockEventos();
+  const reposUnidades = makeMockReposUnidades({
+    listarIdsPorUsuario: vi.fn().mockResolvedValue(overrides.unidades ?? [UUID_BUSINESS_UNIT]),
+  });
   const uc = new IniciarSesion(
     repos,
     reposSesiones,
@@ -64,8 +70,9 @@ function makeUseCase(
     ids,
     politica,
     eventos,
+    reposUnidades,
   );
-  return { uc, repos, reposSesiones, verifContrasena, verifPin, verifTotp, eventos };
+  return { uc, repos, reposSesiones, verifContrasena, verifPin, verifTotp, eventos, reposUnidades };
 }
 
 const ENTRADA_NAVEGADOR = {
@@ -235,6 +242,7 @@ describe('IniciarSesion', () => {
         makeMockIds(),
         makeMockPolitica(),
         makeMockEventos(),
+        makeMockReposUnidades(),
       );
       const result = await uc2.execute(ENTRADA_TABLET);
 
@@ -256,6 +264,7 @@ describe('IniciarSesion', () => {
         makeMockIds(),
         makeMockPolitica(),
         makeMockEventos(),
+        makeMockReposUnidades(),
       );
       const result = await uc2.execute(ENTRADA_TABLET);
 
@@ -277,6 +286,7 @@ describe('IniciarSesion', () => {
         makeMockIds(),
         makeMockPolitica(),
         makeMockEventos(),
+        makeMockReposUnidades(),
       );
       const result = await uc2.execute(ENTRADA_TABLET);
 

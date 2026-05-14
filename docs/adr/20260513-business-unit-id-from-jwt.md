@@ -1,6 +1,6 @@
 # ADR-0003: businessUnitId derivado del JWT (Zero-Trust en Catalog de datos)
 
-- **Estado:** Pendiente
+- **Estado:** Aceptado — implementación core completa (JWT + caso de uso + endpoint); RLS defense-in-depth pendiente (D-011)
 - **Fecha:** 2026-05-13
 - **Decisores:** Julian Restrepo (SUPERADMIN / Arquitecto Principal)
 - **Categoría:** Seguridad, Autorización
