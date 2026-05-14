@@ -16,7 +16,9 @@
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff",
     "db:status": "supabase status",
-    "db:seed": "node --env-file=.env scripts/db-seed.mjs"
+    "db:seed": "node --env-file=.env scripts/db-seed.mjs",
+    "db:migrate": "node --env-file=.env scripts/db-migrate.mjs",
+    "db:migrate:dry": "node --env-file=.env scripts/db-migrate.mjs --dry-run"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

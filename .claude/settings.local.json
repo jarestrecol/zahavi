@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(sql|ts\\)$\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:d.get\\(k\\) for k in ['name','scripts','dependencies']}, indent=2\\)\\)\")",
+      "Bash(mkdir \"c:\\\\Users\\\\Ing. Julian Restrepo\\\\Proyectos\\\\zahavi\\\\docker\")",
+      "Bash(git rm *)",
+      "Bash(dir db *)",
+      "mcp__claude_ai_Supabase__list_projects"
+    ]
+  }
+}
