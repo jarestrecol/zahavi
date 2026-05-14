@@ -15,7 +15,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff",
-    "db:status": "supabase status"
+    "db:status": "supabase status",
+    "db:seed": "node --env-file=.env scripts/db-seed.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

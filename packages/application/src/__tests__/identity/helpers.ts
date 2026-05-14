@@ -22,6 +22,7 @@ import type {
   RepositorioDeUsuarios,
   RepositorioDeSesiones,
   RepositorioDeDispositivosAutorizados,
+  RepositorioDeUnidadesDeNegocio,
   VerificadorDeContrasena,
   VerificadorDePin,
   VerificadorDeTotp,
@@ -43,6 +44,7 @@ export const UUID_SESION = '22222222-2222-2222-2222-222222222222';
 export const UUID_DISPOSITIVO = '33333333-3333-3333-3333-333333333333';
 export const UUID_ACTOR = '44444444-4444-4444-4444-444444444444';
 export const UUID_EVENTO = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+export const UUID_BUSINESS_UNIT = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 
 export const AHORA = FechaHora.deTimestamp(1_700_000_000_000);
 export const HASH_CONTRASENA_VALIDO = HashDeContrasena.deCadenaYaHasheada(
@@ -234,4 +236,14 @@ export function makeMockPolitica(): PoliticaDeSesionPorRol {
 
 export function makeMockEventos(): PublicadorDeDomainEvents {
   return { publicar: vi.fn().mockResolvedValue(undefined) };
+}
+
+export function makeMockReposUnidades(
+  overrides: Partial<RepositorioDeUnidadesDeNegocio> = {},
+): RepositorioDeUnidadesDeNegocio {
+  return {
+    listarIdsPorUsuario: vi.fn().mockResolvedValue([UUID_BUSINESS_UNIT]),
+    perteneceAlUsuario: vi.fn().mockResolvedValue(true),
+    ...overrides,
+  };
 }

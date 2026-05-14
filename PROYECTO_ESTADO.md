@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-█████░░░░░░░░░░░░░░░ 25%
+██████░░░░░░░░░░░░░░ 30%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -21,7 +21,7 @@
 | 1 | Identity                          | `████████████░░░░░░░░` | 59% | 🟡 |
 | 2 | Catalog + Inventory (híbrida)     | `███████████████░░░░░` | 76% | 🟡 |
 | **A** | **Remediación de deuda crítica** | `████████████░░░░░░░░` | **60%** | 🟡 |
-| **B** | **Vertical Slice Visible**       | `░░░░░░░░░░░░░░░░░░░░` | **0%** | 🔴 |
+| **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
 | 3 | Production (planta central)       | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 | 4 | Sales                             | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 | 5 | Dashboard + cierre + reportes     | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
@@ -107,7 +107,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Próxima acción inmediata
 
-> **Bloque A.4** — Documentación mínima obligatoria: TSDoc en clases/funciones públicas + README.md por paquete + ADR-0001 (arquitectura hexagonal).
+> **Iteración 3 — Production (planta central)** — Arrancar dominio: aggregates `ProductionOrder`, `ProductionBatch`, `WasteRecord`, `DispatchToPoint`. Antes revisar D-001 (Docker) y D-011 (RLS). Ver checklist en la sección Iteración 3.
 
 ### Reglas de la sesión
 
@@ -126,7 +126,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 1 | Identity | 59% | 🟡 | `fda7f3c` |
 | 2 | Catalog + Inventory (híbrida) | 76% | 🟡 | `3a99d95`, `02ad20b` |
 | **A** | **Fase A — Remediación de deuda** | 60% | 🟡 | — |
-| **B** | **Fase B — Vertical Slice Visible** | 0% | 🔴 | — |
+| **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `pendiente commit` |
 | 3 | Production (planta central) | 0% | ⚪ | — |
 | 4 | Sales (mesas, cobro, factura básica) | 0% | ⚪ | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 0% | ⚪ | — |
@@ -284,7 +284,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ## 🟡 Fase A — Remediación de deuda crítica
 
 ```
-████████████░░░░░░░░ 60%
+████████████████░░░░ 80%
 ```
 
 **Objetivo:** cerrar la deuda de seguridad multi-tenant y completar los huecos de Iteración 1 antes del vertical slice visible.
@@ -319,57 +319,66 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ ADR-0003 actualizado a Aceptado + D-011 registrada para RLS
 - ✅ `docs/adr/INDEX.md` actualizado
 
-### Bloque A.5 — Commit y actualización de estado
-- ⬜ Commit "feat: cierre deuda multi-tenant + completar Identity + docs mínima"
-- ⬜ Actualizar este archivo: marcar Fase A como completa, mover Próxima acción a Fase B
+### Bloque A.5 — Commit y actualización de estado ✅
+- ✅ Commit `5d5a362` "feat(identity): completar ADR-0003 multi-tenant + switch-context + docs mínima"
+- ✅ Este archivo actualizado: Fase A al 80% (RLS pendiente D-011), próxima acción = Fase B Bloque B.1
 
 ---
 
-## 🔴 Fase B — Vertical Slice Visible
+## ✅ Fase B — Vertical Slice Visible
 
 ```
-░░░░░░░░░░░░░░░░░░░░ 0%
+████████████████████ 95%
 ```
+
+> Nota: 95% porque B.4 (validación Docker end-to-end real) queda bloqueado por D-001. Todo lo demás cerrado.
 
 **Objetivo:** que Julian pueda abrir un navegador y ver la app funcionando end-to-end.
 
-### Bloque B.1 — Infraestructura local
-- ⬜ Crear `docker/docker-compose.yml` que levante Supabase local + API + Web
-- ⬜ Crear `docker/api.Dockerfile` y `docker/web.Dockerfile`
-- ⬜ `docker compose up` deja todo corriendo
-- ⬜ Documentar arranque en `README.md` raíz: "3 comandos para correr todo"
+### Bloque B.1 — Infraestructura local ✅ (parcial)
+- ✅ `docker/docker-compose.yml`: PostgreSQL (supabase/postgres:15) + API (Fastify) + Web (Vite)
+- ✅ `docker/api.Dockerfile`: multi-stage build, monorepo pnpm
+- ✅ `docker/web.Dockerfile`: Vite dev server con hot reload
+- ✅ `.env.example` con todas las variables documentadas
+- ✅ `README.md` raíz con sección "Cómo arrancar en 3 comandos"
+- ⬜ Validación `docker compose up --build` — pendiente cuando Docker disponible (D-001)
 
-### Bloque B.2 — Seed data
-- ⬜ `db/seeds/01_business_units.sql`: 2 unidades (Planta Central, Punto 1)
-- ⬜ `db/seeds/02_users.sql`: 1 SUPERADMIN (`julian@zahavi.local`), 1 ADMIN, 1 WORKER
-- ⬜ `db/seeds/03_categories.sql`: Pan, Pastelería, Bebidas, Empaques
-- ⬜ `db/seeds/04_ingredients.sql`: 20 ingredientes típicos de panadería con stock inicial
-- ⬜ `db/seeds/05_products.sql`: 10 productos representativos con sus recetas
-- ⬜ Script `pnpm db:seed` que aplica todos los seeds
+### Bloque B.2 — Seed data ✅
+- ✅ `db/seeds/01_business_units.sql`: Planta Central + Punto 1
+- ✅ `db/seeds/02_users.sql`: SUPERADMIN (julian@zahavi.local), ADMIN, WORKER + asignaciones
+- ✅ `db/seeds/03_categories.sql`: Pan, Pastelería, Bebidas, Empaques
+- ✅ `db/seeds/04_ingredients.sql`: 20 ingredientes con stock en Planta Central (schemas verificados)
+- ✅ `db/seeds/05_products.sql`: 10 productos con variantes y 2 recetas (schemas verificados)
+- ✅ Script `pnpm db:seed` (`scripts/db-seed.mjs`) que aplica todos en orden
 
-### Bloque B.3 — Frontend mínimo (`apps/web/`)
-- ⬜ Setup Vite + React + Tailwind + TanStack Query + Zustand
-- ⬜ Layout base con header (usuario logueado) + sidebar con navegación
-- ⬜ Pantalla **Login**: email + contraseña + 2FA opcional, conecta con `/auth/login`
-- ⬜ Pantalla **Productos**: lista con búsqueda y filtro por categoría, consume API Catalog
-- ⬜ Pantalla **Inventario**: lista de ingredientes con stock por unidad de negocio, consume API Inventory
-- ⬜ Selector de "Contexto activo" en header (solo ADMIN/SUPERADMIN, consume `/auth/switch-context`)
-- ⬜ Estados de UI: loading, empty, error, offline indicator
-- ⬜ Configurar cliente HTTP con manejo de JWT y refresh
+### Bloque B.3 — Frontend mínimo (`apps/web/`) ✅
+- ✅ Setup Vite + React + Tailwind + TanStack Query + Zustand (`apps/web/package.json`, `vite.config.ts`, `tailwind.config.js`, `tsconfig.json`)
+- ✅ Layout base con header (usuario logueado) + sidebar con navegación (`src/layouts/AppLayout.tsx`)
+- ✅ Pantalla **Login**: email + contraseña + 2FA opcional, conecta con `/auth/login` (`src/pages/Login.tsx`)
+- ✅ Pantalla **Productos**: lista con búsqueda y filtro por categoría, consume API Catalog (`src/pages/Products.tsx`)
+- ✅ Pantalla **Inventario**: lista de ingredientes con stock por unidad de negocio, consume API Inventory (`src/pages/Inventory.tsx`)
+- ✅ Selector de "Contexto activo" en header (solo ADMIN/SUPERADMIN, consume `/contexto/cambiar`) (`src/components/SwitchContext.tsx`)
+- ✅ Estados de UI: loading skeleton, empty state, error banner en las 3 pantallas
+- ✅ Cliente HTTP con JWT interceptor y redirect 401 (`src/lib/api.ts`)
+- ✅ Zustand auth store con persistencia localStorage (`src/stores/auth.ts`)
+- ✅ RequireAuth + RequireRole (WORKER bloqueado de /inventario) (`src/App.tsx`)
+- ✅ Typecheck + lint + tests: 20/20 typecheck, 20/20 lint, 27/27 tests verdes
 
-### Bloque B.4 — Validación end-to-end
-- ⬜ `docker compose up` levanta todo
-- ⬜ Login con `julian@zahavi.local` funciona y devuelve token
-- ⬜ Lista de productos carga desde seed data
-- ⬜ Lista de inventario carga desde seed data
-- ⬜ Cambio de contexto del ADMIN funciona y refleja en las listas
-- ⬜ WORKER NO ve la pantalla de Inventario (RBAC)
-- ⬜ Capturas o descripción detallada de las 3 pantallas
+### Bloque B.4 — Validación end-to-end ⬜ (parcial — requiere Docker D-001)
+- ⬜ `docker compose up` levanta todo — bloqueado por D-001 (virtualización BIOS)
+- ⬜ Login con `julian@zahavi.local` funciona y devuelve token — pendiente Docker
+- ⬜ Lista de productos carga desde seed data — pendiente Docker
+- ⬜ Lista de inventario carga desde seed data — pendiente Docker
+- ⬜ Cambio de contexto del ADMIN funciona y refleja en las listas — pendiente Docker
+- ⬜ WORKER NO ve la pantalla de Inventario (RBAC) — verificado en código (RequireRole + guard `roles.includes(rol)`)
+- ✅ Flujo completo revisado estáticamente: code-reviewer + ux-ui-reviewer aprobaron con observaciones registradas en D-006, A-001, A-002
 
-### Bloque B.5 — Cierre de Fase B
-- ⬜ README.md raíz actualizado con sección "Cómo arrancar"
-- ⬜ TODO.md actualizado con deuda visual aceptada (sin tema oscuro, sin i18n completo, sin offline-first)
-- ⬜ Commit "feat: vertical slice visible — login + catalog + inventory UI + seed + docker"
+### Bloque B.5 — Cierre de Fase B ✅
+- ✅ README.md raíz con sección "Cómo arrancar en 3 comandos" ya presente (creado en B.1)
+- ✅ TODO.md creado con deuda aceptada: D-001/D-002/D-003/D-005/D-006/D-008/D-009/D-010/D-011/A-001/A-002
+- ✅ Correcciones code-reviewer aplicadas: token desde Zustand, parseRol validado, try/catch en SwitchContext, encodeURIComponent en Inventory, Rol[] en App.tsx
+- ✅ Typecheck + lint finales verdes (20/20 + 20/20)
+- ⬜ Commit "feat: vertical slice visible — login + catalog + inventory UI + seed + docker" — pendiente cierre de esta actualización
 - ⬜ Actualizar este archivo: Fase B completa, mover Próxima acción a Iteración 3
 
 ---
@@ -462,6 +471,7 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `fda7f3c` | Iteración 1 | Identity completo (dominio + IniciarSesion + tests) |
 | `3a99d95` | Iteración 2 Bloque 8 | API HTTP Fastify Catalog + Inventory + ACL |
 | `02ad20b` | Iteración 2 Bloque 9 | Documentación ADR-0002 + ADR-0003 + INDEX |
+| `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
 
 ---
 
