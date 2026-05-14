@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-███████░░░░░░░░░░░░░ 35%
+█████████░░░░░░░░░░░ 48%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -22,16 +22,16 @@
 | 2 | Catalog + Inventory (híbrida)     | `███████████████░░░░░` | 76% | 🟡 |
 | **A** | **Remediación de deuda crítica** | `████████████░░░░░░░░` | **60%** | 🟡 |
 | **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
-| 3 | Production (planta central)       | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
-| 4 | Sales                             | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
+| 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
+| 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 | 6 | Despliegue piloto                 | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 | 7 | Refinamiento                      | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
 
 **Métricas clave:**
-- Iteraciones iniciadas: **3 de 10**
-- Iteraciones completadas al 100%: **0 de 10**
-- Bounded contexts del dominio terminados: **3 de 7** (Identity, Catalog, Inventory)
+- Iteraciones iniciadas: **4 de 10**
+- Iteraciones completadas al 100%: **1 de 10** (Production)
+- Bounded contexts del dominio terminados: **4 de 7** (Identity, Catalog, Inventory, Production) — Sales en progreso
 - Frontend funcional: `░░░░░░░░░░░░░░░░░░░░` 0%
 - CLI admin funcional: `░░░░░░░░░░░░░░░░░░░░` 0%
 - Sistema desplegable end-to-end: `░░░░░░░░░░░░░░░░░░░░` 0%
@@ -102,12 +102,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 **Fecha:** _Se actualiza al inicio de cada sesión._
 **Modo de trabajo:** Autónomo con verificación al cierre.
-**Iteración activa:** Fase A (Remediación) → Fase B (Vertical Slice Visible).
-**Bloque actual:** _Ver "Próxima acción" abajo._
+**Iteración activa:** Iteración 4 — Sales.
+**Bloque actual:** Iteración 5 — Dashboard + cierre de caja + reportes.
 
 ### Próxima acción inmediata
 
-> **Iteración 4 — Sales** — Arrancar bounded context de ventas: aggregates `Mesa`, `Comanda`, `LineaDeComanda`, `Cobro`, `Factura`. Ver checklist en la sección Iteración 4 cuando se cree.
+> **Iteración 5**: definir los KPIs a mostrar (ventas del día, métodos de pago, cierre de caja), diseñar los queries SQL de agregación y el BC Reporting si es necesario, o construirlo como Read Model directo desde sales.*
 
 ### Reglas de la sesión
 
@@ -127,8 +127,8 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 2 | Catalog + Inventory (híbrida) | 76% | 🟡 | `3a99d95`, `02ad20b` |
 | **A** | **Fase A — Remediación de deuda** | 60% | 🟡 | — |
 | **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
-| 3 | Production (planta central) | 100% | ✅ | — (próximo commit) |
-| 4 | Sales (mesas, cobro, factura básica) | 0% | ⚪ | — |
+| 3 | Production (planta central) | 100% | ✅ | `b175857` |
+| 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 0% | ⚪ | — |
 | 6 | Despliegue piloto en un punto | 0% | ⚪ | — |
 | 7 | Refinamiento (offline-first, DIAN, segundo punto, auditoría forense, endurecimiento) | 0% | ⚪ | — |
@@ -460,13 +460,83 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ---
 
-## ⚪ Iteración 4 — Sales
+## ✅ Iteración 4 — Sales
 
 ```
-░░░░░░░░░░░░░░░░░░░░ 0%
+████████████████████ 100%
 ```
 
-Mesas, comandas, facturación, cobro, impresión ESC/POS, cierre de caja. Sin checklist hasta arranque.
+### Bloque 4.1 — Dominio BC Sales (`packages/domain/sales/`) ✅
+- ✅ Aggregate `Mesa` (LIBRE/OCUPADA/RESERVADA/EN_COBRO, NORMAL + AD_HOC)
+- ✅ Aggregate `Comanda` (ABIERTA/ENVIADA/EN_PREPARACION/LISTA/CERRADA/CANCELADA, contiene LineaDeComanda)
+- ✅ Aggregate `Cobro` (PENDIENTE/PROCESADO/FALLIDO/ANULADO, múltiples PagoDetalle)
+- ✅ Aggregate `Factura` (EMITIDA/ANULADA, snapshot inmutable)
+- ✅ Entidad `LineaDeComanda` con snapshot de nombre/precio/IVA
+- ✅ VOs: Dinero (COP entero), TasaIVA (0%/19%), PagoDetalle, NombreMesa, NumeroFactura, FacturaLinea
+- ✅ Enums: EstadoDeMesa, TipoDeMesa, EstadoDeComanda, EstadoDeLinea, EstadoDeCobro, EstadoDeFactura, MetodoDePago
+- ✅ IDs: MesaId, ComandaId, LineaDeComandaId, CobroId, FacturaId + refs ACL (ProductVariantIdRef, BusinessUnitIdRef, UsuarioIdRef)
+- ✅ Errores de dominio tipados (19 tipos)
+- ✅ Domain Events (Mesa/Comanda/Cobro/Factura)
+- ✅ 46 tests verdes (Mesa: 10, Comanda: 16, Cobro: 10, Factura: 10)
+- ✅ architect-guardian APRUEBA (pureza dominio, dirección dependencias, ACL pattern, separación BCs)
+- ✅ README.md y docs/domain-model/sales/ (glossary + aggregates con diagramas Mermaid)
+
+### Bloque 4.2 — Ports (`packages/ports/src/sales/`) ✅
+- ✅ `IConsultorDeProductoParaVentas` (ACL Catalog → Sales)
+- ✅ `IMesaRepository`
+- ✅ `IComandaRepository`
+- ✅ `ICobroRepository`
+- ✅ `IFacturaRepository` (incluye `siguienteNumero` para numeración secuencial)
+
+### Bloque 4.3 — Casos de uso (`packages/application/src/sales/`) ✅
+- ✅ `ConfigurarMesa` (ADMIN)
+- ✅ `AbrirMesaAdHoc` (mesero)
+- ✅ `CrearComanda`
+- ✅ `AgregarLineaAComanda` (invoca ACL para resolver producto)
+- ✅ `CancelarLineaDeComanda`
+- ✅ `EnviarComandaACocina`
+- ✅ `MarcarComandaEnPreparacion`
+- ✅ `MarcarComandaLista`
+- ✅ `ProcesarCobro`
+- ✅ `EmitirFactura`
+- ✅ `ListarMesas`
+- ✅ `ListarComandasActivas`
+
+### Bloque 4.4 — Adapter Supabase ✅
+- ✅ `RepositorioDeMesaSupabase`
+- ✅ `RepositorioDeComandaSupabase`
+- ✅ `RepositorioDeCobroSupabase`
+- ✅ `RepositorioDeFacturaSupabase`
+- ✅ `ConsultorDeProductoSupabase` (ACL: query `catalog.product_variants`, tasa_iva=0 MVP D-012)
+- ✅ `mappers.ts` + `schema.ts` + `factory.ts`
+
+### Bloque 4.5 — Migraciones SQL ✅
+- ✅ `db/migrations/up/0007_sales.sql` — sales.mesas, sales.comandas, sales.cobros, sales.facturas (lineas JSONB snapshot)
+- ✅ `db/migrations/down/0007_sales.sql`
+- ✅ RLS en todas las tablas (filtro por punto_de_venta_id = JWT.bu_id)
+
+### Bloque 4.6 — HTTP API ✅
+- ✅ `GET /api/sales/mesas` + `POST /api/sales/mesas` (ADMIN)
+- ✅ `POST /api/sales/mesas/adhoc` (mesero, ad-hoc)
+- ✅ `POST /api/sales/comandas`
+- ✅ `POST /api/sales/comandas/:id/lineas`
+- ✅ `DELETE /api/sales/comandas/:id/lineas/:lineaId`
+- ✅ `POST /api/sales/comandas/:id/enviar`
+- ✅ `POST /api/sales/comandas/:id/preparacion`
+- ✅ `POST /api/sales/comandas/:id/lista`
+- ✅ `POST /api/sales/cobros`
+- ✅ `POST /api/sales/facturas`
+- ✅ `apps/api/src/composition/sales.ts` — composition root
+
+### Bloque 4.7 — Tests de casos de uso ✅
+- ✅ helpers.ts + 7 archivos .test.ts (27 tests nuevos de Sales, total 415 verdes)
+
+### Bloque 4.8 — Documentación y commit ✅
+- ✅ architect-guardian APRUEBA (pureza dominio, ACL, dependencias, SOLID)
+- ✅ db-reviewer OBSERVACIONES CRÍTICAS resueltas (WITH CHECK, DEFAULT gen_random_uuid, CASCADE rollback; D-013/014/015/016/017 registradas)
+- ✅ security-auditor APRUEBA CON OBSERVACIONES (guard bu_id, WITH CHECK aplicados; D-013/014/015 registradas)
+- ✅ code-reviewer APRUEBA (parseJsonb centralizado, typo corregido, ?? '' reemplazado)
+- ✅ Commit "feat(sales): BC completo — dominio, casos de uso, ports, adapter, migración SQL, HTTP API, tests"
 
 ---
 
@@ -515,6 +585,12 @@ Offline-first con SQLite, integración DIAN, segundo punto físico, auditoría f
 | D-009 | i18n completo | Baja | Después de Iteración 6 |
 | D-010 | Offline-first | Alta operativa | Iteración 7 |
 | D-011 | RLS Catalog/Inventory: defensa en profundidad (claim JWT bu_id + user_business_units) — requiere Docker disponible para probar | Alta seguridad | Antes de Fase B o Iteración 3 |
+| D-012 | `FacturaLinea.varianteId` usa `string` en lugar de `ProductVariantIdRef` — pierde tipo opaco. Migrar cuando catalog.product_variants tenga columna `tasa_iva` | Baja | Iteración 7 |
+| D-013 | RLS Sales: falta `FORCE ROW LEVEL SECURITY` en las 4 tablas; falta `FORCE` evita bypass por el rol owner. Requiere Docker para probar | Alta seguridad | Antes de Iteración 6 |
+| D-014 | RLS Sales: políticas únicas `FOR ALL` — no segregan por rol (WORKER/ADMIN/SUPERADMIN). Facturas y cobros deberían no permitir DELETE directo | Alta seguridad | Antes de Iteración 6 |
+| D-015 | `siguienteNumero` en RepositorioDeFacturaSupabase usa COUNT(*)+1 — race condition bajo concurrencia. Reemplazar por SEQUENCE PostgreSQL por (punto_de_venta_id, año) | Media | Iteración 5 |
+| D-016 | `sales.mesas` no tiene columna `actualizada_en` — dificulta auditoría de transiciones de estado | Baja | Iteración 5 |
+| D-017 | Columnas `estado` y `tipo` en tablas Sales usan TEXT en lugar de tipos ENUM PostgreSQL nativos | Baja | Iteración 7 |
 
 ---
 

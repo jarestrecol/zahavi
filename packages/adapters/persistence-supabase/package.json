@@ -18,6 +18,7 @@
     "@zahavi/domain-catalog": "workspace:*",
     "@zahavi/domain-inventory": "workspace:*",
     "@zahavi/domain-production": "workspace:*",
+    "@zahavi/domain-sales": "workspace:*",
     "@zahavi/domain-shared-kernel": "workspace:*",
     "@zahavi/ports": "workspace:*",
     "bcryptjs": "^2.4.3",

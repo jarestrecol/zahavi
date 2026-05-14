@@ -77,6 +77,9 @@ importers:
       '@zahavi/domain-production':
         specifier: workspace:*
         version: link:../../packages/domain/production
+      '@zahavi/domain-sales':
+        specifier: workspace:*
+        version: link:../../packages/domain/sales
       '@zahavi/ports':
         specifier: workspace:*
         version: link:../../packages/ports
@@ -174,6 +177,9 @@ importers:
       '@zahavi/domain-production':
         specifier: workspace:*
         version: link:../../domain/production
+      '@zahavi/domain-sales':
+        specifier: workspace:*
+        version: link:../../domain/sales
       '@zahavi/domain-shared-kernel':
         specifier: workspace:*
         version: link:../../domain/shared-kernel
@@ -221,6 +227,9 @@ importers:
       '@zahavi/domain-production':
         specifier: workspace:*
         version: link:../domain/production
+      '@zahavi/domain-sales':
+        specifier: workspace:*
+        version: link:../domain/sales
       '@zahavi/domain-shared-kernel':
         specifier: workspace:*
         version: link:../domain/shared-kernel
@@ -252,7 +261,11 @@ importers:
         specifier: workspace:*
         version: link:../shared-kernel
 
-  packages/domain/sales: {}
+  packages/domain/sales:
+    dependencies:
+      '@zahavi/domain-shared-kernel':
+        specifier: workspace:*
+        version: link:../shared-kernel
 
   packages/domain/shared-kernel: {}
 
@@ -270,6 +283,9 @@ importers:
       '@zahavi/domain-production':
         specifier: workspace:*
         version: link:../domain/production
+      '@zahavi/domain-sales':
+        specifier: workspace:*
+        version: link:../domain/sales
       '@zahavi/domain-shared-kernel':
         specifier: workspace:*
         version: link:../domain/shared-kernel

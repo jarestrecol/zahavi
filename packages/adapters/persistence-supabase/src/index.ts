@@ -13,3 +13,7 @@ export type { InventoryAdapters } from './inventory/factory.js';
 export * from './production/index.js';
 export { createProductionAdapters } from './production/factory.js';
 export type { ProductionAdapters } from './production/factory.js';
+
+export * from './sales/index.js';
+export { createSalesAdapters } from './sales/factory.js';
+export type { SalesAdapters } from './sales/factory.js';

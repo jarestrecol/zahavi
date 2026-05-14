@@ -1,0 +1,6 @@
+-- Rollback: Sales BC
+DROP TABLE IF EXISTS sales.facturas  CASCADE;
+DROP TABLE IF EXISTS sales.cobros    CASCADE;
+DROP TABLE IF EXISTS sales.comandas  CASCADE;
+DROP TABLE IF EXISTS sales.mesas     CASCADE;
+DROP SCHEMA IF EXISTS sales CASCADE;
