@@ -6,7 +6,8 @@
       "Bash(mkdir \"c:\\\\Users\\\\Ing. Julian Restrepo\\\\Proyectos\\\\zahavi\\\\docker\")",
       "Bash(git rm *)",
       "Bash(dir db *)",
-      "mcp__claude_ai_Supabase__list_projects"
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__apply_migration"
     ]
   }
 }

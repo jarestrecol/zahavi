@@ -116,7 +116,7 @@ CREATE TABLE inventory.stock_movements (
   ocurrido_en      TIMESTAMPTZ  NOT NULL DEFAULT now(),
   registrado_por   UUID         NOT NULL,                -- usuario que registró (Identity BC)
 
-  CONSTRAINT stock_movements_pkey PRIMARY KEY (id)
+  CONSTRAINT stock_movements_pkey PRIMARY KEY (id, ocurrido_en)
 ) PARTITION BY RANGE (ocurrido_en);
 
 COMMENT ON TABLE inventory.stock_movements IS 'Log append-only de todos los movimientos de stock. Nunca se actualiza ni elimina. Particionado mensualmente.';

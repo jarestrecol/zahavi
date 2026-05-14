@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-████████████░░░░░░░░ 60%
+█████████████░░░░░░░ 65%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -130,7 +130,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 3 | Production (planta central) | 100% | ✅ | `b175857` |
 | 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | — |
-| 6 | Despliegue piloto en un punto | 0% | ⚪ | — |
+| 6 | Despliegue piloto en un punto | 80% | 🟡 | — |
 | 7 | Refinamiento (offline-first, DIAN, segundo punto, auditoría forense, endurecimiento) | 0% | ⚪ | — |
 
 ---
@@ -597,7 +597,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ## 🟡 Iteración 6 — Despliegue piloto
 
 ```
-████████████░░░░░░░░ 60%
+████████████████░░░░ 80%
 ```
 
 ### Bloque 6.1 — Migraciones unificadas en supabase/migrations/ ✅
@@ -616,12 +616,15 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ### Bloque 6.4 — Runbook de despliegue ✅
 - ✅ `docs/runbooks/deploy-pilot.md` — instrucciones completas: Supabase cloud, seed, API (Render), frontend (Vercel), rollback
 
-### Bloque 6.5 — Supabase cloud ⬜ (requiere acción del usuario)
-- ⬜ Crear proyecto Zahavi en supabase.com (plan Free, región São Paulo)
-- ⬜ `supabase link --project-ref <PROJECT_ID>`
-- ⬜ `pnpm db:migrate` — aplica las 6 migraciones
-- ⬜ `pnpm db:seed` — carga datos iniciales
-- ⬜ Verificar tablas y RLS en Supabase Dashboard
+### Bloque 6.5 — Supabase cloud ✅
+- ✅ Proyecto Zahavi creado en supabase.com — project ID: `cuqxmbbpssoylwaywuhc` (región us-east-1)
+- ✅ 7 migraciones aplicadas via MCP (identity x3, catalog, inventory, production, sales)
+  - Fix: `stock_movements` PK cambiado a `(id, ocurrido_en)` para tabla particionada
+  - Fix: RLS habilitado en las 4 particiones de `stock_movements`
+  - Nueva: `20260506000003_identity_business_units` — tablas `business_units` + `user_business_units` (faltaban en migration original)
+- ✅ Seeds aplicados — 2 BUs, 3 usuarios, 4 asignaciones, 4 categorías, 10 productos, 10 variantes, 2 recetas, 8 líneas, 20 ingredientes, 20 stock_items
+  - Fix: `'und'` → `'unidad'`, `'lt'` → `'L'` en ingredients/stock_items (constraint CHECK)
+  - Fix: `'publicado'` → `'activo'` en catalog.products (constraint CHECK)
 
 ### Bloque 6.6 — Despliegue de servicios ⬜ (requiere acción del usuario)
 - ⬜ API desplegada en Render / Railway / Fly.io con variables de entorno
