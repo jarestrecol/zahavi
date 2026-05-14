@@ -126,7 +126,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 1 | Identity | 59% | 🟡 | `fda7f3c` |
 | 2 | Catalog + Inventory (híbrida) | 76% | 🟡 | `3a99d95`, `02ad20b` |
 | **A** | **Fase A — Remediación de deuda** | 60% | 🟡 | — |
-| **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `pendiente commit` |
+| **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
 | 3 | Production (planta central) | 0% | ⚪ | — |
 | 4 | Sales (mesas, cobro, factura básica) | 0% | ⚪ | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 0% | ⚪ | — |
@@ -378,8 +378,8 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ TODO.md creado con deuda aceptada: D-001/D-002/D-003/D-005/D-006/D-008/D-009/D-010/D-011/A-001/A-002
 - ✅ Correcciones code-reviewer aplicadas: token desde Zustand, parseRol validado, try/catch en SwitchContext, encodeURIComponent en Inventory, Rol[] en App.tsx
 - ✅ Typecheck + lint finales verdes (20/20 + 20/20)
-- ⬜ Commit "feat: vertical slice visible — login + catalog + inventory UI + seed + docker" — pendiente cierre de esta actualización
-- ⬜ Actualizar este archivo: Fase B completa, mover Próxima acción a Iteración 3
+- ✅ Commit `9bcfa90` "feat: vertical slice visible — login + catalog + inventory UI + seed + docker"
+- ✅ Este archivo actualizado: Fase B al 95%, próxima acción = Iteración 3
 
 ---
 
@@ -472,6 +472,7 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `3a99d95` | Iteración 2 Bloque 8 | API HTTP Fastify Catalog + Inventory + ACL |
 | `02ad20b` | Iteración 2 Bloque 9 | Documentación ADR-0002 + ADR-0003 + INDEX |
 | `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
+| `9bcfa90` | Fase B Bloques B.1-B.5 | Vertical slice visible: Docker, seeds, React frontend (Login/Products/Inventory), TODO.md, correcciones code-reviewer |
 
 ---
 
