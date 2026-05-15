@@ -106,19 +106,30 @@ Esto crea:
 
 ---
 
-## 6. Desplegar la API
+## 6. Desplegar la API en Render.com
 
-### Opción A: Render.com (recomendado para piloto)
+El repositorio incluye `render.yaml` en la raíz — Render lo detecta automáticamente.
 
-1. Crea un Web Service en [render.com](https://render.com)
-2. Conecta el repositorio GitHub
-3. Build command: `pnpm install && pnpm build`
-4. Start command: `node apps/api/dist/index.js`
-5. Agrega las variables de entorno (sección 2)
+1. Ve a [render.com](https://render.com) y crea una cuenta (plan Free)
+2. **New > Blueprint** — conecta el repositorio `jarestrecol/zahavi`
+3. Render detecta `render.yaml` y crea el servicio `zahavi-api` automáticamente
+4. En el panel del servicio, ve a **Environment** y configura las variables manuales:
 
-### Opción B: Railway / Fly.io
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | Supabase > Settings > Database > Connection string (mode=**session**, no transaction — la API usa Pool de pg) |
+| `CORS_ORIGIN` | La URL de Vercel (la obtienes en el paso 7, ej: `https://zahavi-web.vercel.app`) |
 
-Similar — conectar repo, definir variables, apuntar al mismo `apps/api/dist/index.js`.
+> `JWT_SECRET` se genera automáticamente. `NODE_ENV=production` y `PORT=3000` ya vienen en `render.yaml`.
+
+5. Clic en **Deploy** — el build tarda ~3 min la primera vez.
+
+### Opción B: Railway
+
+1. Nuevo proyecto > **Deploy from GitHub repo** > selecciona `jarestrecol/zahavi`
+2. En **Settings > Build**: `pnpm install --frozen-lockfile && pnpm --filter @zahavi/api build`
+3. En **Settings > Start**: `node apps/api/dist/index.js`
+4. Agrega las mismas variables de entorno
 
 ### Opción C: Docker (cuando esté disponible)
 
@@ -130,24 +141,35 @@ docker compose -f docker/docker-compose.yml up -d
 
 ---
 
-## 7. Desplegar el frontend
+## 7. Desplegar el frontend en Vercel
 
-### Opción A: Vercel (recomendado)
+El directorio `apps/web/` incluye `vercel.json` con la configuración de build y SPA rewrites.
+
+### Opción A: Vercel Dashboard (recomendado)
+
+1. Ve a [vercel.com](https://vercel.com) y crea una cuenta
+2. **New Project** > importa `jarestrecol/zahavi`
+3. En **Configure Project**:
+   - **Framework Preset**: Vite
+   - **Root Directory**: `apps/web`
+   - (Vercel detecta el `vercel.json` automáticamente)
+4. Agrega la variable de entorno:
+   - `VITE_API_URL` = `https://zahavi-api.onrender.com` (la URL de tu servicio en Render)
+5. Clic en **Deploy**
+
+### Opción B: Vercel CLI
 
 ```bash
-# Instalar Vercel CLI
 npm install -g vercel
-
-# Desplegar desde apps/web/
 cd apps/web
 vercel --prod
+# Cuando pregunte por el root directory, confirma apps/web
+# Agrega VITE_API_URL en el dashboard o con: vercel env add VITE_API_URL
 ```
 
-Configura la variable de entorno `VITE_API_URL=https://<tu-api>.render.com`.
+### Opción C: Netlify
 
-### Opción B: Netlify
-
-Similar — conecta el repo, build command: `cd apps/web && pnpm build`, publish dir: `apps/web/dist`.
+Build command: `cd apps/web && pnpm build`, publish dir: `apps/web/dist`. Agrega `VITE_API_URL`.
 
 ---
 

@@ -626,11 +626,17 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
   - Fix: `'und'` → `'unidad'`, `'lt'` → `'L'` en ingredients/stock_items (constraint CHECK)
   - Fix: `'publicado'` → `'activo'` en catalog.products (constraint CHECK)
 
-### Bloque 6.6 — Despliegue de servicios ⬜ (requiere acción del usuario)
-- ⬜ API desplegada en Render / Railway / Fly.io con variables de entorno
-- ⬜ Frontend desplegado en Vercel con VITE_API_URL configurado
+### Bloque 6.6 — Despliegue de servicios 🟡 (pendiente acción del usuario)
+- ✅ `render.yaml` creado en raíz — Render detecta automáticamente el servicio `zahavi-api`
+- ✅ `apps/web/vercel.json` creado — build monorepo + SPA rewrites configurados
+- ✅ Runbook `docs/runbooks/deploy-pilot.md` actualizado con instrucciones paso a paso
+- ✅ `/health` endpoint verificado en `apps/api/src/server.ts:96`
+- ✅ `VITE_API_URL` verificado en `apps/web/src/lib/api.ts:3`
+- ⬜ Usuario crea cuenta en Render.com y conecta repositorio GitHub
+- ⬜ Usuario configura `DATABASE_URL` (Supabase session mode) y `CORS_ORIGIN` en Render
+- ⬜ Usuario crea cuenta en Vercel, importa repo con root dir `apps/web`, configura `VITE_API_URL`
 - ⬜ Health check `GET /health` responde `{"ok":true}`
-- ⬜ Login de SUPERADMIN funciona end-to-end
+- ⬜ Login de SUPERADMIN funciona end-to-end (contraseña en seed: `Zahavi2026!`)
 
 ---
 
@@ -690,6 +696,7 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `02ad20b` | Iteración 2 Bloque 9 | Documentación ADR-0002 + ADR-0003 + INDEX |
 | `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
 | `9bcfa90` | Fase B Bloques B.1-B.5 | Vertical slice visible: Docker, seeds, React frontend (Login/Products/Inventory), TODO.md, correcciones code-reviewer |
+| `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `cuqxmbbpssoylwaywuhc` |
 
 ---
 
