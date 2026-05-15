@@ -15,8 +15,10 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        sync: false    # configurar manualmente en dashboard: Supabase > Settings > Database > Connection string (mode=transaction)
+        sync: false    # Supabase > Settings > Database > Connection string > modo "Session" (puerto 5432, NO Transaction/6543 — la API usa Pool persistente)
       - key: JWT_SECRET
-        generateValue: true   # Render genera uno seguro automáticamente
+        generateValue: true   # Render genera un secreto seguro automáticamente
       - key: CORS_ORIGIN
-        sync: false    # configurar con la URL de Vercel, ej: https://zahavi.vercel.app
+        sync: false    # URL de Vercel, ej: https://zahavi-web.vercel.app (sin barra final)
+      - key: LOG_LEVEL
+        value: info

@@ -7,7 +7,13 @@
       "Bash(git rm *)",
       "Bash(dir db *)",
       "mcp__claude_ai_Supabase__list_projects",
-      "mcp__claude_ai_Supabase__apply_migration"
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(git -C \"c:/Users/Ing. Julian Restrepo/Proyectos/zahavi\" log --oneline --grep=\"sales\" -i)",
+      "Bash(git -C \"c:/Users/Ing. Julian Restrepo/Proyectos/zahavi\" log --oneline --grep=\"iteración 4\" -i)",
+      "Bash(git -C \"c:/Users/Ing. Julian Restrepo/Proyectos/zahavi\" add PROYECTO_ESTADO.md)",
+      "Bash(git -C 'c:/Users/Ing. Julian Restrepo/Proyectos/zahavi' commit -m ' *)"
     ]
   }
 }

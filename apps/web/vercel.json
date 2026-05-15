@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && npm install -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @zahavi/web build",
+  "buildCommand": "npm install -g pnpm@10 && cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @zahavi/web build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [

@@ -56,11 +56,40 @@ docs/
   adr/              — Architecture Decision Records
 ```
 
+## Despliegue en producción (Render + Vercel)
+
+La infraestructura de producción usa:
+- **Supabase** — base de datos PostgreSQL cloud (ya aprovisionada, project `cuqxmbbpssoylwaywuhc`)
+- **Render** — API Fastify (detecta `render.yaml` automáticamente)
+- **Vercel** — frontend React (detecta `apps/web/vercel.json`)
+
+### Resumen de pasos
+
+| # | Plataforma | Acción | Tiempo |
+|---|---|---|---|
+| 1 | Render | Crear cuenta + conectar repo + configurar vars | ~10 min |
+| 2 | Vercel | Crear cuenta + importar repo + configurar `VITE_API_URL` | ~5 min |
+| 3 | Ambas | Verificar health check + login SUPERADMIN | ~5 min |
+
+Variables de entorno requeridas: ver [`.env.production.example`](.env.production.example).
+
+Runbook completo con instrucciones detalladas: [`docs/runbooks/deploy-pilot.md`](docs/runbooks/deploy-pilot.md).
+
+### Variables clave
+
+| Variable | Plataforma | Origen |
+|---|---|---|
+| `DATABASE_URL` | Render | Supabase > Settings > Database > **Session** mode (puerto 5432) |
+| `JWT_SECRET` | Render | Generado automáticamente por Render (`generateValue: true`) |
+| `CORS_ORIGIN` | Render | URL de Vercel, ej: `https://zahavi-web.vercel.app` |
+| `VITE_API_URL` | Vercel | URL de Render, ej: `https://zahavi-api.onrender.com` |
+
 ## Documentación
 
 - [Estado del proyecto](PROYECTO_ESTADO.md) — avance, checklists, deuda técnica
 - [Constitución del proyecto](CLAUDE.md) — reglas de arquitectura y workflow
 - [ADRs](docs/adr/INDEX.md) — decisiones arquitectónicas
+- [Runbook de despliegue](docs/runbooks/deploy-pilot.md) — guía paso a paso
 
 ## Stack técnico
 
