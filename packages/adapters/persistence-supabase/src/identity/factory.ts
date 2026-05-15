@@ -40,11 +40,7 @@ export interface IdentityAdapters {
   publicadorDeEventos: PublicadorDeDomainEvents;
 }
 
-export function createIdentityAdapters(databaseUrl: string): IdentityAdapters {
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined,
-  });
+export function createIdentityAdapters(pool: Pool): IdentityAdapters {
   const db = new Kysely<IdentityDatabase>({
     dialect: new PostgresDialect({ pool }),
   });

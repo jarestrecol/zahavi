@@ -23,15 +23,13 @@ export interface SalesAdapters {
   consultorDeProducto: IConsultorDeProductoParaVentas;
 }
 
-export function createSalesAdapters(databaseUrl: string): SalesAdapters {
-  const ssl = process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined;
-
+export function createSalesAdapters(pool: Pool): SalesAdapters {
   const salesDb = new Kysely<SalesDatabase>({
-    dialect: new PostgresDialect({ pool: new Pool({ connectionString: databaseUrl, ssl }) }),
+    dialect: new PostgresDialect({ pool }),
   });
 
   const catalogDb = new Kysely<CatalogDatabase>({
-    dialect: new PostgresDialect({ pool: new Pool({ connectionString: databaseUrl, ssl }) }),
+    dialect: new PostgresDialect({ pool }),
   });
 
   return {

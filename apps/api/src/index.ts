@@ -8,6 +8,7 @@ import {
   createSalesAdapters,
   createReportingAdapters,
   createHealthCheck,
+  createSharedPool,
 } from '@zahavi/adapter-persistence-supabase';
 import { createIdentityComposition } from './composition/identity.js';
 import { createCatalogComposition } from './composition/catalog.js';
@@ -17,13 +18,16 @@ import { createSalesComposition } from './composition/sales.js';
 import { createReportingComposition } from './composition/reporting.js';
 
 const env = parseEnv();
+// Un solo pool compartido por todos los BCs — evita abrir N*max_connections (D-018).
+// El health check mantiene su propio pool mínimo (max:1) para no ocupar conexiones productivas.
+const sharedPool = createSharedPool(env.DATABASE_URL);
 const checkDb = createHealthCheck(env.DATABASE_URL);
-const identityAdapters = createIdentityAdapters(env.DATABASE_URL);
-const catalogAdapters = createCatalogAdapters(env.DATABASE_URL);
-const inventoryAdapters = createInventoryAdapters(env.DATABASE_URL);
-const productionAdapters = createProductionAdapters(env.DATABASE_URL);
-const salesAdapters = createSalesAdapters(env.DATABASE_URL);
-const reportingAdapters = createReportingAdapters(env.DATABASE_URL);
+const identityAdapters = createIdentityAdapters(sharedPool);
+const catalogAdapters = createCatalogAdapters(sharedPool);
+const inventoryAdapters = createInventoryAdapters(sharedPool);
+const productionAdapters = createProductionAdapters(sharedPool);
+const salesAdapters = createSalesAdapters(sharedPool);
+const reportingAdapters = createReportingAdapters(sharedPool);
 
 const identityComposition = createIdentityComposition(identityAdapters);
 const catalogComposition = createCatalogComposition(catalogAdapters);

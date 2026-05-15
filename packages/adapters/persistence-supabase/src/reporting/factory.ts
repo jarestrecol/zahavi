@@ -8,11 +8,9 @@ export interface ReportingAdapters {
   repositorioDeReportes: IReportingRepository;
 }
 
-export function createReportingAdapters(databaseUrl: string): ReportingAdapters {
-  const ssl = process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined;
-
+export function createReportingAdapters(pool: Pool): ReportingAdapters {
   const salesDb = new Kysely<SalesDatabase>({
-    dialect: new PostgresDialect({ pool: new Pool({ connectionString: databaseUrl, ssl }) }),
+    dialect: new PostgresDialect({ pool }),
   });
 
   return {

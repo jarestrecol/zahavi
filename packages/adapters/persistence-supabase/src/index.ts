@@ -1,5 +1,6 @@
 ﻿export { createHealthCheck } from './health.js';
 export type { HealthCheckResult } from './health.js';
+export { createSharedPool } from './pool.js';
 
 export * from './identity/index.js';
 export { createIdentityAdapters } from './identity/factory.js';

@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
-| 7 | Refinamiento                      | `████░░░░░░░░░░░░░░░░` | 20% | 🟡 |
+| 7 | Refinamiento                      | `██████░░░░░░░░░░░░░░` | 30% | 🟡 |
 
 **Métricas clave:**
 - Iteraciones iniciadas: **4 de 10**
@@ -663,10 +663,11 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ Runbook actualizado con instrucción de `/health/ready`
 - ✅ Commit `6031376`
 
-### Bloque 7.3 — Deuda técnica media ⬜
-- ⬜ D-018: consolidar pools de DB — un Pool compartido por todos los adapters
-- ⬜ D-020: importar tipos desde `@zahavi/ports` en `apps/web` (eliminar duplicados en Dashboard.tsx)
-- ⬜ D-011: RLS Catalog/Inventory defensa en profundidad (claim JWT bu_id + user_business_units)
+### Bloque 7.3 — Deuda técnica media ✅ (parcial)
+- ✅ D-018: `pool.ts` con `createSharedPool` — un Pool (max:10) compartido por los 6 adapters; salud usa pool separado (max:1)
+- ✅ D-020: `Dashboard.tsx` importa `DashboardDelDia`, `VentaPorMetodo` desde `@zahavi/ports`; tipos locales eliminados
+- ✅ `@zahavi/ports` agregado como devDependency en `apps/web`
+- ⬜ D-011: RLS Catalog/Inventory defensa en profundidad (requiere Docker para prueba local)
 
 ### Bloque 7.4 — Offline-first, DIAN, segundo punto ⬜
 - ⬜ SQLite offline-first para tablets (Iteración 7 avanzada)
@@ -696,9 +697,9 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-015 | ~~`siguienteNumero` race condition~~ — **RESUELTO**: `sales.factura_sequences` con INSERT ON CONFLICT DO UPDATE | ~~Media~~ | ✅ |
 | D-016 | `sales.mesas` no tiene columna `actualizada_en` — dificulta auditoría de transiciones de estado | Baja | Iteración 5 |
 | D-017 | Columnas `estado` y `tipo` en tablas Sales usan TEXT en lugar de tipos ENUM PostgreSQL nativos | Baja | Iteración 7 |
-| D-018 | `ReportingRepositorySupabase.factory.ts` crea su propio Pool de BD en lugar de reutilizar el pool de Sales — doble conexión innecesaria | Baja | Iteración 6 |
+| D-018 | ~~Pool separado por adapter~~ — **RESUELTO**: `createSharedPool` + firma `Pool` en todos los factories | ~~Baja~~ | ✅ |
 | D-019 | `puntoDeVentaId: string` en port IReportingRepository — sin branded type; inconsistente con estrategia de IDs del dominio | Baja | Iteración 7 |
-| D-020 | Tipos `DashboardDelDia` y `VentaPorMetodo` duplicados en `apps/web/src/pages/Dashboard.tsx` — divergen silenciosamente del port si el contrato cambia. Requiere agregar `@zahavi/ports` como devDependency en apps/web o generar tipos desde la API (OpenAPI) | Media | Iteración 5 o 6 |
+| D-020 | ~~Tipos duplicados en Dashboard.tsx~~ — **RESUELTO**: importa desde `@zahavi/ports` | ~~Media~~ | ✅ |
 
 ---
 

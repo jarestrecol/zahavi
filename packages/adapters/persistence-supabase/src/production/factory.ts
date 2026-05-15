@@ -17,18 +17,13 @@ export interface ProductionAdapters {
   consultorDeReceta: IConsultorDeRecetaDeProduccion;
 }
 
-export function createProductionAdapters(databaseUrl: string): ProductionAdapters {
-  const ssl = process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined;
-
-  const productionPool = new Pool({ connectionString: databaseUrl, ssl });
-  const catalogPool = new Pool({ connectionString: databaseUrl, ssl });
-
+export function createProductionAdapters(pool: Pool): ProductionAdapters {
   const productionDb = new Kysely<ProductionDatabase>({
-    dialect: new PostgresDialect({ pool: productionPool }),
+    dialect: new PostgresDialect({ pool }),
   });
 
   const catalogDb = new Kysely<CatalogDatabase>({
-    dialect: new PostgresDialect({ pool: catalogPool }),
+    dialect: new PostgresDialect({ pool }),
   });
 
   return {

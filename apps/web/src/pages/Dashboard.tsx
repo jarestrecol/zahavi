@@ -1,27 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import type { DashboardDelDia } from '@zahavi/ports';
 import { api } from '../lib/api.js';
-
-interface VentaPorMetodo {
-  metodo: string;
-  total: number;
-  numeroCobros: number;
-}
-
-interface VentaPorHora {
-  hora: number;
-  total: number;
-  numeroCobros: number;
-}
-
-interface DashboardDelDia {
-  fecha: string;
-  totalVentas: number;
-  numeroCobros: number;
-  ticketPromedio: number;
-  porMetodo: VentaPorMetodo[];
-  porHora: VentaPorHora[];
-  facturasEmitidas: number;
-}
 
 const METODO_LABEL: Record<string, string> = {
   EFECTIVO: 'Efectivo',

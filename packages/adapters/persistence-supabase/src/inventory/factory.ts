@@ -25,11 +25,7 @@ export interface InventoryAdapters {
   publicadorDeEventos: IPublicadorDeDomainEventsInventory;
 }
 
-export function createInventoryAdapters(databaseUrl: string): InventoryAdapters {
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined,
-  });
+export function createInventoryAdapters(pool: Pool): InventoryAdapters {
   const db = new Kysely<InventoryDatabase>({
     dialect: new PostgresDialect({ pool }),
   });

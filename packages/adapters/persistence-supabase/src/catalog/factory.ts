@@ -26,10 +26,7 @@ export interface CatalogAdapters {
   publicadorDeEventos: IPublicadorDeDomainEventsCatalog;
 }
 
-export function createCatalogAdapters(databaseUrl: string): CatalogAdapters {
-  const ssl = process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined;
-  const pool = new Pool({ connectionString: databaseUrl, ssl });
-
+export function createCatalogAdapters(pool: Pool): CatalogAdapters {
   // Dos instancias Kysely tipadas distintas comparten el mismo Pool subyacente.
   // CatalogDatabase: tablas catalog.*
   // InventoryDatabase: solo se usa para leer inventory.ingredients (ACL del escandallo).
