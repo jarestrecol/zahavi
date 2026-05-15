@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
-| 7 | Refinamiento                      | `░░░░░░░░░░░░░░░░░░░░` | 0% | ⚪ |
+| 7 | Refinamiento                      | `██░░░░░░░░░░░░░░░░░░` | 10% | 🟡 |
 
 **Métricas clave:**
 - Iteraciones iniciadas: **4 de 10**
@@ -131,7 +131,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | — |
 | 6 | Despliegue piloto en un punto | 80% | 🟡 | — |
-| 7 | Refinamiento (offline-first, DIAN, segundo punto, auditoría forense, endurecimiento) | 0% | ⚪ | — |
+| 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 10% | 🟡 | `5cfe69c` |
 
 ---
 
@@ -640,13 +640,36 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ---
 
-## ⚪ Iteración 7 — Refinamiento
+## 🟡 Iteración 7 — Refinamiento
 
 ```
-░░░░░░░░░░░░░░░░░░░░ 0%
+██░░░░░░░░░░░░░░░░░░ 10%
 ```
 
-Offline-first con SQLite, integración DIAN, segundo punto físico, auditoría forense completa, endurecimiento, observabilidad.
+### Bloque 7.1 — Endurecimiento de seguridad (deuda crítica) ✅
+- ✅ D-013 resuelto: `FORCE ROW LEVEL SECURITY` en las 4 tablas Sales
+- ✅ D-014 resuelto: políticas RLS segregadas por rol/operación — cobros y facturas sin DELETE
+- ✅ D-015 resuelto: `sales.factura_sequences` con upsert atómico, elimina race condition
+- ✅ Migración `20260515000001_sales_rls_hardening.sql` aplicada en cloud
+- ✅ `RepositorioDeFacturaSupabase.siguienteNumero` reescrito con `sql` tagged template
+- ✅ Typecheck + tests verdes (20/20, 29/29)
+- ✅ Commit `5cfe69c`
+
+### Bloque 7.2 — Observabilidad ⬜
+- ⬜ Pino logger configurado en producción (pretty en dev, JSON en prod)
+- ⬜ Request ID propagado en todos los logs
+- ⬜ Error tracking: logs estructurados con stack trace en errores 5xx
+- ⬜ Health check extendido: `/health/ready` con estado de conexión DB
+
+### Bloque 7.3 — Deuda técnica media ⬜
+- ⬜ D-018: consolidar pools de DB — un Pool compartido por todos los adapters
+- ⬜ D-020: importar tipos desde `@zahavi/ports` en `apps/web` (eliminar duplicados en Dashboard.tsx)
+- ⬜ D-011: RLS Catalog/Inventory defensa en profundidad (claim JWT bu_id + user_business_units)
+
+### Bloque 7.4 — Offline-first, DIAN, segundo punto ⬜
+- ⬜ SQLite offline-first para tablets (Iteración 7 avanzada)
+- ⬜ Integración DIAN (factura electrónica)
+- ⬜ Segundo punto físico de venta
 
 ---
 
@@ -666,9 +689,9 @@ Offline-first con SQLite, integración DIAN, segundo punto físico, auditoría f
 | D-010 | Offline-first | Alta operativa | Iteración 7 |
 | D-011 | RLS Catalog/Inventory: defensa en profundidad (claim JWT bu_id + user_business_units) — requiere Docker disponible para probar | Alta seguridad | Antes de Fase B o Iteración 3 |
 | D-012 | `FacturaLinea.varianteId` usa `string` en lugar de `ProductVariantIdRef` — pierde tipo opaco. Migrar cuando catalog.product_variants tenga columna `tasa_iva` | Baja | Iteración 7 |
-| D-013 | RLS Sales: falta `FORCE ROW LEVEL SECURITY` en las 4 tablas; falta `FORCE` evita bypass por el rol owner. Requiere Docker para probar | Alta seguridad | Antes de Iteración 6 |
-| D-014 | RLS Sales: políticas únicas `FOR ALL` — no segregan por rol (WORKER/ADMIN/SUPERADMIN). Facturas y cobros deberían no permitir DELETE directo | Alta seguridad | Antes de Iteración 6 |
-| D-015 | `siguienteNumero` en RepositorioDeFacturaSupabase usa COUNT(*)+1 — race condition bajo concurrencia. Reemplazar por SEQUENCE PostgreSQL por (punto_de_venta_id, año) | Media | Iteración 5 |
+| D-013 | ~~RLS Sales: falta `FORCE ROW LEVEL SECURITY`~~ — **RESUELTO** en `20260515000001_sales_rls_hardening.sql` | ~~Alta seguridad~~ | ✅ |
+| D-014 | ~~RLS Sales: políticas únicas `FOR ALL`~~ — **RESUELTO**: políticas segregadas, cobros/facturas sin DELETE | ~~Alta seguridad~~ | ✅ |
+| D-015 | ~~`siguienteNumero` race condition~~ — **RESUELTO**: `sales.factura_sequences` con INSERT ON CONFLICT DO UPDATE | ~~Media~~ | ✅ |
 | D-016 | `sales.mesas` no tiene columna `actualizada_en` — dificulta auditoría de transiciones de estado | Baja | Iteración 5 |
 | D-017 | Columnas `estado` y `tipo` en tablas Sales usan TEXT en lugar de tipos ENUM PostgreSQL nativos | Baja | Iteración 7 |
 | D-018 | `ReportingRepositorySupabase.factory.ts` crea su propio Pool de BD en lugar de reutilizar el pool de Sales — doble conexión innecesaria | Baja | Iteración 6 |
