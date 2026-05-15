@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-█████████████░░░░░░░ 65%
+██████████████░░░░░░ 70%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
-| 7 | Refinamiento                      | `██████░░░░░░░░░░░░░░` | 30% | 🟡 |
+| 7 | Refinamiento                      | `████████████░░░░░░░░` | 60% | 🟡 |
 
 **Métricas clave:**
 - Iteraciones iniciadas: **4 de 10**
@@ -102,12 +102,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 **Fecha:** _Se actualiza al inicio de cada sesión._
 **Modo de trabajo:** Autónomo con verificación al cierre.
-**Iteración activa:** Iteración 6 — Despliegue piloto.
-**Bloque actual:** 6.3 — Crear proyecto Supabase cloud y ejecutar migraciones.
+**Iteración activa:** Iteración 7 — Refinamiento.
+**Bloque actual:** 7.3 cerrado / 7.4 pendiente.
 
 ### Próxima acción inmediata
 
-> **Iteración 6 — pendiente del usuario**: crear el proyecto Zahavi en Supabase cloud (supabase.com), copiar el Project ID, ejecutar `supabase link --project-ref <ID>` y `pnpm db:migrate`. Luego desplegar API en Render y frontend en Vercel siguiendo `docs/runbooks/deploy-pilot.md`.
+> **Iteración 7 Bloque 7.4** — Deuda técnica baja pendiente: D-016 (`sales.mesas` sin `actualizada_en`), D-017 (columnas TEXT en lugar de ENUM PostgreSQL), D-019 (`puntoDeVentaId: string` sin branded type en IReportingRepository). Evaluar si iniciar offline-first (SQLite) o pasar directo a second point de venta.
 
 ### Reglas de la sesión
 
@@ -131,7 +131,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | — |
 | 6 | Despliegue piloto en un punto | 80% | 🟡 | — |
-| 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 10% | 🟡 | `5cfe69c` |
+| 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 60% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105` |
 
 ---
 
@@ -643,7 +643,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ## 🟡 Iteración 7 — Refinamiento
 
 ```
-██░░░░░░░░░░░░░░░░░░ 10%
+████████████░░░░░░░░ 60%
 ```
 
 ### Bloque 7.1 — Endurecimiento de seguridad (deuda crítica) ✅
@@ -663,15 +663,18 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ Runbook actualizado con instrucción de `/health/ready`
 - ✅ Commit `6031376`
 
-### Bloque 7.3 — Deuda técnica media ✅ (parcial)
+### Bloque 7.3 — Deuda técnica media ✅
 - ✅ D-018: `pool.ts` con `createSharedPool` — un Pool (max:10) compartido por los 6 adapters; salud usa pool separado (max:1)
-- ✅ D-020: `Dashboard.tsx` importa `DashboardDelDia`, `VentaPorMetodo` desde `@zahavi/ports`; tipos locales eliminados
+- ✅ D-020: `Dashboard.tsx` importa `DashboardDelDia` desde `@zahavi/ports`; tipos locales eliminados
 - ✅ `@zahavi/ports` agregado como devDependency en `apps/web`
-- ⬜ D-011: RLS Catalog/Inventory defensa en profundidad (requiere Docker para prueba local)
+- ✅ D-011: RLS Catalog/Inventory defensa en profundidad — `identity.jwt_bu_id()` + `identity.usuario_pertenece_a_bu()` + FORCE RLS en 12 tablas + políticas reemplazadas
 
-### Bloque 7.4 — Offline-first, DIAN, segundo punto ⬜
-- ⬜ SQLite offline-first para tablets (Iteración 7 avanzada)
-- ⬜ Integración DIAN (factura electrónica)
+### Bloque 7.4 — Deuda técnica baja + mejoras ⬜
+- ⬜ D-016: añadir columna `actualizada_en` a `sales.mesas` (migración + adapter)
+- ⬜ D-017: migrar columnas `estado`/`tipo` en tablas Sales a ENUMs PostgreSQL nativos
+- ⬜ D-019: branded type para `puntoDeVentaId` en `IReportingRepository`
+- ⬜ SQLite offline-first para tablets (scope separado — requiere análisis)
+- ⬜ Integración DIAN (factura electrónica — scope separado)
 - ⬜ Segundo punto físico de venta
 
 ---
@@ -690,7 +693,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-008 | Tema oscuro en frontend | Baja | Después de Fase B |
 | D-009 | i18n completo | Baja | Después de Iteración 6 |
 | D-010 | Offline-first | Alta operativa | Iteración 7 |
-| D-011 | RLS Catalog/Inventory: defensa en profundidad (claim JWT bu_id + user_business_units) — requiere Docker disponible para probar | Alta seguridad | Antes de Fase B o Iteración 3 |
+| D-011 | ~~RLS Catalog/Inventory: defensa en profundidad~~ — **RESUELTO**: `jwt_bu_id()` + `usuario_pertenece_a_bu()` + FORCE RLS. Migración `20260515000002` aplicada en cloud. | ~~Alta seguridad~~ | ✅ |
 | D-012 | `FacturaLinea.varianteId` usa `string` en lugar de `ProductVariantIdRef` — pierde tipo opaco. Migrar cuando catalog.product_variants tenga columna `tasa_iva` | Baja | Iteración 7 |
 | D-013 | ~~RLS Sales: falta `FORCE ROW LEVEL SECURITY`~~ — **RESUELTO** en `20260515000001_sales_rls_hardening.sql` | ~~Alta seguridad~~ | ✅ |
 | D-014 | ~~RLS Sales: políticas únicas `FOR ALL`~~ — **RESUELTO**: políticas segregadas, cobros/facturas sin DELETE | ~~Alta seguridad~~ | ✅ |
@@ -723,6 +726,8 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
 | `9bcfa90` | Fase B Bloques B.1-B.5 | Vertical slice visible: Docker, seeds, React frontend (Login/Products/Inventory), TODO.md, correcciones code-reviewer |
 | `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `cuqxmbbpssoylwaywuhc` |
+| `eb6f8b8` | Iteración 7 Bloque 7.3 | pool compartido + tipos desde ports (D-018, D-020) |
+| `4fa5105` | Iteración 7 Bloque 7.3 | D-011 — defensa en profundidad RLS Catalog + Inventory |
 
 ---
 
