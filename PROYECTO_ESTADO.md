@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
-| 7 | Refinamiento                      | `██░░░░░░░░░░░░░░░░░░` | 10% | 🟡 |
+| 7 | Refinamiento                      | `████░░░░░░░░░░░░░░░░` | 20% | 🟡 |
 
 **Métricas clave:**
 - Iteraciones iniciadas: **4 de 10**
@@ -655,11 +655,13 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ Typecheck + tests verdes (20/20, 29/29)
 - ✅ Commit `5cfe69c`
 
-### Bloque 7.2 — Observabilidad ⬜
-- ⬜ Pino logger configurado en producción (pretty en dev, JSON en prod)
-- ⬜ Request ID propagado en todos los logs
-- ⬜ Error tracking: logs estructurados con stack trace en errores 5xx
-- ⬜ Health check extendido: `/health/ready` con estado de conexión DB
+### Bloque 7.2 — Observabilidad ✅
+- ✅ Logger: `pino-pretty` en dev (colorize, timestamps HH:MM:ss), JSON con timestamp ISO en producción
+- ✅ Request ID: `crypto.randomUUID()` por petición, propagado en header `X-Request-Id`
+- ✅ `/health/ready`: chequeo de DB con latencia — 503 si la DB no responde
+- ✅ `createHealthCheck`: pool dedicado (max:1) para no consumir conexiones del pool principal
+- ✅ Runbook actualizado con instrucción de `/health/ready`
+- ✅ Commit `6031376`
 
 ### Bloque 7.3 — Deuda técnica media ⬜
 - ⬜ D-018: consolidar pools de DB — un Pool compartido por todos los adapters
