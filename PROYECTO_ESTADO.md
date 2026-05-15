@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-██████████████░░░░░░ 70%
+███████████████░░░░░ 75%
 ```
 
 **Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
-| 7 | Refinamiento                      | `████████████░░░░░░░░` | 60% | 🟡 |
+| 7 | Refinamiento                      | `████████████████░░░░` | 80% | 🟡 |
 
 **Métricas clave:**
 - Iteraciones iniciadas: **4 de 10**
@@ -107,7 +107,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Próxima acción inmediata
 
-> **Iteración 7 Bloque 7.4** — Deuda técnica baja pendiente: D-016 (`sales.mesas` sin `actualizada_en`), D-017 (columnas TEXT en lugar de ENUM PostgreSQL), D-019 (`puntoDeVentaId: string` sin branded type en IReportingRepository). Evaluar si iniciar offline-first (SQLite) o pasar directo a second point de venta.
+> **Iteración 7 completada (~80%)** — Todo el backlog de deuda técnica (D-011 a D-020) está resuelto. Los bloques 7.1-7.4 están cerrados. La deuda restante (SQLite offline-first, DIAN, segundo punto) son features nuevas de mayor envergadura. Acción: validar despliegue end-to-end en Render/Vercel (Bloque 6.6, pendiente de acción del usuario), o iniciar scope de offline-first.
 
 ### Reglas de la sesión
 
@@ -131,7 +131,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
 | 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | — |
 | 6 | Despliegue piloto en un punto | 80% | 🟡 | — |
-| 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 60% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105` |
+| 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 80% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105`, `4ab7d9d` |
 
 ---
 
@@ -643,7 +643,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ## 🟡 Iteración 7 — Refinamiento
 
 ```
-████████████░░░░░░░░ 60%
+████████████████░░░░ 80%
 ```
 
 ### Bloque 7.1 — Endurecimiento de seguridad (deuda crítica) ✅
@@ -669,10 +669,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ `@zahavi/ports` agregado como devDependency en `apps/web`
 - ✅ D-011: RLS Catalog/Inventory defensa en profundidad — `identity.jwt_bu_id()` + `identity.usuario_pertenece_a_bu()` + FORCE RLS en 12 tablas + políticas reemplazadas
 
-### Bloque 7.4 — Deuda técnica baja + mejoras ⬜
-- ⬜ D-016: añadir columna `actualizada_en` a `sales.mesas` (migración + adapter)
-- ⬜ D-017: migrar columnas `estado`/`tipo` en tablas Sales a ENUMs PostgreSQL nativos
-- ⬜ D-019: branded type para `puntoDeVentaId` en `IReportingRepository`
+### Bloque 7.4 — Deuda técnica baja + mejoras ✅ (parcial)
+- ✅ D-016: `sales.mesas.actualizada_en` TIMESTAMPTZ + trigger BEFORE UPDATE automático
+- ✅ D-017: ENUMs PostgreSQL nativos para estado_mesa/tipo_mesa/estado_comanda/estado_cobro/estado_factura; Kysely schema.ts tightened a string literal unions
+- ✅ D-019: `PuntoDeVentaId` branded type en IReportingRepository + use cases + route handler; cast en límite de confianza (route handler)
 - ⬜ SQLite offline-first para tablets (scope separado — requiere análisis)
 - ⬜ Integración DIAN (factura electrónica — scope separado)
 - ⬜ Segundo punto físico de venta
@@ -698,10 +698,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-013 | ~~RLS Sales: falta `FORCE ROW LEVEL SECURITY`~~ — **RESUELTO** en `20260515000001_sales_rls_hardening.sql` | ~~Alta seguridad~~ | ✅ |
 | D-014 | ~~RLS Sales: políticas únicas `FOR ALL`~~ — **RESUELTO**: políticas segregadas, cobros/facturas sin DELETE | ~~Alta seguridad~~ | ✅ |
 | D-015 | ~~`siguienteNumero` race condition~~ — **RESUELTO**: `sales.factura_sequences` con INSERT ON CONFLICT DO UPDATE | ~~Media~~ | ✅ |
-| D-016 | `sales.mesas` no tiene columna `actualizada_en` — dificulta auditoría de transiciones de estado | Baja | Iteración 5 |
-| D-017 | Columnas `estado` y `tipo` en tablas Sales usan TEXT en lugar de tipos ENUM PostgreSQL nativos | Baja | Iteración 7 |
+| D-016 | ~~`sales.mesas` sin `actualizada_en`~~ — **RESUELTO**: columna + trigger en `20260515000003` | ~~Baja~~ | ✅ |
+| D-017 | ~~Columnas estado/tipo TEXT sin ENUM~~ — **RESUELTO**: 5 ENUMs nativos + Kysely types tightened | ~~Baja~~ | ✅ |
 | D-018 | ~~Pool separado por adapter~~ — **RESUELTO**: `createSharedPool` + firma `Pool` en todos los factories | ~~Baja~~ | ✅ |
-| D-019 | `puntoDeVentaId: string` en port IReportingRepository — sin branded type; inconsistente con estrategia de IDs del dominio | Baja | Iteración 7 |
+| D-019 | ~~`puntoDeVentaId: string` sin branded type~~ — **RESUELTO**: `PuntoDeVentaId` opaco + cast en route handler | ~~Baja~~ | ✅ |
 | D-020 | ~~Tipos duplicados en Dashboard.tsx~~ — **RESUELTO**: importa desde `@zahavi/ports` | ~~Media~~ | ✅ |
 
 ---
@@ -728,6 +728,7 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `cuqxmbbpssoylwaywuhc` |
 | `eb6f8b8` | Iteración 7 Bloque 7.3 | pool compartido + tipos desde ports (D-018, D-020) |
 | `4fa5105` | Iteración 7 Bloque 7.3 | D-011 — defensa en profundidad RLS Catalog + Inventory |
+| `4ab7d9d` | Iteración 7 Bloque 7.4 | D-016/D-017/D-019 — actualizada_en mesas, ENUMs nativos, PuntoDeVentaId branded |
 
 ---
 
