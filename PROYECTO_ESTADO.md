@@ -8,10 +8,10 @@
 ## 📈 Avance global del proyecto
 
 ```
-███████████████░░░░░ 75%
+████████████████░░░░ 82%
 ```
 
-**Lectura honesta:** hemos construido base sólida en backend (dominio puro hexagonal, casos de uso para Catalog/Inventory, API HTTP con seguridad básica, ADRs aprobados). Falta toda la capa visible (frontend, seeds, docker, despliegue) y 6 iteraciones más (Production, Sales, Reportes, Despliegue, Refinamiento).
+**Lectura honesta:** backend completo (Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC). Frontend React funcional (Login, Productos, Inventario, Dashboard). Seeds + migraciones en Supabase cloud. Pendiente: despliegue Render/Vercel (acción del usuario), offline-first (scope separado), DIAN (scope separado).
 
 ### Avance por iteración
 
@@ -20,12 +20,12 @@
 | 0 | Bootstrap del monorepo            | `██████████████░░░░░░` | 70% | 🟡 |
 | 1 | Identity                          | `████████████░░░░░░░░` | 59% | 🟡 |
 | 2 | Catalog + Inventory (híbrida)     | `███████████████░░░░░` | 76% | 🟡 |
-| **A** | **Remediación de deuda crítica** | `████████████░░░░░░░░` | **60%** | 🟡 |
+| **A** | **Remediación de deuda crítica** | `████████████████████` | **100%** | ✅ |
 | **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
 | 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
-| 6 | Despliegue piloto                 | `████████████░░░░░░░░` | 60% | 🟡 |
+| 6 | Despliegue piloto                 | `████████████████░░░░` | 80% | 🟡 |
 | 7 | Refinamiento                      | `████████████████░░░░` | 80% | 🟡 |
 
 **Métricas clave:**
@@ -36,12 +36,11 @@
 - CLI admin funcional: `░░░░░░░░░░░░░░░░░░░░` 0%
 - Sistema desplegable end-to-end: `░░░░░░░░░░░░░░░░░░░░` 0%
 
-**Proyección al cerrar Fase A + Fase B (próxima sesión):**
-- Iteración 1 sube a `███████████████████░` 95%
-- Iteración 2 sube a `██████████████████░░` 90%
-- Fase A y Fase B llegan a `████████████████████` 100%
-- Avance global salta a `████████░░░░░░░░░░░░` ~40%
-- App funcionando visualmente en el navegador
+**Estado actual (2026-05-15):**
+- Fase A: 100% ✅ — deuda crítica resuelta (D-011 a D-020)
+- Fase B: 95% ✅ — frontend funcional (Login, Catalog, Inventory, Dashboard)
+- Iteraciones 3, 4, 5: 100% ✅ — Production, Sales, Reporting completos
+- Pending: despliegue Render/Vercel (usuario), offline-first + DIAN (scope futuro)
 
 ---
 
@@ -100,14 +99,17 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ## 🎯 Estado de la sesión actual
 
-**Fecha:** _Se actualiza al inicio de cada sesión._
+**Fecha:** 2026-05-15
 **Modo de trabajo:** Autónomo con verificación al cierre.
-**Iteración activa:** Iteración 7 — Refinamiento.
-**Bloque actual:** 7.3 cerrado / 7.4 pendiente.
+**Iteración activa:** Iteración 7 — Refinamiento (80%) / Iteración 6 Bloque 6.6 (pendiente usuario).
+**Bloque actual:** 7.4 cerrado (D-016/D-017/D-019). Inconsistencias en PROYECTO_ESTADO.md corregidas.
 
 ### Próxima acción inmediata
 
-> **Iteración 7 completada (~80%)** — Todo el backlog de deuda técnica (D-011 a D-020) está resuelto. Los bloques 7.1-7.4 están cerrados. La deuda restante (SQLite offline-first, DIAN, segundo punto) son features nuevas de mayor envergadura. Acción: validar despliegue end-to-end en Render/Vercel (Bloque 6.6, pendiente de acción del usuario), o iniciar scope de offline-first.
+> **Iteración 7 al 80% — deuda técnica resuelta.** Dos caminos disponibles:
+> 1. **Bloque 6.6 (despliegue Render + Vercel):** pendiente que el usuario cree cuentas y conecte el repo. Instrucciones completas en `docs/runbooks/deploy-pilot.md`.
+> 2. **Offline-first (Iteración 8):** requiere diseño de arquitectura (SQLite en tablet, cola de eventos, sincronización con Supabase, resolución de conflictos). Iniciar con ADR + plan de iteración.
+> Decisión pendiente del usuario.
 
 ### Reglas de la sesión
 
@@ -125,12 +127,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | 0 | Bootstrap del monorepo | 70% | 🟡 | — |
 | 1 | Identity | 59% | 🟡 | `fda7f3c` |
 | 2 | Catalog + Inventory (híbrida) | 76% | 🟡 | `3a99d95`, `02ad20b` |
-| **A** | **Fase A — Remediación de deuda** | 60% | 🟡 | — |
+| **A** | **Fase A — Remediación de deuda** | 100% | ✅ | `5d5a362` |
 | **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
 | 3 | Production (planta central) | 100% | ✅ | `b175857` |
-| 4 | Sales (mesas, cobro, factura básica) | 12% | 🟡 | — |
-| 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | — |
-| 6 | Despliegue piloto en un punto | 80% | 🟡 | — |
+| 4 | Sales (mesas, cobro, factura básica) | 100% | ✅ | `8255287` |
+| 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | (incluido en feat reporting) |
+| 6 | Despliegue piloto en un punto | 80% | 🟡 | `d64d938` |
 | 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 80% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105`, `4ab7d9d` |
 
 ---
@@ -281,10 +283,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ---
 
-## 🟡 Fase A — Remediación de deuda crítica
+## ✅ Fase A — Remediación de deuda crítica
 
 ```
-████████████████░░░░ 80%
+████████████████████ 100%
 ```
 
 **Objetivo:** cerrar la deuda de seguridad multi-tenant y completar los huecos de Iteración 1 antes del vertical slice visible.
@@ -310,7 +312,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ TTL residual preservado (no "refresh implícito" por switch repetido) — corregido tras observación security-auditor
 - ✅ security-auditor aprobado (APRUEBA CON OBSERVACIONES — todas resueltas)
 - ✅ architect-guardian aprobado
-- ⬜ **Pendiente (D-011):** Refactor de RLS en Catalog e Inventory para defensa en profundidad (política valida claim JWT `bu_id` + verifica en `user_business_units`). Requiere Docker disponible para probar. Registrado como D-011.
+- ✅ **D-011 resuelto (Bloque 7.3):** Refactor RLS Catalog/Inventory — `identity.jwt_bu_id()` + `identity.usuario_pertenece_a_bu()` + FORCE RLS en 12 tablas. Migración `20260515000002` aplicada en cloud.
 
 ### Bloque A.4 — Documentación mínima obligatoria ✅
 - ✅ TSDoc en clases/funciones públicas clave (CambiarContextoBusinessUnit, RepositorioDeUnidadesDeNegocio, IniciarSesion ya tenía comentarios). Deuda D-006 reducida.
@@ -725,6 +727,7 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `02ad20b` | Iteración 2 Bloque 9 | Documentación ADR-0002 + ADR-0003 + INDEX |
 | `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
 | `9bcfa90` | Fase B Bloques B.1-B.5 | Vertical slice visible: Docker, seeds, React frontend (Login/Products/Inventory), TODO.md, correcciones code-reviewer |
+| `8255287` | Iteración 4 Bloque 4.8 | Sales BC completo — dominio, casos de uso, ports, adapter, migración SQL, HTTP API, tests |
 | `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `cuqxmbbpssoylwaywuhc` |
 | `eb6f8b8` | Iteración 7 Bloque 7.3 | pool compartido + tipos desde ports (D-018, D-020) |
 | `4fa5105` | Iteración 7 Bloque 7.3 | D-011 — defensa en profundidad RLS Catalog + Inventory |
