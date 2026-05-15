@@ -176,9 +176,14 @@ Build command: `cd apps/web && pnpm build`, publish dir: `apps/web/dist`. Agrega
 ## 8. Verificar despliegue
 
 ```bash
-# Health check de la API
+# Health check básico (sin DB)
 curl https://<tu-api>/health
 # Esperado: {"ok":true}
+
+# Health check extendido (verifica conectividad DB)
+curl https://<tu-api>/health/ready
+# Esperado: {"ok":true,"db":true,"latencyMs":<N>}
+# Si devuelve 503: revisar DATABASE_URL y que el proyecto Supabase esté activo.
 
 # Login de prueba
 curl -X POST https://<tu-api>/api/identity/auth/login \

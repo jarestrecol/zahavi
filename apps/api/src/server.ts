@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import Fastify from 'fastify';
 import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
@@ -17,6 +18,7 @@ import type { InventoryComposition } from './composition/inventory.js';
 import type { ProductionComposition } from './composition/production.js';
 import type { SalesComposition } from './composition/sales.js';
 import type { ReportingComposition } from './composition/reporting.js';
+import type { HealthCheckResult } from '@zahavi/adapter-persistence-supabase';
 
 export function buildServer(
   env: Env,
@@ -26,15 +28,30 @@ export function buildServer(
   productionComposition: ProductionComposition,
   salesComposition: SalesComposition,
   reportingComposition: ReportingComposition,
+  checkDb: () => Promise<HealthCheckResult>,
 ) {
+  const isProd = env.NODE_ENV === 'production';
+
   const fastify = Fastify({
     // HIGH-3: limitar body a 64 KB — aceptamos recetas y combos con varias líneas
     bodyLimit: 64 * 1024,
     // HIGH-3: timeouts para evitar Slowloris y requests colgados
     connectionTimeout: 10_000,
     requestTimeout: 15_000,
+    // Request ID único por petición — propagado en X-Request-Id para trazabilidad
+    genReqId: () => crypto.randomUUID(),
     logger: {
-      level: env.NODE_ENV === 'production' ? 'info' : 'debug',
+      level: isProd ? 'info' : 'debug',
+      // Producción: JSON estructurado con timestamp ISO — ingestado por Datadog/Grafana
+      // Desarrollo: pino-pretty para legibilidad en consola
+      ...(isProd
+        ? { timestamp: () => `,"time":"${new Date().toISOString()}"` }
+        : {
+            transport: {
+              target: 'pino-pretty',
+              options: { colorize: true, translateTime: 'HH:MM:ss.l', ignore: 'pid,hostname' },
+            },
+          }),
       // CRIT-1: redactar todos los campos sensibles en logs
       redact: [
         'req.headers.authorization',
@@ -68,6 +85,11 @@ export function buildServer(
     timeWindow: '1 minute',
   });
 
+  // Propagar request ID en la respuesta — permite al cliente y al load balancer correlacionar logs
+  fastify.addHook('onSend', async (_request, reply) => {
+    void reply.header('X-Request-Id', _request.id);
+  });
+
   fastify.register(jwtPlugin, { jwtSecret: env.JWT_SECRET });
 
   fastify.setErrorHandler(errorHandler);
@@ -94,6 +116,15 @@ export function buildServer(
   });
 
   fastify.get('/health', async () => ({ ok: true }));
+
+  // /health/ready — verifica conectividad con la DB. Usado por load balancers y alertas.
+  fastify.get('/health/ready', async (_request, reply) => {
+    const result = await checkDb();
+    if (!result.ok) {
+      return reply.code(503).send({ ok: false, db: false, latencyMs: result.latencyMs });
+    }
+    return { ok: true, db: true, latencyMs: result.latencyMs };
+  });
 
   return fastify;
 }

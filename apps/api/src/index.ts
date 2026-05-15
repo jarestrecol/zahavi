@@ -7,6 +7,7 @@ import {
   createProductionAdapters,
   createSalesAdapters,
   createReportingAdapters,
+  createHealthCheck,
 } from '@zahavi/adapter-persistence-supabase';
 import { createIdentityComposition } from './composition/identity.js';
 import { createCatalogComposition } from './composition/catalog.js';
@@ -16,6 +17,7 @@ import { createSalesComposition } from './composition/sales.js';
 import { createReportingComposition } from './composition/reporting.js';
 
 const env = parseEnv();
+const checkDb = createHealthCheck(env.DATABASE_URL);
 const identityAdapters = createIdentityAdapters(env.DATABASE_URL);
 const catalogAdapters = createCatalogAdapters(env.DATABASE_URL);
 const inventoryAdapters = createInventoryAdapters(env.DATABASE_URL);
@@ -38,6 +40,7 @@ const server = buildServer(
   productionComposition,
   salesComposition,
   reportingComposition,
+  checkDb,
 );
 
 server.listen({ port: env.PORT, host: '0.0.0.0' }, (err, address) => {
