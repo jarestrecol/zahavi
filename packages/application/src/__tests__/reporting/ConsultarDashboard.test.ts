@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ConsultarDashboard } from '../../reporting/ConsultarDashboard.js';
-import type { IReportingRepository, DashboardDelDia } from '@zahavi/ports';
+import type { IReportingRepository, DashboardDelDia, PuntoDeVentaId } from '@zahavi/ports';
+
+const BU_1 = 'bu-1' as PuntoDeVentaId;
 
 function buildRepo(overrides: Partial<IReportingRepository> = {}): IReportingRepository {
   return {
@@ -27,23 +29,23 @@ describe('ConsultarDashboard', () => {
     const repo = buildRepo();
     const uc = new ConsultarDashboard(repo);
 
-    const result = await uc.execute({ puntoDeVentaId: 'bu-1', fecha: '2026-05-14' });
+    const result = await uc.execute({ puntoDeVentaId: BU_1, fecha: '2026-05-14' });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.fecha).toBe('2026-05-14');
-    expect(repo.dashboardDelDia).toHaveBeenCalledWith('bu-1', '2026-05-14');
+    expect(repo.dashboardDelDia).toHaveBeenCalledWith(BU_1, '2026-05-14');
   });
 
   it('usa la fecha de hoy si no se pasa fecha', async () => {
     const repo = buildRepo();
     const uc = new ConsultarDashboard(repo);
 
-    const result = await uc.execute({ puntoDeVentaId: 'bu-1' });
+    const result = await uc.execute({ puntoDeVentaId: BU_1 });
 
     expect(result.ok).toBe(true);
     expect(repo.dashboardDelDia).toHaveBeenCalledWith(
-      'bu-1',
+      BU_1,
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
     );
   });
@@ -54,7 +56,7 @@ describe('ConsultarDashboard', () => {
     });
     const uc = new ConsultarDashboard(repo);
 
-    await expect(uc.execute({ puntoDeVentaId: 'bu-1', fecha: '2026-05-14' })).rejects.toThrow(
+    await expect(uc.execute({ puntoDeVentaId: BU_1, fecha: '2026-05-14' })).rejects.toThrow(
       'BD no disponible',
     );
   });
@@ -70,7 +72,7 @@ describe('ConsultarDashboard', () => {
     });
     const uc = new ConsultarDashboard(repo);
 
-    const result = await uc.execute({ puntoDeVentaId: 'bu-1', fecha: '2026-05-14' });
+    const result = await uc.execute({ puntoDeVentaId: BU_1, fecha: '2026-05-14' });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;

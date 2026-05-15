@@ -1,5 +1,5 @@
 import { type Result, ok, err, DomainError } from '@zahavi/domain-shared-kernel';
-import type { IReportingRepository, ResumenCierreDeCaja } from '@zahavi/ports';
+import type { IReportingRepository, ResumenCierreDeCaja, PuntoDeVentaId } from '@zahavi/ports';
 
 /** El rango de fechas del cierre es inválido (desde > hasta). */
 export class ErrorDeRangoFechas extends DomainError {
@@ -11,7 +11,7 @@ export class ErrorDeRangoFechas extends DomainError {
 
 export interface ConsultarCierreDeCajaInput {
   /** UUID del punto de venta, tomado del JWT bu_id. */
-  puntoDeVentaId: string;
+  puntoDeVentaId: PuntoDeVentaId;
   /** Fecha inicio en formato YYYY-MM-DD (America/Bogota), inclusiva. */
   desde: string;
   /** Fecha fin en formato YYYY-MM-DD (America/Bogota), inclusiva. */

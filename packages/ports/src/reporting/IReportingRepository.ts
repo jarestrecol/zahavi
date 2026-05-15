@@ -1,4 +1,11 @@
 // ──────────────────────────────────────────────────────────────────────────────
+// Tipos opacos
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** UUID opaco de un punto de venta (business unit de tipo 'punto_de_venta'). */
+export type PuntoDeVentaId = string & { readonly _brand: 'PuntoDeVentaId' };
+
+// ──────────────────────────────────────────────────────────────────────────────
 // DTOs — resultados de las queries de reporting (solo lectura, sin dominio)
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -66,7 +73,7 @@ export interface IReportingRepository {
    * @param puntoDeVentaId UUID del punto de venta (del JWT bu_id).
    * @param fechaBogota Fecha en formato YYYY-MM-DD en zona America/Bogota.
    */
-  dashboardDelDia(puntoDeVentaId: string, fechaBogota: string): Promise<DashboardDelDia>;
+  dashboardDelDia(puntoDeVentaId: PuntoDeVentaId, fechaBogota: string): Promise<DashboardDelDia>;
 
   /**
    * Retorna el resumen de cierre de caja para un rango de fechas.
@@ -74,5 +81,9 @@ export interface IReportingRepository {
    * @param desde Fecha inicio YYYY-MM-DD (inclusiva).
    * @param hasta Fecha fin YYYY-MM-DD (inclusiva).
    */
-  cierreDeCaja(puntoDeVentaId: string, desde: string, hasta: string): Promise<ResumenCierreDeCaja>;
+  cierreDeCaja(
+    puntoDeVentaId: PuntoDeVentaId,
+    desde: string,
+    hasta: string,
+  ): Promise<ResumenCierreDeCaja>;
 }

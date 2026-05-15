@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import type { ReportingComposition } from '../../composition/reporting.js';
+import type { PuntoDeVentaId } from '@zahavi/ports';
 import { authenticate, requireRole } from '../../plugins/jwt.js';
 import { dashboardQuerySchema, cierreQuerySchema } from './schemas.js';
 
@@ -7,7 +8,7 @@ export interface ReportingRouteOptions {
   composition: ReportingComposition;
 }
 
-function getBuId(request: FastifyRequest, reply: FastifyReply): string | null {
+function getBuId(request: FastifyRequest, reply: FastifyReply): PuntoDeVentaId | null {
   const buId = request.user.bu_id;
   if (!buId) {
     void reply.code(403).send({
@@ -16,7 +17,7 @@ function getBuId(request: FastifyRequest, reply: FastifyReply): string | null {
     });
     return null;
   }
-  return buId;
+  return buId as PuntoDeVentaId;
 }
 
 const reportingRoutes: FastifyPluginAsync<ReportingRouteOptions> = async (fastify, opts) => {

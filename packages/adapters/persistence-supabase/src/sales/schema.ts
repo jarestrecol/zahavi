@@ -1,6 +1,7 @@
 import type { ColumnType } from 'kysely';
 
 type Timestamp = ColumnType<Date, string, string>;
+type OptionalTimestamp = ColumnType<Date, string | undefined, string>;
 
 export interface LineaComandaJson {
   id: string;
@@ -28,18 +29,19 @@ export interface FacturaLineaJson {
 export interface SalesMesasTable {
   id: string;
   nombre: string;
-  tipo: string;
+  tipo: 'NORMAL' | 'AD_HOC';
   punto_de_venta_id: string;
-  estado: string;
+  estado: 'LIBRE' | 'OCUPADA' | 'RESERVADA' | 'EN_COBRO';
   comanda_activa_id: string | null;
   creada_en: Timestamp;
+  actualizada_en: OptionalTimestamp;
 }
 
 export interface SalesComandasTable {
   id: string;
   mesa_id: string;
   punto_de_venta_id: string;
-  estado: string;
+  estado: 'ABIERTA' | 'ENVIADA' | 'EN_PREPARACION' | 'LISTA' | 'CERRADA' | 'CANCELADA';
   lineas: ColumnType<LineaComandaJson[], string, string>;
   tomada_por: string;
   cerrada_por: string | null;
@@ -56,7 +58,7 @@ export interface SalesCobroTable {
   pagos: ColumnType<PagoDetalleJson[], string, string>;
   total_cobrado: number;
   cambio: number;
-  estado: string;
+  estado: 'PENDIENTE' | 'PROCESADO' | 'FALLIDO' | 'ANULADO';
   cobrado_por: string;
   creado_en: Timestamp;
   procesado_en: Timestamp | null;
@@ -73,7 +75,7 @@ export interface SalesFacturasTable {
   subtotal: number;
   total_iva: number;
   total: number;
-  estado: string;
+  estado: 'EMITIDA' | 'ANULADA';
   emitida_en: Timestamp;
   anulada_en: Timestamp | null;
   motivo_anulacion: string | null;

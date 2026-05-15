@@ -1,5 +1,6 @@
 export type {
   IReportingRepository,
+  PuntoDeVentaId,
   DashboardDelDia,
   ResumenCierreDeCaja,
   VentaPorMetodo,

@@ -3,7 +3,9 @@ import {
   ConsultarCierreDeCaja,
   ErrorDeRangoFechas,
 } from '../../reporting/ConsultarCierreDeCaja.js';
-import type { IReportingRepository, ResumenCierreDeCaja } from '@zahavi/ports';
+import type { IReportingRepository, ResumenCierreDeCaja, PuntoDeVentaId } from '@zahavi/ports';
+
+const BU_1 = 'bu-1' as PuntoDeVentaId;
 
 function buildRepo(overrides: Partial<IReportingRepository> = {}): IReportingRepository {
   return {
@@ -31,13 +33,13 @@ describe('ConsultarCierreDeCaja', () => {
     const uc = new ConsultarCierreDeCaja(repo);
 
     const result = await uc.execute({
-      puntoDeVentaId: 'bu-1',
+      puntoDeVentaId: BU_1,
       desde: '2026-05-01',
       hasta: '2026-05-14',
     });
 
     expect(result.ok).toBe(true);
-    expect(repo.cierreDeCaja).toHaveBeenCalledWith('bu-1', '2026-05-01', '2026-05-14');
+    expect(repo.cierreDeCaja).toHaveBeenCalledWith(BU_1, '2026-05-01', '2026-05-14');
   });
 
   it('retorna ErrorDeRangoFechas si desde > hasta', async () => {
@@ -45,7 +47,7 @@ describe('ConsultarCierreDeCaja', () => {
     const uc = new ConsultarCierreDeCaja(repo);
 
     const result = await uc.execute({
-      puntoDeVentaId: 'bu-1',
+      puntoDeVentaId: BU_1,
       desde: '2026-05-20',
       hasta: '2026-05-01',
     });
@@ -62,7 +64,7 @@ describe('ConsultarCierreDeCaja', () => {
     const uc = new ConsultarCierreDeCaja(repo);
 
     const result = await uc.execute({
-      puntoDeVentaId: 'bu-1',
+      puntoDeVentaId: BU_1,
       desde: '2026-05-14',
       hasta: '2026-05-14',
     });
@@ -78,7 +80,7 @@ describe('ConsultarCierreDeCaja', () => {
     const uc = new ConsultarCierreDeCaja(repo);
 
     await expect(
-      uc.execute({ puntoDeVentaId: 'bu-1', desde: '2026-05-01', hasta: '2026-05-14' }),
+      uc.execute({ puntoDeVentaId: BU_1, desde: '2026-05-01', hasta: '2026-05-14' }),
     ).rejects.toThrow('timeout');
   });
 });

@@ -1,9 +1,9 @@
 import { type Result, ok } from '@zahavi/domain-shared-kernel';
-import type { IReportingRepository, DashboardDelDia } from '@zahavi/ports';
+import type { IReportingRepository, DashboardDelDia, PuntoDeVentaId } from '@zahavi/ports';
 
 export interface ConsultarDashboardInput {
   /** UUID del punto de venta, tomado del JWT bu_id. */
-  puntoDeVentaId: string;
+  puntoDeVentaId: PuntoDeVentaId;
   /**
    * Fecha en formato YYYY-MM-DD (zona America/Bogota).
    * Si se omite, se usa la fecha actual del servidor en zona America/Bogota.
