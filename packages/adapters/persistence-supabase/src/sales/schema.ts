@@ -79,9 +79,16 @@ export interface SalesFacturasTable {
   motivo_anulacion: string | null;
 }
 
+export interface SalesFacturaSequencesTable {
+  punto_de_venta_id: string;
+  anio: number;
+  ultimo_numero: number;
+}
+
 export interface SalesDatabase {
   'sales.mesas': SalesMesasTable;
   'sales.comandas': SalesComandasTable;
   'sales.cobros': SalesCobroTable;
   'sales.facturas': SalesFacturasTable;
+  'sales.factura_sequences': SalesFacturaSequencesTable;
 }

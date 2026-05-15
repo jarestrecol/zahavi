@@ -1,4 +1,4 @@
-import type { Kysely } from 'kysely';
+import { sql, type Kysely } from 'kysely';
 import type { IFacturaRepository } from '@zahavi/ports';
 import type { Factura, FacturaId, CobroId } from '@zahavi/domain-sales';
 import { RepositorioNoDisponibleError as Err } from '@zahavi/ports';
@@ -63,20 +63,24 @@ export class RepositorioDeFacturaSupabase implements IFacturaRepository {
 
   /**
    * Genera el siguiente número de factura para el punto de venta.
-   * Formato: FAC-YYYY-NNNNN (contador por punto de venta + año).
+   * Formato: FAC-YYYY-NNNNN.
+   *
+   * Usa INSERT ... ON CONFLICT DO UPDATE RETURNING para incrementar de forma
+   * atómica el contador en `sales.factura_sequences`. Esto elimina la race
+   * condition del COUNT(*)+1 anterior bajo concurrencia (D-015).
    */
   async siguienteNumero(puntoDeVentaId: string): Promise<string> {
     try {
       const anio = new Date().getFullYear();
-      const prefix = `FAC-${anio}-`;
-      const result = await this.db
-        .selectFrom('sales.facturas')
-        .select((eb) => eb.fn.count<number>('id').as('total'))
-        .where('punto_de_venta_id', '=', puntoDeVentaId)
-        .where('numero', 'like', `${prefix}%`)
-        .executeTakeFirst();
-      const siguiente = ((result?.total ?? 0) as number) + 1;
-      return `${prefix}${String(siguiente).padStart(5, '0')}`;
+      const result = await sql<{ ultimo_numero: number }>`
+        INSERT INTO sales.factura_sequences (punto_de_venta_id, anio, ultimo_numero)
+        VALUES (${puntoDeVentaId}::uuid, ${anio}, 1)
+        ON CONFLICT (punto_de_venta_id, anio)
+        DO UPDATE SET ultimo_numero = sales.factura_sequences.ultimo_numero + 1
+        RETURNING ultimo_numero
+      `.execute(this.db);
+      const numero = result.rows[0]?.ultimo_numero ?? 1;
+      return `FAC-${anio}-${String(numero).padStart(5, '0')}`;
     } catch (e) {
       throw new Err(e);
     }
