@@ -51,6 +51,7 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
         rol: result.value.rol,
         dispositivoId: result.value.dispositivoId,
         expiraEnAbsolutoMs: result.value.expiraEnAbsolutoMs,
+        businessUnitId: result.value.businessUnitId,
       });
     },
   });
