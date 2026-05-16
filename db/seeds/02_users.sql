@@ -1,6 +1,7 @@
 -- Seed: Usuarios de prueba
 -- IMPORTANTE: Las contraseñas son hashes bcrypt de las contraseñas de desarrollo.
 -- Contraseña de julian@zahavi.local y admin@zahavi.local: "Zahavi2026!"
+-- Hash generado con pgcrypto: extensions.crypt('Zahavi2026!', extensions.gen_salt('bf', 12))
 -- worker@zahavi.local usa PIN 123456 (hash bcrypt)
 
 INSERT INTO identity.usuarios (id, email, nombre_completo, rol, estado, tipo_credencial, hash_contrasena, secreto_totp, totp_verificado, hash_pin, creado_en, creado_por)
@@ -12,7 +13,7 @@ VALUES
     'SUPERADMIN',
     'activo',
     'navegador',
-    '$2b$12$K8GpbTuUqGGWAT.Z3q7wuuqmJkC2N5RiY9vBl8lrNhVT1JcC1nmEO',
+    '$2a$12$KD.FbVugeLiw20fY.lMzHuq4/z/U1k4eVSgi7UuB6JB632BvNd/da',
     NULL,
     false,
     NULL,
@@ -26,7 +27,7 @@ VALUES
     'ADMIN',
     'activo',
     'navegador',
-    '$2b$12$K8GpbTuUqGGWAT.Z3q7wuuqmJkC2N5RiY9vBl8lrNhVT1JcC1nmEO',
+    '$2a$12$KD.FbVugeLiw20fY.lMzHuq4/z/U1k4eVSgi7UuB6JB632BvNd/da',
     NULL,
     false,
     NULL,
