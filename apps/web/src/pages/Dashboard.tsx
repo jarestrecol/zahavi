@@ -25,7 +25,7 @@ function KpiCard({ label, value }: { label: string; value: string }) {
 export function Dashboard() {
   const { data, isLoading, isError, error } = useQuery<DashboardDelDia>({
     queryKey: ['dashboard'],
-    queryFn: () => api.get<DashboardDelDia>('/api/reporting/dashboard'),
+    queryFn: () => api.get<DashboardDelDia>('/reporting/dashboard'),
     refetchInterval: 60_000,
   });
 

@@ -24,6 +24,7 @@ export interface CatalogAdapters {
   repositorioDeCombos: IComboRepository;
   consultorDeCostos: IConsultorDeCostosDeIngredientes;
   publicadorDeEventos: IPublicadorDeDomainEventsCatalog;
+  db: Kysely<CatalogDatabase>;
 }
 
 export function createCatalogAdapters(pool: Pool): CatalogAdapters {
@@ -40,5 +41,6 @@ export function createCatalogAdapters(pool: Pool): CatalogAdapters {
     repositorioDeCombos: new RepositorioDeCombos(catalogDb),
     consultorDeCostos: new ConsultorDeCostosDeIngredientesSupabase(inventoryDb),
     publicadorDeEventos: new PublicadorDeEventosCatalogNoop(),
+    db: catalogDb,
   };
 }

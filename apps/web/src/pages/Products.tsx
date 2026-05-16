@@ -20,7 +20,7 @@ export function Products() {
 
   const { data, isLoading, isError } = useQuery<ProductsResponse>({
     queryKey: ['products', busqueda],
-    queryFn: () => api.get(`/catalog/products?search=${encodeURIComponent(busqueda)}&limit=50`),
+    queryFn: () => api.get(`/catalog/productos?search=${encodeURIComponent(busqueda)}&limit=50`),
   });
 
   if (isLoading) {

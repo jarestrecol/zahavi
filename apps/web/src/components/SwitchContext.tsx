@@ -13,10 +13,11 @@ export function SwitchContext() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
+  // TODO: implementar GET /identity/unidades en el backend (Bloque 6.7)
   const { data: unidades } = useQuery<BusinessUnit[]>({
     queryKey: ['business-units'],
     queryFn: () => api.get('/identity/unidades'),
-    enabled: rol === 'ADMIN' || rol === 'SUPERADMIN',
+    enabled: false,
   });
 
   if (rol === 'WORKER' || !unidades || unidades.length <= 1) return null;

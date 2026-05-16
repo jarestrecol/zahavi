@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { FastifyPluginAsync } from 'fastify';
 import type { CatalogComposition } from '../../composition/catalog.js';
 import { authenticate, requireRole } from '../../plugins/jwt.js';
@@ -10,12 +11,29 @@ import {
   crearComboSchema,
 } from './schemas.js';
 
+const productosQuerySchema = z.object({
+  search: z.string().max(200).default(''),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+
 export interface CatalogRouteOptions {
   composition: CatalogComposition;
 }
 
 const catalogRoutes: FastifyPluginAsync<CatalogRouteOptions> = async (fastify, opts) => {
   const { composition } = opts;
+
+  // ── GET /productos ─────────────────────────────────────────────────────────
+  fastify.route({
+    method: 'GET',
+    url: '/productos',
+    preHandler: [authenticate],
+    handler: async (request, reply) => {
+      const { search, limit } = productosQuerySchema.parse(request.query);
+      const items = await composition.consultarProductos({ search, limit });
+      return reply.send({ items, total: items.length });
+    },
+  });
 
   // ── POST /categorias ────────────────────────────────────────────────────────
   fastify.route({
