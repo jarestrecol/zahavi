@@ -640,9 +640,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ Runbook `docs/runbooks/deploy-pilot.md` actualizado con instrucciones paso a paso
 - ✅ `/health` endpoint verificado en `apps/api/src/server.ts:96`
 - ✅ `VITE_API_URL` verificado en `apps/web/src/lib/api.ts:3`
-- ⬜ Usuario crea cuenta en Render.com, conecta repo, configura `DATABASE_URL` y `CORS_ORIGIN`
+- ✅ Usuario configura Render Blueprint — `DATABASE_URL` (Supabase Session Pooler) + `CORS_ORIGIN`
+- ✅ Health check `GET /health` responde 200 — API live en `https://zahavi-api.onrender.com`
 - ⬜ Usuario crea cuenta en Vercel, importa repo, configura `VITE_API_URL`
-- ⬜ Health check `GET /health` responde `{"ok":true}`
+- ⬜ Actualizar `CORS_ORIGIN` en Render con URL real de Vercel
 - ⬜ Login de SUPERADMIN funciona end-to-end (contraseña en seed: `Zahavi2026!`)
 
 ---

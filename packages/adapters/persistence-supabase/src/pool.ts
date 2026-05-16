@@ -7,12 +7,20 @@ import { Pool } from 'pg';
  * El pool se configura con límites conservadores para el plan Free de Supabase
  * (máx. 20-25 conexiones directas). Se reserva 1 conexión para el health check.
  */
+function stripSslParams(url: string): string {
+  const parsed = new URL(url);
+  parsed.searchParams.delete('sslmode');
+  parsed.searchParams.delete('ssl');
+  return parsed.toString();
+}
+
 export function createSharedPool(databaseUrl: string): Pool {
+  const isProd = process.env['NODE_ENV'] === 'production';
   return new Pool({
-    connectionString: databaseUrl,
+    connectionString: isProd ? stripSslParams(databaseUrl) : databaseUrl,
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
-    ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: false } : undefined,
+    ssl: isProd ? { rejectUnauthorized: false } : undefined,
   });
 }
