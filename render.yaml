@@ -5,7 +5,7 @@ services:
     region: ohio       # us-east-2 — más cercano a Colombia que us-west
     plan: free
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @zahavi/api build
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter "@zahavi/api..." build
     startCommand: node apps/api/dist/index.js
     healthCheckPath: /health
     autoDeploy: true
