@@ -37,10 +37,10 @@
 - CLI admin: `░░░░░░░░░░░░░░░░░░░░` 0% (fuera de scope piloto)
 
 **Estado actual (2026-05-16):**
-- Iteraciones 0-7 en progreso conjunto. Bloque 6.6 activo.
+- Iteraciones 0-7 en progreso conjunto. Bloque 6.7 ✅ + Bloque 7.5 🟡.
 - Render live: `https://zahavi-api.onrender.com` — API OK
 - Vercel live: `https://zahavi-web.vercel.app` — Login + Dashboard + Productos + Inventario OK
-- Pendiente push de 6 commits de esta sesión para triggerear redeploy final.
+- Pendiente: push + redeploy para activar SwitchContext. D-023 requiere acción usuario (GitHub secret).
 
 ---
 
@@ -106,12 +106,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Próxima acción inmediata
 
-> **Paso 1 (usuario):** `git push origin main` — sube 6 commits de esta sesión.
+> **Paso 1 (usuario):** `git push origin main` — sube commits de esta sesión (Bloque 6.7 + D-022).
 > **Paso 2 (usuario):** Esperar redeploy Render (~7 min) → cerrar sesión → volver a login.
-> **Paso 3:** Verificar que Inventario carga con `businessUnitId` correcto.
-> **Paso 4 (Claude):** Implementar `GET /identity/unidades-de-negocio` → habilitar SwitchContext → Bloque 6.7.
-> **Paso 5 (Claude):** Revertir debug logging en error-handler (D-022) → commit.
-> **Paso 6 (Claude):** Actualizar GitHub secret `SUPABASE_DB_PASSWORD` y verificar CI verde.
+> **Paso 3 (usuario):** Verificar Inventario + SwitchContext con `admin@zahavi.local` (ADMIN ve las BUs).
+> **Paso 4 (usuario):** Actualizar GitHub secret `SUPABASE_DB_PASSWORD` → re-trigger CI → verificar 3/3 verde (D-023).
 
 ### Reglas de la sesión
 
@@ -369,10 +367,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ⬜ **Pendiente push:** 6 commits de esta sesión → redeploy Render → verificar Inventario con `businessUnitId`
 - ⬜ **Bloque 6.7:** `GET /identity/unidades-de-negocio` → habilitar SwitchContext
 
-### Bloque 6.7 — Completar SwitchContext ⬜ (pendiente)
-- ⬜ `GET /identity/unidades-de-negocio` — listar unidades del usuario autenticado
-- ⬜ Habilitar query en `SwitchContext.tsx` (`enabled: true`)
-- ⬜ Verificar cambio de contexto ADMIN end-to-end
+### Bloque 6.7 — Completar SwitchContext ✅ (100%)
+- ✅ `GET /identity/unidades-de-negocio` — listar unidades del usuario autenticado (commit `feat(identity)`)
+- ✅ Habilitar query en `SwitchContext.tsx` (`enabled: rol === 'ADMIN' || rol === 'SUPERADMIN'`)
+- ⬜ Verificar cambio de contexto ADMIN end-to-end (pendiente redeploy)
 
 ---
 
@@ -403,10 +401,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ D-017: ENUMs PostgreSQL nativos para estados
 - ✅ D-019: `PuntoDeVentaId` branded type
 
-### Bloque 7.5 — Limpieza post-piloto ⬜ (pendiente)
-- ⬜ D-022: Revertir debug logging en `error-handler.ts` (actualmente expone `err.code` y `err.msg` de pg en logs — OK en server-side pero limpiar para producción final)
-- ⬜ D-023: Actualizar GitHub secret `SUPABASE_DB_PASSWORD` + verificar CI verde
-- ⬜ D-024: `GET /identity/unidades-de-negocio` — SwitchContext funcional
+### Bloque 7.5 — Limpieza post-piloto 🟡 (67%)
+- ✅ D-022: Revertir debug logging en `error-handler.ts` — logs solo exponen `err.name` (commit `fix(api)`)
+- ⬜ D-023: Actualizar GitHub secret `SUPABASE_DB_PASSWORD` + verificar CI verde (acción usuario)
+- ✅ D-024: `GET /identity/unidades-de-negocio` implementado — SwitchContext funcional
 
 ### Scope futuro (fuera del piloto actual)
 - ⬜ Offline-first SQLite para tablets (D-010 — análisis separado)
@@ -443,8 +441,8 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-018 | ~~Pool separado por adapter~~ — **RESUELTO** `createSharedPool` | ~~Baja~~ | ✅ |
 | D-019 | ~~`puntoDeVentaId: string` sin branded type~~ — **RESUELTO** `PuntoDeVentaId` opaco | ~~Baja~~ | ✅ |
 | D-020 | ~~Tipos duplicados en Dashboard.tsx~~ — **RESUELTO** importa desde `@zahavi/ports` | ~~Media~~ | ✅ |
-| D-021 | `GET /identity/unidades-de-negocio` no implementado — SwitchContext deshabilitado hasta que exista | Media | ⬜ Bloque 6.7 |
-| D-022 | `error-handler.ts` expone `err.code` + `err.msg` de pg en logs (diagnóstico temporal) — limpiar para producción | Baja | ⬜ Bloque 7.5 |
+| D-021 | ~~`GET /identity/unidades-de-negocio` no implementado~~ — **RESUELTO** Bloque 6.7 (commit `feat(identity)`) | ~~Media~~ | ✅ |
+| D-022 | ~~`error-handler.ts` expone `err.code` + `err.msg` de pg en logs~~ — **RESUELTO** Bloque 7.5 (commit `fix(api)`) | ~~Baja~~ | ✅ |
 | D-023 | GitHub secret `SUPABASE_DB_PASSWORD` desactualizado tras reset — CI falla en deploy migrations | Media | ⬜ Bloque 7.5 |
 | D-024 | Seed `02_users.sql` tenía hash bcrypt incorrecto para `Zahavi2026!` — **CORREGIDO en DB** y en archivo seed (commit `322340d`). Verificar que seed script valide hashes post-inserción | Baja | ⬜ Bloque 7.5 |
 

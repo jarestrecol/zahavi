@@ -55,11 +55,7 @@ export function errorHandler(
   }
 
   if (error instanceof RepositorioNoDisponibleError) {
-    const cause = error.cause as (Error & { code?: string }) | undefined;
-    request.log.error(
-      { err: { name: cause?.name, code: cause?.code, msg: cause?.message } },
-      'Repositorio no disponible',
-    );
+    request.log.error({ err: { name: error.name } }, 'Repositorio no disponible');
     void reply
       .code(503)
       .send({ error: 'SERVICIO_NO_DISPONIBLE', mensaje: 'Servicio temporalmente no disponible' });

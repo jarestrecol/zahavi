@@ -160,6 +160,17 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
     },
   });
 
+  // ── GET /unidades-de-negocio — listar BUs del usuario autenticado ───────────
+  fastify.route({
+    method: 'GET',
+    url: '/unidades-de-negocio',
+    preHandler: [authenticate],
+    handler: async (request, reply) => {
+      const unidades = await composition.listarUnidades({ usuarioId: request.user.sub });
+      return reply.send({ items: unidades });
+    },
+  });
+
   // ── POST /contexto/cambiar — CambiarContextoBusinessUnit (ADMIN / SUPERADMIN) ──
   fastify.route({
     method: 'POST',

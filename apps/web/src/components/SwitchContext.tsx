@@ -8,17 +8,22 @@ interface BusinessUnit {
   nombre: string;
 }
 
+interface UnidadesResponse {
+  items: BusinessUnit[];
+}
+
 export function SwitchContext() {
   const { rol, buId, setBuId } = useAuthStore();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: implementar GET /identity/unidades en el backend (Bloque 6.7)
-  const { data: unidades } = useQuery<BusinessUnit[]>({
+  const { data: unidadesData } = useQuery<UnidadesResponse>({
     queryKey: ['business-units'],
-    queryFn: () => api.get('/identity/unidades'),
-    enabled: false,
+    queryFn: () => api.get('/identity/unidades-de-negocio'),
+    enabled: rol === 'ADMIN' || rol === 'SUPERADMIN',
   });
+
+  const unidades = unidadesData?.items;
 
   if (rol === 'WORKER' || !unidades || unidades.length <= 1) return null;
 

@@ -10,6 +10,13 @@ import {
 } from '@zahavi/application';
 import type { IdentityAdapters } from '@zahavi/adapter-persistence-supabase';
 
+export interface UnidadDeNegocioItem {
+  id: string;
+  nombre: string;
+  tipo: string;
+  estado: string;
+}
+
 export interface IdentityComposition {
   registrarUsuario: RegistrarUsuario;
   asignarRol: AsignarRol;
@@ -19,6 +26,7 @@ export interface IdentityComposition {
   revocarSesion: RevocarSesion;
   cerrarSesion: CerrarSesion;
   cambiarContexto: CambiarContextoBusinessUnit;
+  listarUnidades: (params: { usuarioId: string }) => Promise<UnidadDeNegocioItem[]>;
 }
 
 export function createIdentityComposition(adapters: IdentityAdapters): IdentityComposition {
@@ -34,6 +42,7 @@ export function createIdentityComposition(adapters: IdentityAdapters): IdentityC
     generadorDeIds,
     politicaPorRol,
     publicadorDeEventos,
+    db,
   } = adapters;
 
   return {
@@ -94,5 +103,15 @@ export function createIdentityComposition(adapters: IdentityAdapters): IdentityC
       publicadorDeEventos,
     ),
     cambiarContexto: new CambiarContextoBusinessUnit(repositorioDeUsuarios, repositorioDeUnidades),
+    listarUnidades: async ({ usuarioId }) => {
+      const rows = await db
+        .selectFrom('identity.business_units as bu')
+        .innerJoin('identity.user_business_units as ubu', 'ubu.business_unit_id', 'bu.id')
+        .select(['bu.id', 'bu.nombre', 'bu.tipo', 'bu.estado'])
+        .where('ubu.user_id', '=', usuarioId)
+        .orderBy('bu.nombre')
+        .execute();
+      return rows;
+    },
   };
 }

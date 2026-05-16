@@ -38,6 +38,7 @@ export interface IdentityAdapters {
   generadorDeIds: GeneradorDeIds;
   politicaPorRol: PoliticaDeSesionPorRol;
   publicadorDeEventos: PublicadorDeDomainEvents;
+  db: Kysely<IdentityDatabase>;
 }
 
 export function createIdentityAdapters(pool: Pool): IdentityAdapters {
@@ -57,5 +58,6 @@ export function createIdentityAdapters(pool: Pool): IdentityAdapters {
     generadorDeIds: new GeneradorDeIdsUuid(),
     politicaPorRol: new PoliticaDeSesionPorRolDefecto(),
     publicadorDeEventos: new PublicadorDeEventosNoop(),
+    db,
   };
 }
