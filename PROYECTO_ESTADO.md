@@ -619,7 +619,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ `docs/runbooks/deploy-pilot.md` — instrucciones completas: Supabase cloud, seed, API (Render), frontend (Vercel), rollback
 
 ### Bloque 6.5 — Supabase cloud ✅
-- ✅ Proyecto Zahavi creado en supabase.com — project ID: `cuqxmbbpssoylwaywuhc` (región us-east-1)
+- ✅ Proyecto Zahavi creado en supabase.com — project ID: `krubipnwqrsywmlyskja` (región us-east-1)
 - ✅ 7 migraciones aplicadas via MCP (identity x3, catalog, inventory, production, sales)
   - Fix: `stock_movements` PK cambiado a `(id, ocurrido_en)` para tabla particionada
   - Fix: RLS habilitado en las 4 particiones de `stock_movements`
@@ -728,7 +728,7 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
 | `9bcfa90` | Fase B Bloques B.1-B.5 | Vertical slice visible: Docker, seeds, React frontend (Login/Products/Inventory), TODO.md, correcciones code-reviewer |
 | `8255287` | Iteración 4 Bloque 4.8 | Sales BC completo — dominio, casos de uso, ports, adapter, migración SQL, HTTP API, tests |
-| `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `cuqxmbbpssoylwaywuhc` |
+| `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `krubipnwqrsywmlyskja` |
 | `eb6f8b8` | Iteración 7 Bloque 7.3 | pool compartido + tipos desde ports (D-018, D-020) |
 | `4fa5105` | Iteración 7 Bloque 7.3 | D-011 — defensa en profundidad RLS Catalog + Inventory |
 | `4ab7d9d` | Iteración 7 Bloque 7.4 | D-016/D-017/D-019 — actualizada_en mesas, ENUMs nativos, PuntoDeVentaId branded |
