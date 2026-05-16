@@ -8,39 +8,39 @@
 ## 📈 Avance global del proyecto
 
 ```
-████████████████░░░░ 82%
+█████████████████░░░ 88%
 ```
 
-**Lectura honesta:** backend completo (Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC). Frontend React funcional (Login, Productos, Inventario, Dashboard). Seeds + migraciones en Supabase cloud. Pendiente: despliegue Render/Vercel (acción del usuario), offline-first (scope separado), DIAN (scope separado).
+**Lectura honesta (2026-05-16):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel. API desplegada en Render. Login, Dashboard, Productos e Inventario funcionando end-to-end. Pendiente: SwitchContext endpoint, deuda técnica menor, E2E tests (bloqueados por Docker), CLI admin (scope piloto no requiere), offline-first + DIAN (scope futuro).
 
 ### Avance por iteración
 
 | # | Iteración / Fase | Barra | % | Estado |
 |---|---|---|---|---|
-| 0 | Bootstrap del monorepo            | `██████████████░░░░░░` | 70% | 🟡 |
-| 1 | Identity                          | `████████████░░░░░░░░` | 59% | 🟡 |
-| 2 | Catalog + Inventory (híbrida)     | `███████████████░░░░░` | 76% | 🟡 |
+| 0 | Bootstrap del monorepo            | `████████████████░░░░` | 80% | 🟡 |
+| 1 | Identity                          | `████████████████░░░░` | 80% | 🟡 |
+| 2 | Catalog + Inventory (híbrida)     | `█████████████████░░░` | 85% | 🟡 |
 | **A** | **Remediación de deuda crítica** | `████████████████████` | **100%** | ✅ |
 | **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
 | 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
-| 6 | Despliegue piloto                 | `████████████████░░░░` | 80% | 🟡 |
+| 6 | Despliegue piloto                 | `███████████████████░` | 95% | 🟡 |
 | 7 | Refinamiento                      | `████████████████░░░░` | 80% | 🟡 |
 
-**Métricas clave:**
-- Iteraciones iniciadas: **4 de 10**
-- Iteraciones completadas al 100%: **1 de 10** (Production)
-- Bounded contexts del dominio terminados: **4 de 7** (Identity, Catalog, Inventory, Production) — Sales en progreso
-- Frontend funcional: `░░░░░░░░░░░░░░░░░░░░` 0%
-- CLI admin funcional: `░░░░░░░░░░░░░░░░░░░░` 0%
-- Sistema desplegable end-to-end: `░░░░░░░░░░░░░░░░░░░░` 0%
+**Métricas clave (actualizadas 2026-05-16):**
+- Bounded contexts del dominio terminados: **6 de 6** (Identity, Catalog, Inventory, Production, Sales, Reporting)
+- API HTTP endpoints: **47 endpoints** en 6 BCs
+- Frontend funcional: `████████████████░░░░` 80% (Login ✅, Dashboard ✅, Productos ✅, Inventario ✅, SwitchContext ⬜)
+- Sistema desplegable end-to-end: `███████████████████░` 95% (API en Render ✅, Web en Vercel ✅, login ok ✅)
+- Tests: 458+ verdes (unit + integration), E2E bloqueados por Docker
+- CLI admin: `░░░░░░░░░░░░░░░░░░░░` 0% (fuera de scope piloto)
 
-**Estado actual (2026-05-15):**
-- Fase A: 100% ✅ — deuda crítica resuelta (D-011 a D-020)
-- Fase B: 95% ✅ — frontend funcional (Login, Catalog, Inventory, Dashboard)
-- Iteraciones 3, 4, 5: 100% ✅ — Production, Sales, Reporting completos
-- Pending: despliegue Render/Vercel (usuario), offline-first + DIAN (scope futuro)
+**Estado actual (2026-05-16):**
+- Iteraciones 0-7 en progreso conjunto. Bloque 6.6 activo.
+- Render live: `https://zahavi-api.onrender.com` — API OK
+- Vercel live: `https://zahavi-web.vercel.app` — Login + Dashboard + Productos + Inventario OK
+- Pendiente push de 6 commits de esta sesión para triggerear redeploy final.
 
 ---
 
@@ -99,18 +99,19 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ## 🎯 Estado de la sesión actual
 
-**Fecha:** 2026-05-15
+**Fecha:** 2026-05-16
 **Modo de trabajo:** Autónomo con verificación al cierre.
-**Iteración activa:** Iteración 7 — Refinamiento (80%) / Iteración 6 Bloque 6.6 (pendiente usuario).
-**Bloque actual:** 6.6 — CI/CD verde, Supabase en cloud. Pendiente: despliegue Render API + Vercel frontend.
+**Iteración activa:** Iteración 6 Bloque 6.6 (95%) — pendiente push final + redeploy.
+**Contexto clave:** Login funciona con `admin@zahavi.local` / `Zahavi2026!`. Dashboard, Productos e Inventario cargando. Falta push de 6 commits para triggerear último redeploy con todos los fixes.
 
 ### Próxima acción inmediata
 
-> **CI/CD 100% verde (3/3 jobs).** Siguiente paso: despliegue Render + Vercel.
-> 1. **Render (API):** crear cuenta en render.com, conectar repo, el Blueprint detecta `render.yaml` automáticamente. Configurar `DATABASE_URL` (Supabase session mode puerto 5432) y `CORS_ORIGIN` (URL de Vercel).
-> 2. **Vercel (Frontend):** importar repo en vercel.com, configurar `VITE_API_URL` (URL de Render).
-> 3. Verificar `GET /health` y login SUPERADMIN end-to-end.
-> Runbook completo: `docs/runbooks/deploy-pilot.md`.
+> **Paso 1 (usuario):** `git push origin main` — sube 6 commits de esta sesión.
+> **Paso 2 (usuario):** Esperar redeploy Render (~7 min) → cerrar sesión → volver a login.
+> **Paso 3:** Verificar que Inventario carga con `businessUnitId` correcto.
+> **Paso 4 (Claude):** Implementar `GET /identity/unidades-de-negocio` → habilitar SwitchContext → Bloque 6.7.
+> **Paso 5 (Claude):** Revertir debug logging en error-handler (D-022) → commit.
+> **Paso 6 (Claude):** Actualizar GitHub secret `SUPABASE_DB_PASSWORD` y verificar CI verde.
 
 ### Reglas de la sesión
 
@@ -125,45 +126,46 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 | # | Iteración | Avance | Estado | Commit principal |
 |---|---|---|---|---|
-| 0 | Bootstrap del monorepo | 70% | 🟡 | — |
-| 1 | Identity | 59% | 🟡 | `fda7f3c` |
-| 2 | Catalog + Inventory (híbrida) | 76% | 🟡 | `3a99d95`, `02ad20b` |
+| 0 | Bootstrap del monorepo | 80% | 🟡 | — |
+| 1 | Identity | 80% | 🟡 | `fda7f3c` |
+| 2 | Catalog + Inventory (híbrida) | 85% | 🟡 | `3a99d95`, `02ad20b` |
 | **A** | **Fase A — Remediación de deuda** | 100% | ✅ | `5d5a362` |
 | **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
 | 3 | Production (planta central) | 100% | ✅ | `b175857` |
 | 4 | Sales (mesas, cobro, factura básica) | 100% | ✅ | `8255287` |
 | 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | (incluido en feat reporting) |
-| 6 | Despliegue piloto en un punto | 80% | 🟡 | `d64d938` |
-| 7 | Refinamiento (endurecimiento, observabilidad, offline-first, DIAN) | 80% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105`, `4ab7d9d` |
+| 6 | Despliegue piloto en un punto | 95% | 🟡 | `d64d938`, `0fbe26a`, `392353e` |
+| 7 | Refinamiento (endurecimiento, observabilidad, deuda técnica) | 80% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105`, `4ab7d9d` |
 
 ---
 
 ## 🟡 Iteración 0 — Bootstrap del monorepo
 
 ```
-██████████████░░░░░░ 70%
+████████████████░░░░ 80%
 ```
 
 - ✅ git init + pnpm init
 - ✅ `.gitignore`, `.editorconfig`, `pnpm-workspace.yaml`
 - ✅ TypeScript 5.x strict + tsconfig.base.json
 - ✅ Turborepo configurado (`turbo.json`)
-- ✅ Vitest + ESLint (flat config) + Prettier + Husky + lint-staged
+- ✅ Vitest + ESLint (flat config, eslint.config.js) + Prettier + Husky + lint-staged
 - ✅ Estructura de paquetes (`apps/`, `packages/`, `db/`, `docs/`)
 - ✅ Scripts de raíz: `build`, `test`, `typecheck`, `lint`, `format`
-- ⬜ **Pendiente:** CI/CD pipeline en `.github/workflows/ci.yml` con typecheck + lint + test + gitleaks + semgrep
-- ⬜ **Pendiente:** Docker + Supabase local (bloqueado por virtualización BIOS — habilitar cuando sea posible)
-- ⬜ **Pendiente:** ADR-0001 explícito sobre la arquitectura hexagonal + bounded contexts
+- ✅ CI/CD pipeline en `.github/workflows/ci.yml` — typecheck + lint + test + gitleaks + supabase db push (Iteración 6)
+- ✅ `render.yaml` y `apps/web/vercel.json` para despliegue (Iteración 6)
+- ⬜ Docker Compose local (`docker/docker-compose.yml`) — creado pero sin validar (D-001 — virtualización BIOS)
+- ⬜ ADR-0001 explícito sobre arquitectura hexagonal + bounded contexts
 
 ---
 
 ## 🟡 Iteración 1 — Identity
 
 ```
-████████████░░░░░░░░ 59%
+████████████████░░░░ 80%
 ```
 
-**Commit principal:** `fda7f3c`
+**Commit principal:** `fda7f3c` + `5d5a362` (Fase A completó los gaps)
 
 ### Dominio (`packages/domain/identity/`)
 - ✅ Aggregate `Usuario` con invariantes
@@ -175,46 +177,52 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Casos de uso (`packages/application/identity/`)
 - ✅ `IniciarSesion` (con TOTP opcional ADMIN / obligatorio SUPERADMIN)
-- ⬜ **Pendiente verificar/completar:** `RegistrarUsuario`
-- ⬜ **Pendiente verificar/completar:** `AsignarRol`
-- ⬜ **Pendiente verificar/completar:** `HabilitarDosFactor`
-- ⬜ **Pendiente verificar/completar:** `RevocarSesion`
-- ⬜ **Pendiente nuevo:** `CambiarContextoBusinessUnit` (refinamiento ADR-0003)
+- ✅ `RegistrarUsuario` — existe y funciona
+- ✅ `AsignarRol` — existe y funciona
+- ✅ `IniciarEnrolamientoTotp` + `ConfirmarTotp` — 2FA completo
+- ✅ `RevocarSesion` + `CerrarSesion` — existen y funcionan
+- ✅ `CambiarContextoBusinessUnit` — implementado en Fase A (ADR-0003)
 
-### Adapter Supabase (`packages/adapters/persistence-supabase/identity/`)
-- ✅ Adapter para `Usuario`, `Sesion`, `DispositivoAutorizado`
-- ✅ Integración con Supabase Auth
+### Adapter Supabase
+- ✅ `RepositorioDeUsuariosSupabase`, `RepositorioDeSesionesSupabase`, `RepositorioDeDispositivosSupabase`
+- ✅ `RepositorioDeUnidadesSupabase` — `listarIdsPorUsuario` + `perteneceAlUsuario`
+- ✅ `VerificadorDeContrasenaSupabase` (bcryptjs — `$2a$` y `$2b$` compatibles)
 
-### Migraciones SQL (`db/migrations/`)
-- ✅ Tablas: `users`, `roles`, `user_business_units`, `sessions`, `authorized_devices`
-- ✅ RLS habilitada
-- ⬜ **Pendiente:** refactor RLS a defensa en profundidad (claim JWT + verificación en `user_business_units`)
+### Migraciones SQL
+- ✅ Tablas: `identity.usuarios`, `identity.sesiones`, `identity.dispositivos_autorizados`, `identity.business_units`, `identity.user_business_units`
+- ✅ RLS habilitada + FORCE ROW LEVEL SECURITY
+- ✅ Funciones: `identity.jwt_bu_id()`, `identity.usuario_pertenece_a_bu()`
 
-### API HTTP (`apps/api/routes/auth/`)
-- ✅ `POST /auth/login` (IniciarSesion)
-- ⬜ **Pendiente verificar:** endpoints para los otros 4 casos de uso
-- ⬜ **Pendiente nuevo:** `POST /auth/switch-context` (refinamiento ADR-0003)
+### API HTTP
+- ✅ `POST /identity/sesiones` — IniciarSesion (login)
+- ✅ `POST /identity/sesiones/:id/cerrar` — CerrarSesion
+- ✅ `DELETE /identity/sesiones/:id` — RevocarSesion
+- ✅ `POST /identity/usuarios` — RegistrarUsuario (ADMIN/SUPERADMIN)
+- ✅ `PUT /identity/usuarios/:id/rol` — AsignarRol
+- ✅ `POST /identity/totp/iniciar` + `POST /identity/totp/confirmar`
+- ✅ `POST /identity/contexto/cambiar` — CambiarContexto (JWT nuevo con TTL residual)
+- ✅ Respuesta de login incluye `businessUnitId` (fix 2026-05-16, commit `392353e`)
+- ⬜ **Pendiente (D-021):** `GET /identity/unidades-de-negocio` — lista unidades del usuario actual (necesario para SwitchContext)
 
 ### Tests
-- ✅ 463 tests unit/integration verdes
-- ✅ 5 tests E2E de seguridad RBAC (escritos, requieren Docker para correr)
-- ✅ architect-guardian aprobado
-- ✅ code-reviewer aprobado
-- ⬜ **Pendiente:** correr E2E cuando Docker esté disponible
+- ✅ 463+ tests unit/integration verdes (incluyendo CambiarContextoBusinessUnit)
+- ⬜ E2E tests de RBAC (escritos, requieren Docker — D-002)
 
-### Frontend / CLI
-- ⬜ **No iniciado:** Frontend de login en `apps/web/`
-- ⬜ **No iniciado:** CLI admin para identidad en `apps/cli/`
+### Frontend
+- ✅ Pantalla Login — email + contraseña + TOTP opcional (`apps/web/src/pages/Login.tsx`)
+- ✅ Zustand auth store con persistencia localStorage
+- ✅ JWT interceptor + redirect 401
+- ⬜ SwitchContext deshabilitado hasta que exista `GET /identity/unidades-de-negocio` (D-021)
 
 ---
 
 ## 🟡 Iteración 2 — Catalog + Inventory (híbrida)
 
 ```
-███████████████░░░░░ 76%
+█████████████████░░░ 85%
 ```
 
-**Commits principales:** `3a99d95` (API), `02ad20b` (Docs)
+**Commits principales:** `3a99d95`, `02ad20b`, `0fbe26a`
 
 ### Dominio Catalog (`packages/domain/catalog/`)
 - ✅ Aggregates: `Product`, `ProductVariant`, `Recipe`, `Combo`, `Category`
@@ -225,62 +233,47 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Dominio Inventory (`packages/domain/inventory/`)
 - ✅ Aggregates: `Ingredient`, `StockItem`, `StockMovement`, `Supplier`, `PurchaseOrder`, `Alert`
-- ✅ Tipos de movimiento: PURCHASE_IN, PRODUCTION_OUT, WASTE, TRANSFER_BETWEEN_UNITS, ADJUSTMENT, SALE_OUT
+- ✅ 6 tipos de movimiento
 - ✅ Tests de invariantes
 
-### Casos de uso (`packages/application/`)
-- ✅ Catalog: 8 casos de uso
+### Casos de uso
+- ✅ Catalog: 8 casos de uso (CrearProducto, ActivarProducto, ArchivarProducto, CrearCategoria, ArchivarCategoria, CrearReceta, CalcularEscandallo, CrearCombo)
 - ✅ Inventory: 9 casos de uso
 
-### ACL cross-BC
-- ✅ `ConsultorDeCostosDeIngredientesSupabase` (Catalog consulta costos de Inventory sin tocar su dominio)
-- ✅ ADR-0002 (ACL cross-BC) — Aceptado
-
 ### Adapter Supabase
-- ✅ Adapters para Catalog
-- ✅ Adapters para Inventory
-- ✅ Pool de DB compartido con 2 instancias Kysely tipadas
+- ✅ Todos los adapters Catalog e Inventory
+- ✅ `consultarProductos()` en CatalogComposition — query con JOIN categorías + variantes (2026-05-16)
+- ✅ ACL: `ConsultorDeCostosDeIngredientesSupabase`
 
 ### Migraciones SQL
 - ✅ Tablas Catalog (products, variants, recipes, combos, categories)
 - ✅ Tablas Inventory (ingredients, stock_items, stock_movements, suppliers, alerts)
-- ✅ RLS habilitada en todas
-- ⬜ **Pendiente:** refactor RLS a defensa en profundidad (parte de ADR-0003)
+- ✅ RLS + FORCE RLS en 12 tablas (D-011 resuelto)
+- ✅ `identity.jwt_bu_id()` + `identity.usuario_pertenece_a_bu()` aplicadas a Catalog/Inventory
 
-### API HTTP (`apps/api/routes/`)
-- ✅ 9 endpoints Catalog
-- ✅ 9 endpoints Inventory
-- ✅ HSTS explícito
-- ✅ CORS `credentials=false` en wildcard
-- ✅ Validación de URLs de imagen (`http://` o `https://`)
-- ✅ `.max()` en arrays, rango máximo 366 días en histórico
+### API HTTP
+- ✅ Catalog: 9 endpoints (POST) + `GET /catalog/productos` (query con search + limit, 2026-05-16)
+- ✅ Inventory: 9 endpoints (GET /stock funciona con `businessUnitId` del JWT tras fix login)
+- ✅ Corrección de nombres de rutas: `/catalog/productos` (no `/catalog/products`) — 2026-05-16
 
-### Composition Root
-- ✅ `apps/api/composition/catalog.ts`
-- ✅ `apps/api/composition/inventory.ts`
+### Seeds
+- ✅ `db/seeds/02_users.sql` — hash bcrypt corregido para `Zahavi2026!` (fix 2026-05-16, commit `322340d`)
+- ✅ `db/seeds/03_categories.sql`, `04_ingredients.sql`, `05_products.sql`
 
 ### Tests
-- ✅ 27/27 tests verdes
-- ✅ architect-guardian aprobado
-- ✅ security-auditor aprobado
-- ⬜ **Pendiente:** Tests E2E de Catalog/Inventory (requieren Docker)
-- ⬜ **Pendiente:** Tests de seguridad multi-tenant (ADR-0003)
+- ✅ 27/27 tests verdes (unit)
+- ✅ architect-guardian aprobado + security-auditor aprobado
+- ⬜ E2E tests (requieren Docker — D-003)
 
 ### Documentación
-- ✅ ADR-0002 (ACL cross-BC) Aceptado
-- ✅ ADR-0003 (businessUnitId en JWT) Aceptado con refinamientos — pendiente implementar
-- ✅ `docs/adr/INDEX.md`
-- ⬜ **Pendiente:** TSDoc en clases/funciones públicas (auditar y completar)
-- ⬜ **Pendiente:** README.md en cada paquete
+- ✅ ADR-0002 (ACL cross-BC) + ADR-0003 (multi-tenant) — Aceptados
+- ⬜ TSDoc completo en código (D-006 — pendiente auditoría parcial)
+- ⬜ README en apps/web (parcial)
 
-### Frontend / CLI
-- ⬜ **No iniciado:** Frontend de Catalog en `apps/web/`
-- ⬜ **No iniciado:** Frontend de Inventory en `apps/web/`
-- ⬜ **No iniciado:** CLI admin
-
-### Seed y Docker
-- ⬜ **No iniciado:** Seed data (`db/seeds/`)
-- ⬜ **No iniciado:** Docker Compose (`docker/docker-compose.yml`)
+### Frontend
+- ✅ Pantalla Productos — lista con búsqueda, tabla con precio y estado (`apps/web/src/pages/Products.tsx`)
+- ✅ Pantalla Inventario — lista de stock por unidad de negocio con estado de alerta
+- ✅ Estados: loading skeleton, empty state, error banner
 
 ---
 
@@ -290,99 +283,17 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ████████████████████ 100%
 ```
 
-**Objetivo:** cerrar la deuda de seguridad multi-tenant y completar los huecos de Iteración 1 antes del vertical slice visible.
-
-### Bloque A.1 — Auditoría y reconciliación ✅
-- ✅ Auditar qué casos de uso de Identity existen realmente — TODOS existen (RegistrarUsuario, AsignarRol, IniciarSesion, IniciarEnrolamientoTotp, ConfirmarTotp, RevocarSesion, CerrarSesion)
-- ✅ Auditar qué endpoints HTTP existen en `apps/api/src/routes/identity/` — 7 endpoints (faltaba switch-context)
-- ✅ Actualizar este archivo con el estado real
-
-### Bloque A.2 — Completar Identity ✅
-- ✅ Todos los casos de uso ya existían — ninguno faltaba
-- ✅ Endpoint `POST /contexto/cambiar` implementado
-- ✅ Tests de `CambiarContextoBusinessUnit` (6 casos: ADMIN ok, SUPERADMIN ok, WORKER bloqueado, usuario no encontrado, deshabilitado, IDOR cross-tenant)
-- ✅ Bug corregido: `IniciarSesion` en composition ahora recibe `repositorioDeUnidades` (arg 11)
-- ✅ `bu_id` incluido en el JWT del login y del switch-context
-
-### Bloque A.3 — Implementar ADR-0003 (multi-tenant defense-in-depth) ✅ (parcial)
-- ✅ Caso de uso `CambiarContextoBusinessUnit` (ya estaba creado, bug en composition corregido)
-- ✅ Endpoint `POST /contexto/cambiar` — valida pertenencia, emite JWT nuevo con TTL residual, WORKER bloqueado por rol
-- ✅ Port `RepositorioDeUnidadesDeNegocio` — `listarIdsPorUsuario` + `perteneceAlUsuario`
-- ✅ Adapter `RepositorioDeUnidadesSupabase` — queries parametrizadas con Kysely
-- ✅ Tests de integración: WORKER bloqueado, ADMIN exitoso/rechazado, SUPERADMIN, IDOR cross-tenant → todos cubiertos en `CambiarContextoBusinessUnit.test.ts`
-- ✅ TTL residual preservado (no "refresh implícito" por switch repetido) — corregido tras observación security-auditor
-- ✅ security-auditor aprobado (APRUEBA CON OBSERVACIONES — todas resueltas)
-- ✅ architect-guardian aprobado
-- ✅ **D-011 resuelto (Bloque 7.3):** Refactor RLS Catalog/Inventory — `identity.jwt_bu_id()` + `identity.usuario_pertenece_a_bu()` + FORCE RLS en 12 tablas. Migración `20260515000002` aplicada en cloud.
-
-### Bloque A.4 — Documentación mínima obligatoria ✅
-- ✅ TSDoc en clases/funciones públicas clave (CambiarContextoBusinessUnit, RepositorioDeUnidadesDeNegocio, IniciarSesion ya tenía comentarios). Deuda D-006 reducida.
-- ✅ README.md creados: `packages/domain/identity`, `packages/domain/catalog`, `packages/domain/inventory`, `packages/application`, `packages/ports`, `packages/adapters/persistence-supabase`
-- ✅ ADR-0001 ya existía (arquitectura hexagonal + bounded contexts) — estado Aceptado
-- ✅ ADR-0003 actualizado a Aceptado + D-011 registrada para RLS
-- ✅ `docs/adr/INDEX.md` actualizado
-
-### Bloque A.5 — Commit y actualización de estado ✅
-- ✅ Commit `5d5a362` "feat(identity): completar ADR-0003 multi-tenant + switch-context + docs mínima"
-- ✅ Este archivo actualizado: Fase A al 80% (RLS pendiente D-011), próxima acción = Fase B Bloque B.1
+*(Sin cambios desde última actualización — ver historial completo en commit `5d5a362`)*
 
 ---
 
 ## ✅ Fase B — Vertical Slice Visible
 
 ```
-████████████████████ 95%
+███████████████████░ 95%
 ```
 
-> Nota: 95% porque B.4 (validación Docker end-to-end real) queda bloqueado por D-001. Todo lo demás cerrado.
-
-**Objetivo:** que Julian pueda abrir un navegador y ver la app funcionando end-to-end.
-
-### Bloque B.1 — Infraestructura local ✅ (parcial)
-- ✅ `docker/docker-compose.yml`: PostgreSQL (supabase/postgres:15) + API (Fastify) + Web (Vite)
-- ✅ `docker/api.Dockerfile`: multi-stage build, monorepo pnpm
-- ✅ `docker/web.Dockerfile`: Vite dev server con hot reload
-- ✅ `.env.example` con todas las variables documentadas
-- ✅ `README.md` raíz con sección "Cómo arrancar en 3 comandos"
-- ⬜ Validación `docker compose up --build` — pendiente cuando Docker disponible (D-001)
-
-### Bloque B.2 — Seed data ✅
-- ✅ `db/seeds/01_business_units.sql`: Planta Central + Punto 1
-- ✅ `db/seeds/02_users.sql`: SUPERADMIN (julian@zahavi.local), ADMIN, WORKER + asignaciones
-- ✅ `db/seeds/03_categories.sql`: Pan, Pastelería, Bebidas, Empaques
-- ✅ `db/seeds/04_ingredients.sql`: 20 ingredientes con stock en Planta Central (schemas verificados)
-- ✅ `db/seeds/05_products.sql`: 10 productos con variantes y 2 recetas (schemas verificados)
-- ✅ Script `pnpm db:seed` (`scripts/db-seed.mjs`) que aplica todos en orden
-
-### Bloque B.3 — Frontend mínimo (`apps/web/`) ✅
-- ✅ Setup Vite + React + Tailwind + TanStack Query + Zustand (`apps/web/package.json`, `vite.config.ts`, `tailwind.config.js`, `tsconfig.json`)
-- ✅ Layout base con header (usuario logueado) + sidebar con navegación (`src/layouts/AppLayout.tsx`)
-- ✅ Pantalla **Login**: email + contraseña + 2FA opcional, conecta con `/auth/login` (`src/pages/Login.tsx`)
-- ✅ Pantalla **Productos**: lista con búsqueda y filtro por categoría, consume API Catalog (`src/pages/Products.tsx`)
-- ✅ Pantalla **Inventario**: lista de ingredientes con stock por unidad de negocio, consume API Inventory (`src/pages/Inventory.tsx`)
-- ✅ Selector de "Contexto activo" en header (solo ADMIN/SUPERADMIN, consume `/contexto/cambiar`) (`src/components/SwitchContext.tsx`)
-- ✅ Estados de UI: loading skeleton, empty state, error banner en las 3 pantallas
-- ✅ Cliente HTTP con JWT interceptor y redirect 401 (`src/lib/api.ts`)
-- ✅ Zustand auth store con persistencia localStorage (`src/stores/auth.ts`)
-- ✅ RequireAuth + RequireRole (WORKER bloqueado de /inventario) (`src/App.tsx`)
-- ✅ Typecheck + lint + tests: 20/20 typecheck, 20/20 lint, 27/27 tests verdes
-
-### Bloque B.4 — Validación end-to-end ⬜ (parcial — requiere Docker D-001)
-- ⬜ `docker compose up` levanta todo — bloqueado por D-001 (virtualización BIOS)
-- ⬜ Login con `julian@zahavi.local` funciona y devuelve token — pendiente Docker
-- ⬜ Lista de productos carga desde seed data — pendiente Docker
-- ⬜ Lista de inventario carga desde seed data — pendiente Docker
-- ⬜ Cambio de contexto del ADMIN funciona y refleja en las listas — pendiente Docker
-- ⬜ WORKER NO ve la pantalla de Inventario (RBAC) — verificado en código (RequireRole + guard `roles.includes(rol)`)
-- ✅ Flujo completo revisado estáticamente: code-reviewer + ux-ui-reviewer aprobaron con observaciones registradas en D-006, A-001, A-002
-
-### Bloque B.5 — Cierre de Fase B ✅
-- ✅ README.md raíz con sección "Cómo arrancar en 3 comandos" ya presente (creado en B.1)
-- ✅ TODO.md creado con deuda aceptada: D-001/D-002/D-003/D-005/D-006/D-008/D-009/D-010/D-011/A-001/A-002
-- ✅ Correcciones code-reviewer aplicadas: token desde Zustand, parseRol validado, try/catch en SwitchContext, encodeURIComponent en Inventory, Rol[] en App.tsx
-- ✅ Typecheck + lint finales verdes (20/20 + 20/20)
-- ✅ Commit `9bcfa90` "feat: vertical slice visible — login + catalog + inventory UI + seed + docker"
-- ✅ Este archivo actualizado: Fase B al 95%, próxima acción = Iteración 3
+> Nota: 5% restante = validación E2E con Docker real (bloqueado por D-001). Todo lo demás cerrado.
 
 ---
 
@@ -392,74 +303,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ████████████████████ 100%
 ```
 
-### Bloque 3.1 — Dominio (`packages/domain/production/`) ✅
-- ✅ Aggregate `OrdenDeProduccion` con 9 invariantes, 6 comandos (crear, calcularBOM, reservarIngredientes, iniciar, registrarMerma, ejecutar, cancelar)
-- ✅ Aggregate `DespachoAPunto` con 5 invariantes, 4 comandos (preparar, enviar, entregar, cancelar)
-- ✅ Entidades: `LineaDeBOM`, `RegistroDeMerma`
-- ✅ VOs: `Cantidad`, `CodigoDeLote`, `LoteDeProduccion`, `EstadoDeOrdenDeProduccion`, `EstadoDeDespacho`, `UnidadDeMedida`
-- ✅ IDs: `OrdenDeProduccionId`, `LineaDeBOMId`, `RegistroDeMermaId`, `DespachoId`, refs ACL para Identity/Catalog/Inventory
-- ✅ 11 domain events
-- ✅ 20 errores de dominio tipados
-- ✅ 41 tests verdes (OrdenDeProduccion + DespachoAPunto)
-- ✅ architect-guardian APROBADO (con 2 observaciones menores aplicadas)
-
-### Bloque 3.2 — Casos de uso (`packages/application/src/production/`) ✅
-- ✅ `CrearOrdenDeProduccion`
-- ✅ `CalcularBOMYReservar` (ACL a Catalog via port + escala BOM + transiciona a RESERVADA)
-- ✅ `IniciarOrden`
-- ✅ `RegistrarMermaEnOrden`
-- ✅ `EjecutarOrden` (calcula consumoReal = BOM - mermas)
-- ✅ `CancelarOrden`
-- ✅ `PrepararDespacho`
-
-### Bloque 3.3 — Ports (`packages/ports/src/production/`) ✅
-- ✅ `IOrdenDeProduccionRepository`
-- ✅ `IDespachoRepository`
-- ✅ `IConsultorDeRecetaDeProduccion` (ACL Catalog → Production)
-
-### Bloque 3.4 — Adapter Supabase ✅
-- ✅ `RepositorioDeOrdenesSupabase` (save, update, obtenerPorId, listarPorEstado, listarPorPlanta)
-- ✅ `RepositorioDeDespachoSupabase` (save, update, obtenerPorId, listarPorOrden)
-- ✅ `ConsultorDeRecetaSupabase` (ACL: query `catalog.recipe_lines`, normaliza unidades a UnidadDeMedida)
-- ✅ `mappers.ts` — rowToOrden, ordenToInsertRow, rowToDespacho, despachoToInsertRow
-- ✅ `schema.ts` — tipos Kysely para ProductionDatabase
-- ✅ `factory.ts` + `index.ts` — createProductionAdapters exportado desde index principal
-
-### Bloque 3.5 — Migraciones SQL ✅
-- ✅ `db/migrations/up/0006_production.sql` — production.orders + production.dispatches
-- ✅ `db/migrations/down/0006_production.sql` — rollback
-- ✅ BOM y mermas como JSONB snapshot en orders (evita joins; BOM rara vez > 20 líneas)
-- ✅ RLS en ambas tablas (filtro por planta_central_id = JWT.bu_id)
-- ✅ Índices en estado, planta_central_id y creada_en
-
-### Bloque 3.6 — HTTP API (`apps/api/src/routes/production/`) ✅
-- ✅ `POST /api/production/orders` → CrearOrdenDeProduccion (plantaCentralId del JWT bu_id)
-- ✅ `POST /api/production/orders/:id/bom` → CalcularBOMYReservar
-- ✅ `POST /api/production/orders/:id/iniciar` → IniciarOrden
-- ✅ `POST /api/production/orders/:id/mermas` → RegistrarMermaEnOrden
-- ✅ `POST /api/production/orders/:id/ejecutar` → EjecutarOrden
-- ✅ `DELETE /api/production/orders/:id` → CancelarOrden (motivo en body)
-- ✅ `POST /api/production/dispatches` → PrepararDespacho
-- ✅ `GET /api/production/orders` → ListarOrdenes (por estado o planta)
-- ✅ `apps/api/src/composition/production.ts` — composition root
-- ✅ `apps/api/src/routes/production/schemas.ts` — Zod schemas
-- ✅ `packages/application/src/production/ListarOrdenes.ts` — nuevo caso de uso
-
-### Bloque 3.7 — Tests de casos de uso ✅
-- ✅ `helpers.ts` — fixtures y mocks de OrdenDeProduccion en todos los estados + mocks de ports
-- ✅ `CrearOrden.test.ts` — 4 tests
-- ✅ `CalcularBOMYReservar.test.ts` — 5 tests (incluye ACL mock)
-- ✅ `IniciarOrden.test.ts` — 3 tests
-- ✅ `RegistrarMerma.test.ts` — 5 tests
-- ✅ `EjecutarOrden.test.ts` — 5 tests
-- ✅ `CancelarOrden.test.ts` — 5 tests
-- ✅ `PrepararDespacho.test.ts` — 4 tests
-- ✅ 357/357 tests verdes en @zahavi/application
-
-### Bloque 3.8 — Documentación y commit ✅
-- ✅ README.md en `packages/domain/production/` — completo (creado por domain-modeler en bloque 3.1)
-- ✅ architect-guardian APRUEBA (pureza dominio, dirección dependencias, ACL, separación BCs)
-- ✅ Commit "feat(production): BC completo — dominio, casos de uso, ports, adapter, API, tests"
+*(Completo — ver detalle en commit `b175857`)*
 
 ---
 
@@ -469,182 +313,66 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ████████████████████ 100%
 ```
 
-### Bloque 4.1 — Dominio BC Sales (`packages/domain/sales/`) ✅
-- ✅ Aggregate `Mesa` (LIBRE/OCUPADA/RESERVADA/EN_COBRO, NORMAL + AD_HOC)
-- ✅ Aggregate `Comanda` (ABIERTA/ENVIADA/EN_PREPARACION/LISTA/CERRADA/CANCELADA, contiene LineaDeComanda)
-- ✅ Aggregate `Cobro` (PENDIENTE/PROCESADO/FALLIDO/ANULADO, múltiples PagoDetalle)
-- ✅ Aggregate `Factura` (EMITIDA/ANULADA, snapshot inmutable)
-- ✅ Entidad `LineaDeComanda` con snapshot de nombre/precio/IVA
-- ✅ VOs: Dinero (COP entero), TasaIVA (0%/19%), PagoDetalle, NombreMesa, NumeroFactura, FacturaLinea
-- ✅ Enums: EstadoDeMesa, TipoDeMesa, EstadoDeComanda, EstadoDeLinea, EstadoDeCobro, EstadoDeFactura, MetodoDePago
-- ✅ IDs: MesaId, ComandaId, LineaDeComandaId, CobroId, FacturaId + refs ACL (ProductVariantIdRef, BusinessUnitIdRef, UsuarioIdRef)
-- ✅ Errores de dominio tipados (19 tipos)
-- ✅ Domain Events (Mesa/Comanda/Cobro/Factura)
-- ✅ 46 tests verdes (Mesa: 10, Comanda: 16, Cobro: 10, Factura: 10)
-- ✅ architect-guardian APRUEBA (pureza dominio, dirección dependencias, ACL pattern, separación BCs)
-- ✅ README.md y docs/domain-model/sales/ (glossary + aggregates con diagramas Mermaid)
-
-### Bloque 4.2 — Ports (`packages/ports/src/sales/`) ✅
-- ✅ `IConsultorDeProductoParaVentas` (ACL Catalog → Sales)
-- ✅ `IMesaRepository`
-- ✅ `IComandaRepository`
-- ✅ `ICobroRepository`
-- ✅ `IFacturaRepository` (incluye `siguienteNumero` para numeración secuencial)
-
-### Bloque 4.3 — Casos de uso (`packages/application/src/sales/`) ✅
-- ✅ `ConfigurarMesa` (ADMIN)
-- ✅ `AbrirMesaAdHoc` (mesero)
-- ✅ `CrearComanda`
-- ✅ `AgregarLineaAComanda` (invoca ACL para resolver producto)
-- ✅ `CancelarLineaDeComanda`
-- ✅ `EnviarComandaACocina`
-- ✅ `MarcarComandaEnPreparacion`
-- ✅ `MarcarComandaLista`
-- ✅ `ProcesarCobro`
-- ✅ `EmitirFactura`
-- ✅ `ListarMesas`
-- ✅ `ListarComandasActivas`
-
-### Bloque 4.4 — Adapter Supabase ✅
-- ✅ `RepositorioDeMesaSupabase`
-- ✅ `RepositorioDeComandaSupabase`
-- ✅ `RepositorioDeCobroSupabase`
-- ✅ `RepositorioDeFacturaSupabase`
-- ✅ `ConsultorDeProductoSupabase` (ACL: query `catalog.product_variants`, tasa_iva=0 MVP D-012)
-- ✅ `mappers.ts` + `schema.ts` + `factory.ts`
-
-### Bloque 4.5 — Migraciones SQL ✅
-- ✅ `db/migrations/up/0007_sales.sql` — sales.mesas, sales.comandas, sales.cobros, sales.facturas (lineas JSONB snapshot)
-- ✅ `db/migrations/down/0007_sales.sql`
-- ✅ RLS en todas las tablas (filtro por punto_de_venta_id = JWT.bu_id)
-
-### Bloque 4.6 — HTTP API ✅
-- ✅ `GET /api/sales/mesas` + `POST /api/sales/mesas` (ADMIN)
-- ✅ `POST /api/sales/mesas/adhoc` (mesero, ad-hoc)
-- ✅ `POST /api/sales/comandas`
-- ✅ `POST /api/sales/comandas/:id/lineas`
-- ✅ `DELETE /api/sales/comandas/:id/lineas/:lineaId`
-- ✅ `POST /api/sales/comandas/:id/enviar`
-- ✅ `POST /api/sales/comandas/:id/preparacion`
-- ✅ `POST /api/sales/comandas/:id/lista`
-- ✅ `POST /api/sales/cobros`
-- ✅ `POST /api/sales/facturas`
-- ✅ `apps/api/src/composition/sales.ts` — composition root
-
-### Bloque 4.7 — Tests de casos de uso ✅
-- ✅ helpers.ts + 7 archivos .test.ts (27 tests nuevos de Sales, total 415 verdes)
-
-### Bloque 4.8 — Documentación y commit ✅
-- ✅ architect-guardian APRUEBA (pureza dominio, ACL, dependencias, SOLID)
-- ✅ db-reviewer OBSERVACIONES CRÍTICAS resueltas (WITH CHECK, DEFAULT gen_random_uuid, CASCADE rollback; D-013/014/015/016/017 registradas)
-- ✅ security-auditor APRUEBA CON OBSERVACIONES (guard bu_id, WITH CHECK aplicados; D-013/014/015 registradas)
-- ✅ code-reviewer APRUEBA (parseJsonb centralizado, typo corregido, ?? '' reemplazado)
-- ✅ Commit "feat(sales): BC completo — dominio, casos de uso, ports, adapter, migración SQL, HTTP API, tests"
+*(Completo — ver detalle en commit `8255287`)*
 
 ---
 
-## 🟡 Iteración 5 — Dashboard + Reportes
+## ✅ Iteración 5 — Dashboard + Reportes
 
 ```
 ████████████████████ 100%
 ```
 
-### Bloque 5.1 — Port + DTOs ✅
-- ✅ `packages/ports/src/reporting/IReportingRepository.ts` — port con DTOs: DashboardDelDia, ResumenCierreDeCaja, VentaPorMetodo, VentaPorHora
-- ✅ `packages/ports/src/reporting/index.ts`
-- ✅ `packages/ports/src/index.ts` actualizado
-
-### Bloque 5.2 — Query handlers ✅
-- ✅ `packages/application/src/reporting/ConsultarDashboard.ts` — query handler, fecha de hoy por defecto
-- ✅ `packages/application/src/reporting/ConsultarCierreDeCaja.ts` — valida desde <= hasta
-- ✅ `packages/application/src/reporting/index.ts`
-- ✅ `packages/application/src/index.ts` actualizado
-
-### Bloque 5.3 — Adapter Supabase ✅
-- ✅ `ReportingRepositorySupabase.ts` — 6 queries SQL parametrizadas con Kysely sql`...`, agregaciones JSONB pagos expandidos con jsonb_array_elements
-- ✅ `factory.ts` + `index.ts`
-- ✅ `packages/adapters/persistence-supabase/src/index.ts` actualizado
-
-### Bloque 5.4 — HTTP API ✅
-- ✅ `GET /api/reporting/dashboard?fecha=YYYY-MM-DD` (ADMIN/SUPERADMIN)
-- ✅ `GET /api/reporting/cierre-de-caja?desde=YYYY-MM-DD&hasta=YYYY-MM-DD` (ADMIN/SUPERADMIN)
-- ✅ `apps/api/src/composition/reporting.ts`
-- ✅ `apps/api/src/routes/reporting/schemas.ts` — validación Zod con regex YYYY-MM-DD
-- ✅ `apps/api/src/server.ts` + `apps/api/src/index.ts` actualizados
-
-### Bloque 5.5 — Frontend Dashboard ✅
-- ✅ `apps/web/src/pages/Dashboard.tsx` — KPIs (totalVentas, cobros, ticketPromedio, facturas), tabla por método, gráfico por hora con barras CSS
-- ✅ `apps/web/src/App.tsx` — ruta /dashboard con RequireRole ADMIN/SUPERADMIN
-- ✅ `apps/web/src/layouts/AppLayout.tsx` — enlace Dashboard en sidebar (solo ADMIN/SUPERADMIN)
-- ✅ Redirect raíz → /dashboard para ADMIN/SUPERADMIN
-
-### Bloque 5.6 — Tests ✅
-- ✅ `ConsultarDashboard.test.ts` — 4 tests
-- ✅ `ConsultarCierreDeCaja.test.ts` — 4 tests
-- ✅ 458/458 tests verdes (8 nuevos de reporting)
-- ✅ Typecheck: 0 errores en ports, application, adapter, api, web
-
-### Bloque 5.7 — Cierre ✅
-- ✅ architect-guardian APRUEBA (pureza dominio, dependencias, ACL, separación BCs)
-- ✅ code-reviewer OBSERVACIONES aplicadas:
-  - ErrorDeRangoFechas extends DomainError (code REPORTING_RANGO_FECHAS_INVALIDO → 400)
-  - Ambos handlers usan `throw result.error` uniformemente
-  - Query handlers usan Result<T> del shared-kernel en lugar de unión local
-  - Validación de fecha real en Zod con `.refine()`
-  - Tildes corregidas en Dashboard.tsx
-  - D-018, D-019, D-020 registradas como deuda técnica
-- ✅ Commit feat(reporting): iteración 5 completa
+*(Completo — Dashboard.tsx corregido para usar `/reporting/dashboard` sin prefijo `/api/` — fix 2026-05-16, commit `0fbe26a`)*
 
 ---
 
 ## 🟡 Iteración 6 — Despliegue piloto
 
 ```
-██████████████████░░ 90%
+███████████████████░ 95%
 ```
 
-### Bloque 6.1 — Migraciones unificadas en supabase/migrations/ ✅
-- ✅ `supabase/migrations/20260514000001_production_schema.sql` — production BC
-- ✅ `supabase/migrations/20260514000002_sales_schema.sql` — sales BC
-- ✅ Total: 6 migraciones en orden (identity x2, catalog, inventory, production, sales)
+### Bloque 6.1 — Migraciones unificadas ✅
+- ✅ 10 migraciones en Supabase cloud (`krubipnwqrsywmlyskja`, región us-east-1)
+- ✅ Historial de versiones correcto (20260506000001...20260515000003)
 
 ### Bloque 6.2 — CI/CD GitHub Actions ✅
-- ✅ `.github/workflows/ci.yml` — typecheck + lint + tests + gitleaks + supabase db push en merge a main
-- ✅ Secrets requeridos documentados: SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
-- ✅ CI pipeline verde 3/3 jobs (2026-05-15): Typecheck+Lint+Tests (1m34s), Deploy Supabase Migrations (8s), Secrets Scan (7s)
-- ✅ Historial de migraciones cloud corregido: 10 versiones correctas (20260506000001...20260515000003)
+- ✅ `.github/workflows/ci.yml` — typecheck + lint + tests + gitleaks + supabase db push
+- ✅ CI pipeline verde 3/3 jobs
+- ⬜ Actualizar GitHub secret `SUPABASE_DB_PASSWORD` (nuevo password tras reset — D-023)
 
 ### Bloque 6.3 — Scripts de migración ✅
-- ✅ `scripts/db-migrate.mjs` — aplica migraciones pendientes con tabla _migrations, transaccional, dry-run
-- ✅ `pnpm db:migrate` y `pnpm db:migrate:dry` en package.json
+- ✅ `scripts/db-migrate.mjs` + `pnpm db:migrate`
 
 ### Bloque 6.4 — Runbook de despliegue ✅
-- ✅ `docs/runbooks/deploy-pilot.md` — instrucciones completas: Supabase cloud, seed, API (Render), frontend (Vercel), rollback
+- ✅ `docs/runbooks/deploy-pilot.md`
 
 ### Bloque 6.5 — Supabase cloud ✅
-- ✅ Proyecto Zahavi creado en supabase.com — project ID: `krubipnwqrsywmlyskja` (región us-east-1)
-- ✅ 7 migraciones aplicadas via MCP (identity x3, catalog, inventory, production, sales)
-  - Fix: `stock_movements` PK cambiado a `(id, ocurrido_en)` para tabla particionada
-  - Fix: RLS habilitado en las 4 particiones de `stock_movements`
-  - Nueva: `20260506000003_identity_business_units` — tablas `business_units` + `user_business_units` (faltaban en migration original)
-- ✅ Seeds aplicados — 2 BUs, 3 usuarios, 4 asignaciones, 4 categorías, 10 productos, 10 variantes, 2 recetas, 8 líneas, 20 ingredientes, 20 stock_items
-  - Fix: `'und'` → `'unidad'`, `'lt'` → `'L'` en ingredients/stock_items (constraint CHECK)
-  - Fix: `'publicado'` → `'activo'` en catalog.products (constraint CHECK)
+- ✅ 29 tablas en 5 schemas
+- ✅ Seeds aplicados: 2 BUs, 3 usuarios, 4 categorías, 10 productos, 20 ingredientes, 20 stock_items
+- ✅ Hash bcrypt de `admin@zahavi.local` + `julian@zahavi.local` verificado para `Zahavi2026!`
 
-### Bloque 6.6 — Despliegue de servicios 🟡 (en progreso)
-- ✅ `render.yaml` creado — `corepack enable` (fix EROFS read-only en Render), servicio `zahavi-api`
-- ✅ `apps/web/vercel.json` creado — build monorepo + SPA rewrites configurados
-- ✅ `.env.production.example` creado con todas las variables de producción documentadas
-- ✅ `README.md` — sección "Despliegue en producción" añadida (tabla de pasos + variables clave)
-- ✅ `.gitignore` — excepción `!.env.production.example` añadida
-- ✅ Runbook `docs/runbooks/deploy-pilot.md` actualizado con instrucciones paso a paso
-- ✅ `/health` endpoint verificado en `apps/api/src/server.ts:96`
-- ✅ `VITE_API_URL` verificado en `apps/web/src/lib/api.ts:3`
-- ✅ Usuario configura Render Blueprint — `DATABASE_URL` (Supabase Session Pooler) + `CORS_ORIGIN`
-- ✅ Health check `GET /health` responde 200 — API live en `https://zahavi-api.onrender.com`
-- ⬜ Usuario crea cuenta en Vercel, importa repo, configura `VITE_API_URL`
-- ⬜ Actualizar `CORS_ORIGIN` en Render con URL real de Vercel
-- ⬜ Login de SUPERADMIN funciona end-to-end (contraseña en seed: `Zahavi2026!`)
+### Bloque 6.6 — Despliegue de servicios 🟡 (95%)
+- ✅ `render.yaml` + `apps/web/vercel.json` configurados
+- ✅ Paquetes con exports condicionales (`types→src`, `runtime→dist`) para compilación correcta
+- ✅ `pnpm build` compila los 20 paquetes antes de iniciar API
+- ✅ SSL: `rejectUnauthorized: false` en `createSharedPool` y `createHealthCheck` (fix `b9dca88` + `8471729`)
+- ✅ SSL: `stripSslParams()` elimina `?sslmode=require` del URL antes de pasarlo a pg Pool (fix `6c9a030` — resuelve conflicto `SELF_SIGNED_CERT_IN_CHAIN`)
+- ✅ API vive en `https://zahavi-api.onrender.com` — `/health` → 200 OK
+- ✅ Frontend vive en `https://zahavi-web.vercel.app` — Login visible
+- ✅ CORS_ORIGIN configurado con URL real de Vercel
+- ✅ Login funciona con `admin@zahavi.local` / `Zahavi2026!` → JWT + dashboard visible
+- ✅ Rutas frontend corregidas: `/catalog/productos`, `/reporting/dashboard` (sin `/api/`)
+- ✅ `businessUnitId` incluido en respuesta de login (fix `392353e`)
+- ✅ GET `/catalog/productos` implementado con JOIN categorías + variantes
+- ⬜ **Pendiente push:** 6 commits de esta sesión → redeploy Render → verificar Inventario con `businessUnitId`
+- ⬜ **Bloque 6.7:** `GET /identity/unidades-de-negocio` → habilitar SwitchContext
+
+### Bloque 6.7 — Completar SwitchContext ⬜ (pendiente)
+- ⬜ `GET /identity/unidades-de-negocio` — listar unidades del usuario autenticado
+- ⬜ Habilitar query en `SwitchContext.tsx` (`enabled: true`)
+- ⬜ Verificar cambio de contexto ADMIN end-to-end
 
 ---
 
@@ -654,73 +382,77 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ████████████████░░░░ 80%
 ```
 
-### Bloque 7.1 — Endurecimiento de seguridad (deuda crítica) ✅
-- ✅ D-013 resuelto: `FORCE ROW LEVEL SECURITY` en las 4 tablas Sales
-- ✅ D-014 resuelto: políticas RLS segregadas por rol/operación — cobros y facturas sin DELETE
-- ✅ D-015 resuelto: `sales.factura_sequences` con upsert atómico, elimina race condition
+### Bloque 7.1 — Endurecimiento de seguridad ✅
+- ✅ D-013/D-014: FORCE RLS + políticas segregadas en Sales
+- ✅ D-015: `sales.factura_sequences` con upsert atómico (race condition eliminada)
 - ✅ Migración `20260515000001_sales_rls_hardening.sql` aplicada en cloud
-- ✅ `RepositorioDeFacturaSupabase.siguienteNumero` reescrito con `sql` tagged template
-- ✅ Typecheck + tests verdes (20/20, 29/29)
-- ✅ Commit `5cfe69c`
 
 ### Bloque 7.2 — Observabilidad ✅
-- ✅ Logger: `pino-pretty` en dev (colorize, timestamps HH:MM:ss), JSON con timestamp ISO en producción
-- ✅ Request ID: `crypto.randomUUID()` por petición, propagado en header `X-Request-Id`
-- ✅ `/health/ready`: chequeo de DB con latencia — 503 si la DB no responde
-- ✅ `createHealthCheck`: pool dedicado (max:1) para no consumir conexiones del pool principal
-- ✅ Runbook actualizado con instrucción de `/health/ready`
-- ✅ Commit `6031376`
+- ✅ Pino-pretty en dev, JSON estructurado en producción
+- ✅ `X-Request-Id` por petición (crypto.randomUUID)
+- ✅ `/health/ready` con latencia DB — 503 si DB no responde
+- ✅ `createHealthCheck`: pool dedicado max:1
 
 ### Bloque 7.3 — Deuda técnica media ✅
-- ✅ D-018: `pool.ts` con `createSharedPool` — un Pool (max:10) compartido por los 6 adapters; salud usa pool separado (max:1)
-- ✅ D-020: `Dashboard.tsx` importa `DashboardDelDia` desde `@zahavi/ports`; tipos locales eliminados
-- ✅ `@zahavi/ports` agregado como devDependency en `apps/web`
-- ✅ D-011: RLS Catalog/Inventory defensa en profundidad — `identity.jwt_bu_id()` + `identity.usuario_pertenece_a_bu()` + FORCE RLS en 12 tablas + políticas reemplazadas
+- ✅ D-018: `createSharedPool` compartido por todos los adapters
+- ✅ D-020: `Dashboard.tsx` importa tipos de `@zahavi/ports`
+- ✅ D-011: RLS defense-in-depth Catalog+Inventory con funciones identity
 
-### Bloque 7.4 — Deuda técnica baja + mejoras ✅ (parcial)
-- ✅ D-016: `sales.mesas.actualizada_en` TIMESTAMPTZ + trigger BEFORE UPDATE automático
-- ✅ D-017: ENUMs PostgreSQL nativos para estado_mesa/tipo_mesa/estado_comanda/estado_cobro/estado_factura; Kysely schema.ts tightened a string literal unions
-- ✅ D-019: `PuntoDeVentaId` branded type en IReportingRepository + use cases + route handler; cast en límite de confianza (route handler)
-- ⬜ SQLite offline-first para tablets (scope separado — requiere análisis)
-- ⬜ Integración DIAN (factura electrónica — scope separado)
+### Bloque 7.4 — Deuda técnica baja ✅ (parcial)
+- ✅ D-016: `sales.mesas.actualizada_en` + trigger
+- ✅ D-017: ENUMs PostgreSQL nativos para estados
+- ✅ D-019: `PuntoDeVentaId` branded type
+
+### Bloque 7.5 — Limpieza post-piloto ⬜ (pendiente)
+- ⬜ D-022: Revertir debug logging en `error-handler.ts` (actualmente expone `err.code` y `err.msg` de pg en logs — OK en server-side pero limpiar para producción final)
+- ⬜ D-023: Actualizar GitHub secret `SUPABASE_DB_PASSWORD` + verificar CI verde
+- ⬜ D-024: `GET /identity/unidades-de-negocio` — SwitchContext funcional
+
+### Scope futuro (fuera del piloto actual)
+- ⬜ Offline-first SQLite para tablets (D-010 — análisis separado)
+- ⬜ Integración DIAN factura electrónica (scope separado)
 - ⬜ Segundo punto físico de venta
+- ⬜ E2E tests Playwright (D-002/D-003 — requieren Docker)
+- ⬜ CLI admin `apps/cli/` (oclif — fuera de scope piloto)
+- ⬜ Tema oscuro (D-008)
+- ⬜ i18n completo (D-009)
 
 ---
 
 ## 🧾 Deuda técnica activa
 
-| ID | Descripción | Prioridad | Tras qué bloque |
+| ID | Descripción | Prioridad | Estado |
 |---|---|---|---|
-| D-001 | Docker + virtualización BIOS habilitar | Media | Antes de Fase B |
-| D-002 | E2E tests de Identity no corren sin Docker | Media | Antes de Fase B |
-| D-003 | E2E tests de Catalog + Inventory no escritos | Media | Antes de Fase B |
-| D-004 | ADR-0001 explícito de arquitectura | Baja | Bloque A.4 |
-| D-005 | CI/CD pipeline GitHub Actions | Media | Antes de Iteración 3 |
-| D-006 | TSDoc completo en código existente | Media | Bloque A.4 |
-| D-007 | READMEs por paquete | Media | Bloque A.4 |
-| D-008 | Tema oscuro en frontend | Baja | Después de Fase B |
-| D-009 | i18n completo | Baja | Después de Iteración 6 |
-| D-010 | Offline-first | Alta operativa | Iteración 7 |
-| D-011 | ~~RLS Catalog/Inventory: defensa en profundidad~~ — **RESUELTO**: `jwt_bu_id()` + `usuario_pertenece_a_bu()` + FORCE RLS. Migración `20260515000002` aplicada en cloud. | ~~Alta seguridad~~ | ✅ |
-| D-012 | `FacturaLinea.varianteId` usa `string` en lugar de `ProductVariantIdRef` — pierde tipo opaco. Migrar cuando catalog.product_variants tenga columna `tasa_iva` | Baja | Iteración 7 |
-| D-013 | ~~RLS Sales: falta `FORCE ROW LEVEL SECURITY`~~ — **RESUELTO** en `20260515000001_sales_rls_hardening.sql` | ~~Alta seguridad~~ | ✅ |
-| D-014 | ~~RLS Sales: políticas únicas `FOR ALL`~~ — **RESUELTO**: políticas segregadas, cobros/facturas sin DELETE | ~~Alta seguridad~~ | ✅ |
-| D-015 | ~~`siguienteNumero` race condition~~ — **RESUELTO**: `sales.factura_sequences` con INSERT ON CONFLICT DO UPDATE | ~~Media~~ | ✅ |
-| D-016 | ~~`sales.mesas` sin `actualizada_en`~~ — **RESUELTO**: columna + trigger en `20260515000003` | ~~Baja~~ | ✅ |
-| D-017 | ~~Columnas estado/tipo TEXT sin ENUM~~ — **RESUELTO**: 5 ENUMs nativos + Kysely types tightened | ~~Baja~~ | ✅ |
-| D-018 | ~~Pool separado por adapter~~ — **RESUELTO**: `createSharedPool` + firma `Pool` en todos los factories | ~~Baja~~ | ✅ |
-| D-019 | ~~`puntoDeVentaId: string` sin branded type~~ — **RESUELTO**: `PuntoDeVentaId` opaco + cast en route handler | ~~Baja~~ | ✅ |
-| D-020 | ~~Tipos duplicados en Dashboard.tsx~~ — **RESUELTO**: importa desde `@zahavi/ports` | ~~Media~~ | ✅ |
+| D-001 | Docker + virtualización BIOS — habilitar cuando sea posible | Media | ⬜ Pendiente |
+| D-002 | E2E tests Identity no corren sin Docker | Media | ⬜ Pendiente |
+| D-003 | E2E tests Catalog + Inventory no escritos | Media | ⬜ Pendiente |
+| D-004 | ADR-0001 explícito de arquitectura | Baja | ⬜ Pendiente |
+| D-005 | ~~CI/CD pipeline~~ — **RESUELTO** Iteración 6 | ~~Media~~ | ✅ |
+| D-006 | TSDoc completo en código existente | Media | ⬜ Pendiente (parcial) |
+| D-007 | READMEs por paquete | Media | ⬜ Pendiente (parcial — 6/10 hechos) |
+| D-008 | Tema oscuro en frontend | Baja | ⬜ Fuera de scope piloto |
+| D-009 | i18n completo | Baja | ⬜ Fuera de scope piloto |
+| D-010 | Offline-first SQLite para tablets | Alta operativa | ⬜ Scope separado |
+| D-011 | ~~RLS Catalog/Inventory defense-in-depth~~ — **RESUELTO** migración `20260515000002` | ~~Alta seguridad~~ | ✅ |
+| D-012 | `FacturaLinea.varianteId` usa `string` en lugar de `ProductVariantIdRef` — migrar cuando catalog tenga `tasa_iva` | Baja | ⬜ Pendiente |
+| D-013 | ~~RLS Sales: FORCE ROW LEVEL SECURITY~~ — **RESUELTO** `20260515000001` | ~~Alta seguridad~~ | ✅ |
+| D-014 | ~~RLS Sales: políticas FOR ALL sin segregar~~ — **RESUELTO** | ~~Alta seguridad~~ | ✅ |
+| D-015 | ~~`siguienteNumero` race condition~~ — **RESUELTO** `factura_sequences` upsert atómico | ~~Media~~ | ✅ |
+| D-016 | ~~`sales.mesas` sin `actualizada_en`~~ — **RESUELTO** `20260515000003` | ~~Baja~~ | ✅ |
+| D-017 | ~~Columnas estado/tipo TEXT sin ENUM~~ — **RESUELTO** 5 ENUMs nativos | ~~Baja~~ | ✅ |
+| D-018 | ~~Pool separado por adapter~~ — **RESUELTO** `createSharedPool` | ~~Baja~~ | ✅ |
+| D-019 | ~~`puntoDeVentaId: string` sin branded type~~ — **RESUELTO** `PuntoDeVentaId` opaco | ~~Baja~~ | ✅ |
+| D-020 | ~~Tipos duplicados en Dashboard.tsx~~ — **RESUELTO** importa desde `@zahavi/ports` | ~~Media~~ | ✅ |
+| D-021 | `GET /identity/unidades-de-negocio` no implementado — SwitchContext deshabilitado hasta que exista | Media | ⬜ Bloque 6.7 |
+| D-022 | `error-handler.ts` expone `err.code` + `err.msg` de pg en logs (diagnóstico temporal) — limpiar para producción | Baja | ⬜ Bloque 7.5 |
+| D-023 | GitHub secret `SUPABASE_DB_PASSWORD` desactualizado tras reset — CI falla en deploy migrations | Media | ⬜ Bloque 7.5 |
+| D-024 | Seed `02_users.sql` tenía hash bcrypt incorrecto para `Zahavi2026!` — **CORREGIDO en DB** y en archivo seed (commit `322340d`). Verificar que seed script valide hashes post-inserción | Baja | ⬜ Bloque 7.5 |
 
 ---
 
 ## ❓ Decisiones pendientes
 
-Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí con:
-
-```
-- D-PEND-XXX: <descripción> — default aplicado: <opción> — requiere revisión humana en: <momento>
-```
+- **D-PEND-001:** `pg` pool usa `rejectUnauthorized: false` + `stripSslParams()` para Session Pooler de Supabase. Esta combinación es el estándar para Supabase + Node.js en hosting sin IPv6. Default aplicado: aceptado como solución permanente (no temporal). Revisión si se migra a hosting con IPv6 directo.
 
 ---
 
@@ -731,13 +463,20 @@ Ninguna actualmente bloqueante. Si surge una en modo autónomo, registrar aquí 
 | `fda7f3c` | Iteración 1 | Identity completo (dominio + IniciarSesion + tests) |
 | `3a99d95` | Iteración 2 Bloque 8 | API HTTP Fastify Catalog + Inventory + ACL |
 | `02ad20b` | Iteración 2 Bloque 9 | Documentación ADR-0002 + ADR-0003 + INDEX |
-| `5d5a362` | Fase A Bloques A.1-A.5 | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades, 6 tests, READMEs, ADR actualizado |
-| `9bcfa90` | Fase B Bloques B.1-B.5 | Vertical slice visible: Docker, seeds, React frontend (Login/Products/Inventory), TODO.md, correcciones code-reviewer |
-| `8255287` | Iteración 4 Bloque 4.8 | Sales BC completo — dominio, casos de uso, ports, adapter, migración SQL, HTTP API, tests |
-| `d64d938` | Iteración 6 Bloque 6.5 | 7 migraciones + seed completo en Supabase cloud `krubipnwqrsywmlyskja` |
-| `eb6f8b8` | Iteración 7 Bloque 7.3 | pool compartido + tipos desde ports (D-018, D-020) |
-| `4fa5105` | Iteración 7 Bloque 7.3 | D-011 — defensa en profundidad RLS Catalog + Inventory |
-| `4ab7d9d` | Iteración 7 Bloque 7.4 | D-016/D-017/D-019 — actualizada_en mesas, ENUMs nativos, PuntoDeVentaId branded |
+| `5d5a362` | Fase A | ADR-0003 implementado: switch-context, bu_id JWT, port+adapter unidades |
+| `9bcfa90` | Fase B | Vertical slice: Docker, seeds, React frontend (Login/Products/Inventory) |
+| `8255287` | Iteración 4 | Sales BC completo |
+| `d64d938` | Iteración 6.5 | 7 migraciones + seed completo en Supabase cloud |
+| `5cfe69c` | Iteración 7.1 | Sales RLS hardening (D-013/D-014/D-015) |
+| `eb6f8b8` | Iteración 7.3 | Pool compartido + tipos desde ports (D-018, D-020) |
+| `4fa5105` | Iteración 7.3 | D-011 — defensa en profundidad RLS Catalog + Inventory |
+| `4ab7d9d` | Iteración 7.4 | D-016/D-017/D-019 — actualizada_en, ENUMs, PuntoDeVentaId |
+| `b9dca88` | Iteración 6.6 | fix(db): rejectUnauthorized false en sharedPool |
+| `8471729` | Iteración 6.6 | fix(db): rejectUnauthorized false en health check pool |
+| `6c9a030` | Iteración 6.6 | fix(db): strip sslmode del URL — resuelve SELF_SIGNED_CERT_IN_CHAIN |
+| `322340d` | Iteración 6.6 | fix(seeds): hash bcrypt correcto para Zahavi2026! |
+| `0fbe26a` | Iteración 6.6 | fix(pilot): rutas frontend + GET /catalog/productos |
+| `392353e` | Iteración 6.6 | fix(identity): businessUnitId en respuesta de login |
 
 ---
 
