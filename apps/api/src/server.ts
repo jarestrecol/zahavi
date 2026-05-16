@@ -94,24 +94,24 @@ export function buildServer(
 
   fastify.setErrorHandler(errorHandler);
 
-  fastify.register(identityRoutes, { prefix: '/api/identity', composition: identityComposition });
-  fastify.register(catalogRoutes, { prefix: '/api/catalog', composition: catalogComposition });
+  fastify.register(identityRoutes, { prefix: '/identity', composition: identityComposition });
+  fastify.register(catalogRoutes, { prefix: '/catalog', composition: catalogComposition });
   fastify.register(inventoryRoutes, {
-    prefix: '/api/inventory',
+    prefix: '/inventory',
     composition: inventoryComposition,
   });
   fastify.register(productionRoutes, {
-    prefix: '/api/production',
+    prefix: '/production',
     composition: productionComposition,
   });
 
   fastify.register(salesRoutes, {
-    prefix: '/api/sales',
+    prefix: '/sales',
     composition: salesComposition,
   });
 
   fastify.register(reportingRoutes, {
-    prefix: '/api/reporting',
+    prefix: '/reporting',
     composition: reportingComposition,
   });
 
