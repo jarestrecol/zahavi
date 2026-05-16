@@ -14,7 +14,7 @@ export function createHealthCheck(databaseUrl: string): () => Promise<HealthChec
     connectionString: databaseUrl,
     max: 1,
     idleTimeoutMillis: 10_000,
-    ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: true } : undefined,
+    ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: false } : undefined,
   });
 
   return async (): Promise<HealthCheckResult> => {
