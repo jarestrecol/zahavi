@@ -5,8 +5,8 @@ services:
     region: ohio       # us-east-2 — más cercano a Colombia que us-west
     plan: free
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile
-    startCommand: node --import tsx/esm apps/api/src/index.ts
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    startCommand: node apps/api/dist/index.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:
