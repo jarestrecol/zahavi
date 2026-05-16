@@ -102,14 +102,15 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 **Fecha:** 2026-05-15
 **Modo de trabajo:** Autónomo con verificación al cierre.
 **Iteración activa:** Iteración 7 — Refinamiento (80%) / Iteración 6 Bloque 6.6 (pendiente usuario).
-**Bloque actual:** 7.4 cerrado (D-016/D-017/D-019). Inconsistencias en PROYECTO_ESTADO.md corregidas.
+**Bloque actual:** 6.6 — CI/CD verde, Supabase en cloud. Pendiente: despliegue Render API + Vercel frontend.
 
 ### Próxima acción inmediata
 
-> **Iteración 7 al 80% — deuda técnica resuelta.** Dos caminos disponibles:
-> 1. **Bloque 6.6 (despliegue Render + Vercel):** pendiente que el usuario cree cuentas y conecte el repo. Instrucciones completas en `docs/runbooks/deploy-pilot.md`.
-> 2. **Offline-first (Iteración 8):** requiere diseño de arquitectura (SQLite en tablet, cola de eventos, sincronización con Supabase, resolución de conflictos). Iniciar con ADR + plan de iteración.
-> Decisión pendiente del usuario.
+> **CI/CD 100% verde (3/3 jobs).** Siguiente paso: despliegue Render + Vercel.
+> 1. **Render (API):** crear cuenta en render.com, conectar repo, el Blueprint detecta `render.yaml` automáticamente. Configurar `DATABASE_URL` (Supabase session mode puerto 5432) y `CORS_ORIGIN` (URL de Vercel).
+> 2. **Vercel (Frontend):** importar repo en vercel.com, configurar `VITE_API_URL` (URL de Render).
+> 3. Verificar `GET /health` y login SUPERADMIN end-to-end.
+> Runbook completo: `docs/runbooks/deploy-pilot.md`.
 
 ### Reglas de la sesión
 
@@ -599,7 +600,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ## 🟡 Iteración 6 — Despliegue piloto
 
 ```
-████████████████░░░░ 80%
+██████████████████░░ 90%
 ```
 
 ### Bloque 6.1 — Migraciones unificadas en supabase/migrations/ ✅
@@ -610,6 +611,8 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ### Bloque 6.2 — CI/CD GitHub Actions ✅
 - ✅ `.github/workflows/ci.yml` — typecheck + lint + tests + gitleaks + supabase db push en merge a main
 - ✅ Secrets requeridos documentados: SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
+- ✅ CI pipeline verde 3/3 jobs (2026-05-15): Typecheck+Lint+Tests (1m34s), Deploy Supabase Migrations (8s), Secrets Scan (7s)
+- ✅ Historial de migraciones cloud corregido: 10 versiones correctas (20260506000001...20260515000003)
 
 ### Bloque 6.3 — Scripts de migración ✅
 - ✅ `scripts/db-migrate.mjs` — aplica migraciones pendientes con tabla _migrations, transaccional, dry-run
@@ -628,15 +631,17 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
   - Fix: `'und'` → `'unidad'`, `'lt'` → `'L'` en ingredients/stock_items (constraint CHECK)
   - Fix: `'publicado'` → `'activo'` en catalog.products (constraint CHECK)
 
-### Bloque 6.6 — Despliegue de servicios 🟡 (pendiente acción del usuario)
-- ✅ `render.yaml` creado en raíz — Render detecta automáticamente el servicio `zahavi-api`
+### Bloque 6.6 — Despliegue de servicios 🟡 (en progreso)
+- ✅ `render.yaml` creado — `corepack enable` (fix EROFS read-only en Render), servicio `zahavi-api`
 - ✅ `apps/web/vercel.json` creado — build monorepo + SPA rewrites configurados
+- ✅ `.env.production.example` creado con todas las variables de producción documentadas
+- ✅ `README.md` — sección "Despliegue en producción" añadida (tabla de pasos + variables clave)
+- ✅ `.gitignore` — excepción `!.env.production.example` añadida
 - ✅ Runbook `docs/runbooks/deploy-pilot.md` actualizado con instrucciones paso a paso
 - ✅ `/health` endpoint verificado en `apps/api/src/server.ts:96`
 - ✅ `VITE_API_URL` verificado en `apps/web/src/lib/api.ts:3`
-- ⬜ Usuario crea cuenta en Render.com y conecta repositorio GitHub
-- ⬜ Usuario configura `DATABASE_URL` (Supabase session mode) y `CORS_ORIGIN` en Render
-- ⬜ Usuario crea cuenta en Vercel, importa repo con root dir `apps/web`, configura `VITE_API_URL`
+- ⬜ Usuario crea cuenta en Render.com, conecta repo, configura `DATABASE_URL` y `CORS_ORIGIN`
+- ⬜ Usuario crea cuenta en Vercel, importa repo, configura `VITE_API_URL`
 - ⬜ Health check `GET /health` responde `{"ok":true}`
 - ⬜ Login de SUPERADMIN funciona end-to-end (contraseña en seed: `Zahavi2026!`)
 
