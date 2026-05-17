@@ -13,7 +13,7 @@ describe('PoliticaDeSesion', () => {
     const politica = PoliticaDeSesion.porRol('SUPERADMIN');
     expect(politica.topeAbsoluto.toMs()).toBe(4 * 3_600_000);
     expect(politica.umbralCierre.toMs()).toBe(30 * 60_000);
-    expect(politica.limiteSimultaneo).toBe(3);
+    expect(politica.limiteSimultaneo).toBe(5);
     expect(politica.requiereDispositivoAutorizado).toBe(false);
   });
 
@@ -21,7 +21,7 @@ describe('PoliticaDeSesion', () => {
     const politica = PoliticaDeSesion.porRol('ADMIN');
     expect(politica.topeAbsoluto.toMs()).toBe(8 * 3_600_000);
     expect(politica.umbralCierre.toMs()).toBe(1 * 3_600_000);
-    expect(politica.limiteSimultaneo).toBe(3);
+    expect(politica.limiteSimultaneo).toBe(5);
     expect(politica.requiereDispositivoAutorizado).toBe(false);
   });
 

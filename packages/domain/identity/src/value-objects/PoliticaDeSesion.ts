@@ -39,7 +39,7 @@ export class PoliticaDeSesion {
           umbralBloqueo,
           umbralCierre: Duracion.deMinutos(30),
           topeAbsoluto: Duracion.deHoras(4),
-          limiteSimultaneo: 3,
+          limiteSimultaneo: 5,
           requiereDispositivoAutorizado: false,
         });
       case 'ADMIN':
@@ -47,7 +47,7 @@ export class PoliticaDeSesion {
           umbralBloqueo,
           umbralCierre: Duracion.deHoras(1),
           topeAbsoluto: Duracion.deHoras(8),
-          limiteSimultaneo: 3,
+          limiteSimultaneo: 5,
           requiereDispositivoAutorizado: false,
         });
       case 'WORKER':
