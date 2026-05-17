@@ -61,3 +61,19 @@ VALUES
   -- WORKER asignado a Punto 1
   ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', now())
 ON CONFLICT (user_id, business_unit_id) DO NOTHING;
+
+-- Validación post-inserción: falla ruidosamente si algún hash bcrypt es incorrecto.
+-- Detecta el problema antes del primer login (evita el bug silencioso de 2026-05-16).
+DO $$
+DECLARE
+  hash_ok BOOLEAN;
+BEGIN
+  SELECT extensions.crypt('Zahavi2026!', hash_contrasena) = hash_contrasena
+    INTO hash_ok
+    FROM identity.usuarios
+   WHERE email = 'admin@zahavi.local';
+
+  IF NOT COALESCE(hash_ok, false) THEN
+    RAISE EXCEPTION 'SEED INVÁLIDO: hash bcrypt de admin@zahavi.local no coincide con Zahavi2026! — regenerar hash con pgcrypto';
+  END IF;
+END $$;

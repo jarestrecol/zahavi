@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-███████████████████░ 94%
+███████████████████░ 96%
 ```
 
 **Lectura honesta (2026-05-16):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel. API desplegada en Render. Login, Dashboard, Productos e Inventario funcionando end-to-end. Pendiente: SwitchContext endpoint, deuda técnica menor, E2E tests (bloqueados por Docker), CLI admin (scope piloto no requiere), offline-first + DIAN (scope futuro).
@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████████████` | 100% | ✅ |
-| 7 | Refinamiento                      | `███████████████████░` | 93% | 🟡 |
+| 7 | Refinamiento                      | `███████████████████░` | 97% | 🟡 |
 
 **Métricas clave (actualizadas 2026-05-16):**
 - Bounded contexts del dominio terminados: **6 de 6** (Identity, Catalog, Inventory, Production, Sales, Reporting)
@@ -106,10 +106,11 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Próxima acción inmediata
 
-> **Paso 1 (usuario):** `git push origin main` — sube commits de esta sesión (Bloque 6.7 + D-022).
+> **Paso 1 (usuario):** `git push origin main` — sube todos los commits de esta sesión.
 > **Paso 2 (usuario):** Esperar redeploy Render (~7 min) → cerrar sesión → volver a login.
-> **Paso 3 (usuario):** Verificar Inventario + SwitchContext con `admin@zahavi.local` (ADMIN ve las BUs).
+> **Paso 3 (usuario):** Verificar: Dashboard carga, Productos lista, Inventario muestra stock, SwitchContext aparece para ADMIN.
 > **Paso 4 (usuario):** Actualizar GitHub secret `SUPABASE_DB_PASSWORD` → re-trigger CI → verificar 3/3 verde (D-023).
+> **Paso 5 (Claude — opcional):** E2E tests con Playwright cuando Docker esté disponible (D-002/D-003).
 
 ### Reglas de la sesión
 
@@ -402,9 +403,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ D-019: `PuntoDeVentaId` branded type
 
 ### Bloque 7.5 — Limpieza post-piloto 🟡 (67%)
-- ✅ D-022: Revertir debug logging en `error-handler.ts` — logs solo exponen `err.name` (commit `fix(api)`)
+- ✅ D-022: Revertir debug logging en `error-handler.ts` — logs solo exponen `err.name` (commit `bb98390`)
 - ⬜ D-023: Actualizar GitHub secret `SUPABASE_DB_PASSWORD` + verificar CI verde (acción usuario)
-- ✅ D-024: `GET /identity/unidades-de-negocio` implementado — SwitchContext funcional
+- ✅ D-021: `GET /identity/unidades-de-negocio` implementado — SwitchContext funcional (commit `bb98390`)
+- ✅ D-024: Validación post-inserción de hash bcrypt en seed `02_users.sql`
 
 ### Scope futuro (fuera del piloto actual)
 - ⬜ Offline-first SQLite para tablets (D-010 — análisis separado)
@@ -444,7 +446,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-021 | ~~`GET /identity/unidades-de-negocio` no implementado~~ — **RESUELTO** Bloque 6.7 (commit `feat(identity)`) | ~~Media~~ | ✅ |
 | D-022 | ~~`error-handler.ts` expone `err.code` + `err.msg` de pg en logs~~ — **RESUELTO** Bloque 7.5 (commit `fix(api)`) | ~~Baja~~ | ✅ |
 | D-023 | GitHub secret `SUPABASE_DB_PASSWORD` desactualizado tras reset — CI falla en deploy migrations | Media | ⬜ Bloque 7.5 |
-| D-024 | Seed `02_users.sql` tenía hash bcrypt incorrecto para `Zahavi2026!` — **CORREGIDO en DB** y en archivo seed (commit `322340d`). Verificar que seed script valide hashes post-inserción | Baja | ⬜ Bloque 7.5 |
+| D-024 | ~~Seed hash bcrypt incorrecto~~ — **RESUELTO** hash corregido + bloque DO $$ de validación post-inserción en `02_users.sql` (falla ruidosamente si el hash no coincide) | ~~Baja~~ | ✅ |
 
 ---
 
