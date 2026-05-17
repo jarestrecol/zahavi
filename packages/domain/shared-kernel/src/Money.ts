@@ -1,9 +1,17 @@
 import { type Result, ok, err } from './DomainError.js';
 import { MoneyInvalidoError } from './errors.js';
 
+/**
+ * Value Object inmutable que representa un importe monetario en pesos colombianos (COP).
+ * Almacena siempre como entero positivo. No admite decimales ni valores negativos.
+ */
 export class Money {
   private constructor(private readonly _cop: number) {}
 
+  /**
+   * Constructor principal. Falla si `valor` no es entero positivo finito.
+   * @param valor - Entero en COP (ej. `12500` = $12.500).
+   */
   static deCop(valor: number): Result<Money, MoneyInvalidoError> {
     if (!Number.isFinite(valor)) return err(new MoneyInvalidoError('valor no finito'));
     if (!Number.isInteger(valor))

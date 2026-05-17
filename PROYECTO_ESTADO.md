@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-██████████████████░░ 92%
+███████████████████░ 94%
 ```
 
 **Lectura honesta (2026-05-16):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel. API desplegada en Render. Login, Dashboard, Productos e Inventario funcionando end-to-end. Pendiente: SwitchContext endpoint, deuda técnica menor, E2E tests (bloqueados por Docker), CLI admin (scope piloto no requiere), offline-first + DIAN (scope futuro).
@@ -18,8 +18,8 @@
 | # | Iteración / Fase | Barra | % | Estado |
 |---|---|---|---|---|
 | 0 | Bootstrap del monorepo            | `███████████████████░` | 90% | 🟡 |
-| 1 | Identity                          | `████████████████░░░░` | 80% | 🟡 |
-| 2 | Catalog + Inventory (híbrida)     | `██████████████████░░` | 90% | 🟡 |
+| 1 | Identity                          | `███████████████████░` | 97% | 🟡 |
+| 2 | Catalog + Inventory (híbrida)     | `███████████████████░` | 95% | 🟡 |
 | **A** | **Remediación de deuda crítica** | `████████████████████` | **100%** | ✅ |
 | **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
 | 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
@@ -160,10 +160,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ## 🟡 Iteración 1 — Identity
 
 ```
-████████████████░░░░ 80%
+███████████████████░ 97%
 ```
 
-**Commit principal:** `fda7f3c` + `5d5a362` (Fase A completó los gaps)
+**Commit principal:** `fda7f3c` + `5d5a362` (Fase A completó los gaps) + `bb98390` (SwitchContext + GET /unidades-de-negocio)
 
 ### Dominio (`packages/domain/identity/`)
 - ✅ Aggregate `Usuario` con invariantes
@@ -210,7 +210,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ Pantalla Login — email + contraseña + TOTP opcional (`apps/web/src/pages/Login.tsx`)
 - ✅ Zustand auth store con persistencia localStorage
 - ✅ JWT interceptor + redirect 401
-- ⬜ SwitchContext deshabilitado hasta que exista `GET /identity/unidades-de-negocio` (D-021)
+- ✅ SwitchContext habilitado — `GET /identity/unidades-de-negocio` implementado (D-021 resuelto, commit `bb98390`)
 
 ---
 
@@ -265,7 +265,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Documentación
 - ✅ ADR-0002 (ACL cross-BC) + ADR-0003 (multi-tenant) — Aceptados
-- ⬜ TSDoc completo en código (D-006 — pendiente auditoría parcial)
+- ✅ TSDoc en ports/identity, ports/inventory y shared-kernel (D-006 resuelto, 2026-05-17)
 - ✅ README en apps/web (2026-05-17)
 
 ### Frontend
@@ -426,7 +426,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-003 | E2E tests Catalog + Inventory no escritos | Media | ⬜ Pendiente |
 | D-004 | ~~ADR-0001 explícito de arquitectura~~ — **RESUELTO** (existía en `docs/adr/0001-...md`) | ~~Baja~~ | ✅ |
 | D-005 | ~~CI/CD pipeline~~ — **RESUELTO** Iteración 6 | ~~Media~~ | ✅ |
-| D-006 | TSDoc completo en código existente | Media | ⬜ Pendiente (parcial) |
+| D-006 | ~~TSDoc completo en código existente~~ — **RESUELTO** ports/identity, ports/inventory, shared-kernel auditados y completados (2026-05-17) | ~~Media~~ | ✅ |
 | D-007 | ~~READMEs por paquete~~ — **RESUELTO** (10/10: shared-kernel, shared, api, web añadidos 2026-05-17) | ~~Media~~ | ✅ |
 | D-008 | Tema oscuro en frontend | Baja | ⬜ Fuera de scope piloto |
 | D-009 | i18n completo | Baja | ⬜ Fuera de scope piloto |
