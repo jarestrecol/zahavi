@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-█████████████████░░░ 88%
+██████████████████░░ 92%
 ```
 
 **Lectura honesta (2026-05-16):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel. API desplegada en Render. Login, Dashboard, Productos e Inventario funcionando end-to-end. Pendiente: SwitchContext endpoint, deuda técnica menor, E2E tests (bloqueados por Docker), CLI admin (scope piloto no requiere), offline-first + DIAN (scope futuro).
@@ -17,16 +17,16 @@
 
 | # | Iteración / Fase | Barra | % | Estado |
 |---|---|---|---|---|
-| 0 | Bootstrap del monorepo            | `████████████████░░░░` | 80% | 🟡 |
+| 0 | Bootstrap del monorepo            | `███████████████████░` | 90% | 🟡 |
 | 1 | Identity                          | `████████████████░░░░` | 80% | 🟡 |
-| 2 | Catalog + Inventory (híbrida)     | `█████████████████░░░` | 85% | 🟡 |
+| 2 | Catalog + Inventory (híbrida)     | `██████████████████░░` | 90% | 🟡 |
 | **A** | **Remediación de deuda crítica** | `████████████████████` | **100%** | ✅ |
 | **B** | **Vertical Slice Visible**       | `███████████████████░` | **95%** | ✅ |
 | 3 | Production (planta central)       | `████████████████████` | 100% | ✅ |
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
-| 6 | Despliegue piloto                 | `███████████████████░` | 95% | 🟡 |
-| 7 | Refinamiento                      | `████████████████░░░░` | 80% | 🟡 |
+| 6 | Despliegue piloto                 | `████████████████████` | 100% | ✅ |
+| 7 | Refinamiento                      | `███████████████████░` | 93% | 🟡 |
 
 **Métricas clave (actualizadas 2026-05-16):**
 - Bounded contexts del dominio terminados: **6 de 6** (Identity, Catalog, Inventory, Production, Sales, Reporting)
@@ -153,7 +153,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ CI/CD pipeline en `.github/workflows/ci.yml` — typecheck + lint + test + gitleaks + supabase db push (Iteración 6)
 - ✅ `render.yaml` y `apps/web/vercel.json` para despliegue (Iteración 6)
 - ⬜ Docker Compose local (`docker/docker-compose.yml`) — creado pero sin validar (D-001 — virtualización BIOS)
-- ⬜ ADR-0001 explícito sobre arquitectura hexagonal + bounded contexts
+- ✅ ADR-0001 explícito sobre arquitectura hexagonal + bounded contexts (existía, confirmado 2026-05-17)
 
 ---
 
@@ -266,7 +266,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ### Documentación
 - ✅ ADR-0002 (ACL cross-BC) + ADR-0003 (multi-tenant) — Aceptados
 - ⬜ TSDoc completo en código (D-006 — pendiente auditoría parcial)
-- ⬜ README en apps/web (parcial)
+- ✅ README en apps/web (2026-05-17)
 
 ### Frontend
 - ✅ Pantalla Productos — lista con búsqueda, tabla con precio y estado (`apps/web/src/pages/Products.tsx`)
@@ -424,10 +424,10 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-001 | Docker + virtualización BIOS — habilitar cuando sea posible | Media | ⬜ Pendiente |
 | D-002 | E2E tests Identity no corren sin Docker | Media | ⬜ Pendiente |
 | D-003 | E2E tests Catalog + Inventory no escritos | Media | ⬜ Pendiente |
-| D-004 | ADR-0001 explícito de arquitectura | Baja | ⬜ Pendiente |
+| D-004 | ~~ADR-0001 explícito de arquitectura~~ — **RESUELTO** (existía en `docs/adr/0001-...md`) | ~~Baja~~ | ✅ |
 | D-005 | ~~CI/CD pipeline~~ — **RESUELTO** Iteración 6 | ~~Media~~ | ✅ |
 | D-006 | TSDoc completo en código existente | Media | ⬜ Pendiente (parcial) |
-| D-007 | READMEs por paquete | Media | ⬜ Pendiente (parcial — 6/10 hechos) |
+| D-007 | ~~READMEs por paquete~~ — **RESUELTO** (10/10: shared-kernel, shared, api, web añadidos 2026-05-17) | ~~Media~~ | ✅ |
 | D-008 | Tema oscuro en frontend | Baja | ⬜ Fuera de scope piloto |
 | D-009 | i18n completo | Baja | ⬜ Fuera de scope piloto |
 | D-010 | Offline-first SQLite para tablets | Alta operativa | ⬜ Scope separado |
