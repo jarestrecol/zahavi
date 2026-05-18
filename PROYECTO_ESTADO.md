@@ -8,10 +8,10 @@
 ## 📈 Avance global del proyecto
 
 ```
-███████████████████░ 96%
+███████████████████░ 97%
 ```
 
-**Lectura honesta (2026-05-16):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel. API desplegada en Render. Login, Dashboard, Productos e Inventario funcionando end-to-end. Pendiente: SwitchContext endpoint, deuda técnica menor, E2E tests (bloqueados por Docker), CLI admin (scope piloto no requiere), offline-first + DIAN (scope futuro).
+**Lectura honesta (2026-05-17):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel con SwitchContext operativo. API desplegada en Render. Login, Dashboard, Productos, Inventario y SwitchContext funcionando end-to-end. Deuda pendiente única accionable: D-023 (GitHub secret, acción usuario). Resto: E2E tests bloqueados por Docker, CLI admin fuera de scope piloto, offline-first + DIAN scope futuro.
 
 ### Avance por iteración
 
@@ -31,16 +31,17 @@
 **Métricas clave (actualizadas 2026-05-16):**
 - Bounded contexts del dominio terminados: **6 de 6** (Identity, Catalog, Inventory, Production, Sales, Reporting)
 - API HTTP endpoints: **47 endpoints** en 6 BCs
-- Frontend funcional: `████████████████░░░░` 80% (Login ✅, Dashboard ✅, Productos ✅, Inventario ✅, SwitchContext ⬜)
-- Sistema desplegable end-to-end: `███████████████████░` 95% (API en Render ✅, Web en Vercel ✅, login ok ✅)
-- Tests: 458+ verdes (unit + integration), E2E bloqueados por Docker
+- Frontend funcional: `████████████████████` 100% (Login ✅, Dashboard ✅, Productos ✅, Inventario ✅, SwitchContext ✅)
+- Sistema desplegable end-to-end: `████████████████████` 100% (API en Render ✅, Web en Vercel ✅, login ok ✅, SwitchContext ok ✅)
+- Tests: 356+ verdes (unit + integration), E2E bloqueados por Docker
 - CLI admin: `░░░░░░░░░░░░░░░░░░░░` 0% (fuera de scope piloto)
 
-**Estado actual (2026-05-16):**
-- Iteraciones 0-7 en progreso conjunto. Bloque 6.7 ✅ + Bloque 7.5 🟡.
+**Estado actual (2026-05-17):**
+- Iteraciones 0-7 mayormente completas. Única deuda activa accionable: D-023 (GitHub secret, acción usuario).
 - Render live: `https://zahavi-api.onrender.com` — API OK
-- Vercel live: `https://zahavi-web.vercel.app` — Login + Dashboard + Productos + Inventario OK
-- Pendiente: push + redeploy para activar SwitchContext. D-023 requiere acción usuario (GitHub secret).
+- Vercel live: `https://zahavi-web.vercel.app` — Login + Dashboard + Productos + Inventario + SwitchContext OK (tras push)
+- Sesiones de admin@zahavi.local cerradas vía Supabase MCP (login libre ahora mismo).
+- limiteSimultaneo subido a 5 para ADMIN/SUPERADMIN (commit `fe69bf8`, push pendiente).
 
 ---
 
@@ -125,16 +126,16 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 | # | Iteración | Avance | Estado | Commit principal |
 |---|---|---|---|---|
-| 0 | Bootstrap del monorepo | 80% | 🟡 | — |
-| 1 | Identity | 80% | 🟡 | `fda7f3c` |
-| 2 | Catalog + Inventory (híbrida) | 85% | 🟡 | `3a99d95`, `02ad20b` |
+| 0 | Bootstrap del monorepo | 90% | 🟡 | — |
+| 1 | Identity | 97% | 🟡 | `fda7f3c`, `bb98390` |
+| 2 | Catalog + Inventory (híbrida) | 95% | 🟡 | `3a99d95`, `02ad20b`, `0fbe26a` |
 | **A** | **Fase A — Remediación de deuda** | 100% | ✅ | `5d5a362` |
 | **B** | **Fase B — Vertical Slice Visible** | 95% | ✅ | `9bcfa90` |
 | 3 | Production (planta central) | 100% | ✅ | `b175857` |
 | 4 | Sales (mesas, cobro, factura básica) | 100% | ✅ | `8255287` |
 | 5 | Dashboard + cierre de caja + reporte ventas | 100% | ✅ | (incluido en feat reporting) |
-| 6 | Despliegue piloto en un punto | 95% | 🟡 | `d64d938`, `0fbe26a`, `392353e` |
-| 7 | Refinamiento (endurecimiento, observabilidad, deuda técnica) | 80% | 🟡 | `5cfe69c`, `eb6f8b8`, `4fa5105`, `4ab7d9d` |
+| 6 | Despliegue piloto en un punto | 100% | ✅ | `d64d938`, `6c9a030`, `bb98390` |
+| 7 | Refinamiento (endurecimiento, observabilidad, deuda técnica) | 97% | 🟡 | `5cfe69c`, `eb6f8b8`, `a9b5442`, `fe69bf8` |
 
 ---
 
@@ -477,6 +478,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | `322340d` | Iteración 6.6 | fix(seeds): hash bcrypt correcto para Zahavi2026! |
 | `0fbe26a` | Iteración 6.6 | fix(pilot): rutas frontend + GET /catalog/productos |
 | `392353e` | Iteración 6.6 | fix(identity): businessUnitId en respuesta de login |
+| `34affcf` | Estado | chore: actualizar PROYECTO_ESTADO.md sesión 2026-05-16 |
+| `bb98390` | Iteración 6.7 + D-022 | feat(identity): GET /unidades-de-negocio + SwitchContext + revertir debug logging |
+| `7b8f109` | D-007 | docs: READMEs de shared-kernel, shared, api y web |
+| `a9b5442` | D-006 | docs(tsdoc): TSDoc en ports/identity, ports/inventory y shared-kernel |
+| `56c9b77` | D-024 | fix(seeds): validación post-inserción de hash bcrypt |
+| `fe69bf8` | D-sesiones | fix(identity): limiteSimultaneo 3→5 para ADMIN y SUPERADMIN |
 
 ---
 
