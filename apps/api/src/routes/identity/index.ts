@@ -23,7 +23,12 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
   fastify.route({
     method: 'POST',
     url: '/sesiones',
-    config: { rateLimit: { max: 10, timeWindow: '15 minutes' } },
+    config: {
+      rateLimit: {
+        max: process.env['NODE_ENV'] === 'test' ? 10_000 : 10,
+        timeWindow: '15 minutes',
+      },
+    },
     handler: async (request, reply) => {
       const body = iniciarSesionSchema.parse(request.body);
       const result = await composition.iniciarSesion.execute(body);

@@ -21,7 +21,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
   request,
 }) => {
   // 1. SUPERADMIN inicia sesión (requiere TOTP porque lo tiene enrolado)
-  const loginSA = await request.post('/api/identity/sesiones', {
+  const loginSA = await request.post('/identity/sesiones', {
     data: {
       tipo: 'navegador',
       email: SA_EMAIL,
@@ -34,7 +34,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
   expect(saToken).toBeTruthy();
 
   // 2. SUPERADMIN crea ADMIN (navegador, sin TOTP — será opcional para ADMIN)
-  const createAdmin = await request.post('/api/identity/usuarios', {
+  const createAdmin = await request.post('/identity/usuarios', {
     headers: { Authorization: `Bearer ${saToken}` },
     data: {
       email: ADMIN_EMAIL,
@@ -49,7 +49,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
   expect(adminId).toBeTruthy();
 
   // 3. ADMIN inicia sesión sin TOTP (no lo tiene enrolado aún)
-  const loginAdmin = await request.post('/api/identity/sesiones', {
+  const loginAdmin = await request.post('/identity/sesiones', {
     data: {
       tipo: 'navegador',
       email: ADMIN_EMAIL,
@@ -61,7 +61,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
   const adminToken: string = (await loginAdmin.json()).token;
 
   // 4. ADMIN crea WORKER (tablet)
-  const createWorker = await request.post('/api/identity/usuarios', {
+  const createWorker = await request.post('/identity/usuarios', {
     headers: { Authorization: `Bearer ${adminToken}` },
     data: {
       email: WORKER_EMAIL,
@@ -74,7 +74,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
   expect(createWorker.status()).toBe(201);
 
   // 5. WORKER inicia sesión con dispositivo autorizado
-  const loginWorker = await request.post('/api/identity/sesiones', {
+  const loginWorker = await request.post('/identity/sesiones', {
     data: {
       tipo: 'tablet',
       email: WORKER_EMAIL,
@@ -86,7 +86,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
   const workerToken: string = (await loginWorker.json()).token;
 
   // 6. WORKER no puede crear usuarios → 403
-  const workerCreateUser = await request.post('/api/identity/usuarios', {
+  const workerCreateUser = await request.post('/identity/usuarios', {
     headers: { Authorization: `Bearer ${workerToken}` },
     data: {
       email: 'otro@zahavi.test',
@@ -100,7 +100,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
 
   // 7. WORKER no puede revocar sesiones → 403
   const fakeSesionId = '00000000-0000-0000-0000-000000000099';
-  const workerRevoke = await request.delete(`/api/identity/sesiones/${fakeSesionId}`, {
+  const workerRevoke = await request.delete(`/identity/sesiones/${fakeSesionId}`, {
     headers: { Authorization: `Bearer ${workerToken}` },
   });
   expect(workerRevoke.status()).toBe(403);
@@ -109,7 +109,7 @@ test('RBAC: SUPERADMIN crea ADMIN → ADMIN crea WORKER → WORKER sin acceso ad
 // ── Casos de seguridad ────────────────────────────────────────────────────
 
 test('login con credenciales inválidas → 401', async ({ request }) => {
-  const res = await request.post('/api/identity/sesiones', {
+  const res = await request.post('/identity/sesiones', {
     data: {
       tipo: 'navegador',
       email: 'noexiste@zahavi.test',
@@ -120,14 +120,14 @@ test('login con credenciales inválidas → 401', async ({ request }) => {
 });
 
 test('endpoint protegido sin Authorization → 401', async ({ request }) => {
-  const res = await request.post('/api/identity/usuarios', {
+  const res = await request.post('/identity/usuarios', {
     data: { email: 'x@zahavi.test' },
   });
   expect(res.status()).toBe(401);
 });
 
 test('endpoint protegido con token inválido → 401', async ({ request }) => {
-  const res = await request.post('/api/identity/usuarios', {
+  const res = await request.post('/identity/usuarios', {
     headers: { Authorization: 'Bearer token-falso' },
     data: {
       email: 'x@zahavi.test',

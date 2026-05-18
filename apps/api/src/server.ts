@@ -78,10 +78,10 @@ export function buildServer(
     credentials: env.CORS_ORIGIN !== '*',
   });
 
-  // Rate limit global — las rutas auth tienen su propio límite más estricto
+  // Rate limit global (desactivado en test para no bloquear suites E2E)
   fastify.register(rateLimit, {
     global: true,
-    max: 200,
+    max: env.NODE_ENV === 'test' ? 10_000 : 200,
     timeWindow: '1 minute',
   });
 

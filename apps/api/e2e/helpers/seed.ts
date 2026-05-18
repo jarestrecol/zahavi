@@ -155,7 +155,7 @@ export async function seedCatalogInventoryAndClean(): Promise<void> {
     // Insertar BU de prueba
     await client.query(
       `INSERT INTO identity.business_units (id, nombre, tipo, estado, creado_en)
-       VALUES ($1, $2, 'punto_venta', 'activo', NOW())`,
+       VALUES ($1, $2, 'punto_de_venta', 'activa', NOW())`,
       [BU_ID, BU_NOMBRE],
     );
 
