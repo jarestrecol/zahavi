@@ -98,7 +98,7 @@ function pagoToJson(pago: PagoDetalle): PagoDetalleJson {
 
 function rowToFacturaLinea(row: FacturaLineaJson): FacturaLinea {
   return FacturaLinea.crear({
-    varianteId: row.variante_id,
+    varianteId: mustId(ProductVariantIdRef.of(row.variante_id), 'FacturaLinea.varianteId'),
     nombreProducto: row.nombre_producto,
     cantidad: row.cantidad,
     precioUnitario: mustDinero(row.precio_unitario, 'FacturaLinea.precioUnitario'),
@@ -108,7 +108,7 @@ function rowToFacturaLinea(row: FacturaLineaJson): FacturaLinea {
 
 function facturaLineaToJson(linea: FacturaLinea): FacturaLineaJson {
   return {
-    variante_id: linea.varianteId,
+    variante_id: linea.varianteId.toString(),
     nombre_producto: linea.nombreProducto,
     cantidad: linea.cantidad,
     precio_unitario: linea.precioUnitario.valor,

@@ -77,7 +77,7 @@ export class EmitirFactura {
     // Snapshot de líneas activas de la comanda
     const lineasFactura: FacturaLinea[] = comanda.lineasActivas.map((l) =>
       FacturaLinea.crear({
-        varianteId: l.varianteId.toString(),
+        varianteId: l.varianteId,
         nombreProducto: l.nombreProducto,
         cantidad: l.cantidad,
         precioUnitario: Dinero.de(l.precioUnitario.valor).ok

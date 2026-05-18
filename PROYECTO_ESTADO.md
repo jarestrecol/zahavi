@@ -436,7 +436,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-009 | i18n completo | Baja | ⬜ Fuera de scope piloto |
 | D-010 | Offline-first SQLite para tablets | Alta operativa | ⬜ Scope separado |
 | D-011 | ~~RLS Catalog/Inventory defense-in-depth~~ — **RESUELTO** migración `20260515000002` | ~~Alta seguridad~~ | ✅ |
-| D-012 | `FacturaLinea.varianteId` usa `string` en lugar de `ProductVariantIdRef` — migrar cuando catalog tenga `tasa_iva` | Baja | ⬜ Pendiente |
+| D-012 | ~~`FacturaLinea.varianteId` usa `string`~~ — **RESUELTO** migrado a `ProductVariantIdRef` (2026-05-18) | ~~Baja~~ | ✅ |
 | D-013 | ~~RLS Sales: FORCE ROW LEVEL SECURITY~~ — **RESUELTO** `20260515000001` | ~~Alta seguridad~~ | ✅ |
 | D-014 | ~~RLS Sales: políticas FOR ALL sin segregar~~ — **RESUELTO** | ~~Alta seguridad~~ | ✅ |
 | D-015 | ~~`siguienteNumero` race condition~~ — **RESUELTO** `factura_sequences` upsert atómico | ~~Media~~ | ✅ |

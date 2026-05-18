@@ -6,6 +6,7 @@ import {
   CobroId,
   ComandaId,
   BusinessUnitIdRef,
+  ProductVariantIdRef,
   NumeroFactura,
   FacturaLinea,
   Dinero,
@@ -40,14 +41,14 @@ function numero(n = 'FAC-2026-00001'): NumeroFactura {
 
 const LINEAS: FacturaLinea[] = [
   FacturaLinea.crear({
-    varianteId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    varianteId: unwrap(ProductVariantIdRef.of('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb')),
     nombreProducto: 'Croissant de mantequilla',
     cantidad: 2,
     precioUnitario: unwrap(Dinero.de(4500)),
     tasaIVA: TasaIVA.CERO,
   }),
   FacturaLinea.crear({
-    varianteId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    varianteId: unwrap(ProductVariantIdRef.of('cccccccc-cccc-cccc-cccc-cccccccccccc')),
     nombreProducto: 'Café americano',
     cantidad: 1,
     precioUnitario: unwrap(Dinero.de(3000)),

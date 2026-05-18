@@ -10,7 +10,6 @@
 ## Media prioridad (calidad / operaciones)
 
 - **D-001** — Docker: habilitar virtualización en BIOS para poder correr `docker compose up` localmente.
-- **D-012** — `FacturaLinea.varianteId` usa `string` en lugar de branded type. Migrar cuando catalog tenga `tasa_iva`.
 
 ## Baja prioridad (cosméticos / futuro)
 

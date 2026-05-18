@@ -143,7 +143,7 @@ export function makeFacturaEmitida(): Factura {
       numero: unwrap(NumeroFactura.of('FAC-2026-00001')),
       lineas: [
         FacturaLinea.crear({
-          varianteId: UUID_VARIANTE,
+          varianteId: unwrap(ProductVariantIdRef.of(UUID_VARIANTE)),
           nombreProducto: 'Croissant',
           cantidad: 2,
           precioUnitario: unwrap(Dinero.de(4500)),

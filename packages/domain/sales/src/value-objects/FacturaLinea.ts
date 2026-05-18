@@ -1,5 +1,6 @@
 import { Dinero } from './Dinero.js';
 import { TasaIVA } from './TasaIVA.js';
+import { ProductVariantIdRef } from './ids.js';
 
 /**
  * Value Object inmutable que representa una línea dentro de la Factura.
@@ -11,7 +12,7 @@ export class FacturaLinea {
   readonly subtotalConIVA: Dinero;
 
   private constructor(
-    readonly varianteId: string,
+    readonly varianteId: ProductVariantIdRef,
     readonly nombreProducto: string,
     readonly cantidad: number,
     readonly precioUnitario: Dinero,
@@ -23,7 +24,7 @@ export class FacturaLinea {
   }
 
   static crear(datos: {
-    varianteId: string;
+    varianteId: ProductVariantIdRef;
     nombreProducto: string;
     cantidad: number;
     precioUnitario: Dinero;
