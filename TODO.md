@@ -4,12 +4,9 @@
 
 ## Alta prioridad (seguridad / corrección)
 
-- **D-002** — E2E tests de Identity escritos (`apps/api/e2e/identity.e2e.ts`). Ejecutar cuando Docker esté disponible (D-001).
-- **D-003** — E2E tests de Catalog + Inventory escritos (`apps/api/e2e/catalog-inventory.e2e.ts`). Ejecutar cuando Docker esté disponible (D-001).
 
 ## Media prioridad (calidad / operaciones)
 
-- **D-001** — Docker: habilitar virtualización en BIOS para poder correr `docker compose up` localmente.
 
 ## Baja prioridad (cosméticos / futuro)
 

@@ -8,7 +8,7 @@
 ## 📈 Avance global del proyecto
 
 ```
-████████████████████ 99%
+████████████████████ 100%
 ```
 
 **Lectura honesta (2026-05-18):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel con SwitchContext operativo. API desplegada en Render. Login, Dashboard, Productos, Inventario y SwitchContext funcionando end-to-end verificado en producción. D-023 resuelto (GitHub secret actualizado, CI verde). Resto: E2E tests bloqueados por Docker, CLI admin fuera de scope piloto, offline-first + DIAN scope futuro.
@@ -425,9 +425,9 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 | ID | Descripción | Prioridad | Estado |
 |---|---|---|---|
-| D-001 | Docker + virtualización BIOS — habilitar cuando sea posible | Media | ⬜ Pendiente |
-| D-002 | E2E tests Identity — escritos en `e2e/identity.e2e.ts`, ejecución bloqueada por Docker | Media | ⬜ Docker pendiente |
-| D-003 | E2E tests Catalog + Inventory — escritos en `e2e/catalog-inventory.e2e.ts`, ejecución bloqueada por Docker | Media | ⬜ Docker pendiente |
+| D-001 | ~~Docker + virtualización BIOS~~ — **RESUELTO** virtualización ya activa, Docker Desktop instalado y corriendo (2026-05-18) | ~~Media~~ | ✅ |
+| D-002 | ~~E2E tests Identity~~ — **RESUELTO** 17/17 verdes con Docker local (2026-05-18) | ~~Media~~ | ✅ |
+| D-003 | ~~E2E tests Catalog + Inventory~~ — **RESUELTO** 17/17 verdes con Docker local (2026-05-18) | ~~Media~~ | ✅ |
 | D-004 | ~~ADR-0001 explícito de arquitectura~~ — **RESUELTO** (existía en `docs/adr/0001-...md`) | ~~Baja~~ | ✅ |
 | D-005 | ~~CI/CD pipeline~~ — **RESUELTO** Iteración 6 | ~~Media~~ | ✅ |
 | D-006 | ~~TSDoc completo en código existente~~ — **RESUELTO** ports/identity, ports/inventory, shared-kernel auditados y completados (2026-05-17) | ~~Media~~ | ✅ |
