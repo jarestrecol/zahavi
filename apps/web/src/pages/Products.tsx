@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 
@@ -17,10 +17,17 @@ interface ProductsResponse {
 
 export function Products() {
   const [busqueda, setBusqueda] = useState('');
+  const [busquedaDebounced, setBusquedaDebounced] = useState('');
+
+  useEffect(() => {
+    const id = setTimeout(() => setBusquedaDebounced(busqueda), 300);
+    return () => clearTimeout(id);
+  }, [busqueda]);
 
   const { data, isLoading, isError } = useQuery<ProductsResponse>({
-    queryKey: ['products', busqueda],
-    queryFn: () => api.get(`/catalog/productos?search=${encodeURIComponent(busqueda)}&limit=50`),
+    queryKey: ['products', busquedaDebounced],
+    queryFn: () =>
+      api.get(`/catalog/productos?search=${encodeURIComponent(busquedaDebounced)}&limit=50`),
   });
 
   if (isLoading) {
@@ -47,6 +54,7 @@ export function Products() {
         <h1 className="text-xl font-semibold text-gray-800">Productos</h1>
         <input
           type="search"
+          aria-label="Buscar productos"
           placeholder="Buscar..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
@@ -64,10 +72,18 @@ export function Products() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Nombre</th>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Categoría</th>
-                <th className="text-right px-4 py-2 font-medium text-gray-600">Precio</th>
-                <th className="text-center px-4 py-2 font-medium text-gray-600">Estado</th>
+                <th scope="col" className="text-left px-4 py-2 font-medium text-gray-600">
+                  Nombre
+                </th>
+                <th scope="col" className="text-left px-4 py-2 font-medium text-gray-600">
+                  Categoría
+                </th>
+                <th scope="col" className="text-right px-4 py-2 font-medium text-gray-600">
+                  Precio
+                </th>
+                <th scope="col" className="text-center px-4 py-2 font-medium text-gray-600">
+                  Estado
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -82,6 +98,7 @@ export function Products() {
                   </td>
                   <td className="px-4 py-2 text-center">
                     <span
+                      aria-label={p.estado === 'publicado' ? 'Publicado' : 'No publicado'}
                       className={`text-xs px-2 py-0.5 rounded-full ${
                         p.estado === 'publicado'
                           ? 'bg-green-100 text-green-700'

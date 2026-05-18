@@ -49,8 +49,11 @@ export function Login() {
 
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Correo electrónico</label>
+            <label htmlFor="login-email" className="block text-sm text-gray-600 mb-1">
+              Correo electrónico
+            </label>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -61,8 +64,11 @@ export function Login() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Contraseña</label>
+            <label htmlFor="login-password" className="block text-sm text-gray-600 mb-1">
+              Contraseña
+            </label>
             <input
+              id="login-password"
               type="password"
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
@@ -73,10 +79,11 @@ export function Login() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
+            <label htmlFor="login-totp" className="block text-sm text-gray-600 mb-1">
               Código TOTP <span className="text-gray-400">(si tienes 2FA activo)</span>
             </label>
             <input
+              id="login-totp"
               type="text"
               value={totp}
               onChange={(e) => setTotp(e.target.value)}
