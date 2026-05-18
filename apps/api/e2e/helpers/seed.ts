@@ -24,6 +24,9 @@ export const WORKER_PIN = '123456';
 export const DEVICE_ID = '00000000-0000-0000-0000-000000000010';
 export const DEVICE_NAME = 'Tablet E2E Test';
 
+export const BU_ID = '00000000-0000-0000-0000-000000000100';
+export const BU_NOMBRE = 'Punto Test E2E';
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Genera un código TOTP válido para el SA a partir del secreto conocido. */
@@ -104,6 +107,63 @@ export async function seedAndClean(): Promise<void> {
          (dispositivo_id, estado, cambiado_en, cambiado_por, motivo, orden)
        VALUES ($1, 'activo', NOW(), $2, 'Autorizado para pruebas E2E', 0)`,
       [DEVICE_ID, SA_ID],
+    );
+
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Extiende `seedAndClean` insertando una business unit de prueba y asignando
+ * al SA a esa unidad. También limpia datos de catalog/inventory de pruebas previas.
+ * Llama internamente a `seedAndClean` — no es necesario llamar ambas.
+ */
+export async function seedCatalogInventoryAndClean(): Promise<void> {
+  await seedAndClean();
+
+  const databaseUrl = requireEnv('DATABASE_URL');
+  const client = new pg.Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Limpieza catalog/inventory de datos de prueba previos
+    await client.query(
+      `DELETE FROM catalog.products WHERE nombre LIKE '%E2E%' OR nombre LIKE '%Test%'`,
+    );
+    await client.query(
+      `DELETE FROM catalog.categories WHERE nombre LIKE '%E2E%' OR nombre LIKE '%Test%'`,
+    );
+    await client.query(`DELETE FROM inventory.stock_items WHERE business_unit_id = $1`, [BU_ID]);
+    await client.query(`DELETE FROM inventory.stock_movements WHERE business_unit_id = $1`, [
+      BU_ID,
+    ]);
+    await client.query(
+      `DELETE FROM inventory.ingredients WHERE nombre LIKE '%E2E%' OR nombre LIKE '%Test%'`,
+    );
+    await client.query(`DELETE FROM identity.user_business_units WHERE business_unit_id = $1`, [
+      BU_ID,
+    ]);
+    await client.query(`DELETE FROM identity.business_units WHERE id = $1`, [BU_ID]);
+
+    // Insertar BU de prueba
+    await client.query(
+      `INSERT INTO identity.business_units (id, nombre, tipo, estado, creado_en)
+       VALUES ($1, $2, 'punto_venta', 'activo', NOW())`,
+      [BU_ID, BU_NOMBRE],
+    );
+
+    // Asignar SA a la BU de prueba
+    await client.query(
+      `INSERT INTO identity.user_business_units (user_id, business_unit_id, asignado_en, asignado_por)
+       VALUES ($1, $2, NOW(), $1)`,
+      [SA_ID, BU_ID],
     );
 
     await client.query('COMMIT');

@@ -207,7 +207,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Tests
 - ✅ 463+ tests unit/integration verdes (incluyendo CambiarContextoBusinessUnit)
-- ⬜ E2E tests de RBAC (escritos, requieren Docker — D-002)
+- ✅ E2E tests de RBAC escritos en `apps/api/e2e/identity.e2e.ts` (D-002 — ejecución requiere Docker)
 
 ### Frontend
 - ✅ Pantalla Login — email + contraseña + TOTP opcional (`apps/web/src/pages/Login.tsx`)
@@ -264,7 +264,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 ### Tests
 - ✅ 27/27 tests verdes (unit)
 - ✅ architect-guardian aprobado + security-auditor aprobado
-- ⬜ E2E tests (requieren Docker — D-003)
+- ✅ E2E tests escritos en `apps/api/e2e/catalog-inventory.e2e.ts` (D-003 — ejecución requiere Docker)
 
 ### Documentación
 - ✅ ADR-0002 (ACL cross-BC) + ADR-0003 (multi-tenant) — Aceptados
@@ -426,8 +426,8 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | ID | Descripción | Prioridad | Estado |
 |---|---|---|---|
 | D-001 | Docker + virtualización BIOS — habilitar cuando sea posible | Media | ⬜ Pendiente |
-| D-002 | E2E tests Identity no corren sin Docker | Media | ⬜ Pendiente |
-| D-003 | E2E tests Catalog + Inventory no escritos | Media | ⬜ Pendiente |
+| D-002 | E2E tests Identity — escritos en `e2e/identity.e2e.ts`, ejecución bloqueada por Docker | Media | ⬜ Docker pendiente |
+| D-003 | E2E tests Catalog + Inventory — escritos en `e2e/catalog-inventory.e2e.ts`, ejecución bloqueada por Docker | Media | ⬜ Docker pendiente |
 | D-004 | ~~ADR-0001 explícito de arquitectura~~ — **RESUELTO** (existía en `docs/adr/0001-...md`) | ~~Baja~~ | ✅ |
 | D-005 | ~~CI/CD pipeline~~ — **RESUELTO** Iteración 6 | ~~Media~~ | ✅ |
 | D-006 | ~~TSDoc completo en código existente~~ — **RESUELTO** ports/identity, ports/inventory, shared-kernel auditados y completados (2026-05-17) | ~~Media~~ | ✅ |
