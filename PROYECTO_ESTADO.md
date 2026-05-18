@@ -8,10 +8,10 @@
 ## 📈 Avance global del proyecto
 
 ```
-███████████████████░ 97%
+████████████████████ 99%
 ```
 
-**Lectura honesta (2026-05-17):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel con SwitchContext operativo. API desplegada en Render. Login, Dashboard, Productos, Inventario y SwitchContext funcionando end-to-end. Deuda pendiente única accionable: D-023 (GitHub secret, acción usuario). Resto: E2E tests bloqueados por Docker, CLI admin fuera de scope piloto, offline-first + DIAN scope futuro.
+**Lectura honesta (2026-05-18):** Backend 100% completo (6 BCs: Identity, Catalog, Inventory, Production, Sales, Reporting — hexagonal puro, RLS, RBAC, multi-tenant). Frontend React funcional y desplegado en Vercel con SwitchContext operativo. API desplegada en Render. Login, Dashboard, Productos, Inventario y SwitchContext funcionando end-to-end verificado en producción. D-023 resuelto (GitHub secret actualizado, CI verde). Resto: E2E tests bloqueados por Docker, CLI admin fuera de scope piloto, offline-first + DIAN scope futuro.
 
 ### Avance por iteración
 
@@ -26,7 +26,7 @@
 | 4 | Sales                             | `████████████████████` | 100% | ✅ |
 | 5 | Dashboard + cierre + reportes     | `████████████████████` | 100% | ✅ |
 | 6 | Despliegue piloto                 | `████████████████████` | 100% | ✅ |
-| 7 | Refinamiento                      | `███████████████████░` | 97% | 🟡 |
+| 7 | Refinamiento                      | `████████████████████` | 100% | ✅ |
 
 **Métricas clave (actualizadas 2026-05-16):**
 - Bounded contexts del dominio terminados: **6 de 6** (Identity, Catalog, Inventory, Production, Sales, Reporting)
@@ -36,12 +36,12 @@
 - Tests: 356+ verdes (unit + integration), E2E bloqueados por Docker
 - CLI admin: `░░░░░░░░░░░░░░░░░░░░` 0% (fuera de scope piloto)
 
-**Estado actual (2026-05-17):**
-- Iteraciones 0-7 mayormente completas. Única deuda activa accionable: D-023 (GitHub secret, acción usuario).
+**Estado actual (2026-05-18):**
+- Iteraciones 0-7 completadas. Piloto en producción verificado end-to-end.
 - Render live: `https://zahavi-api.onrender.com` — API OK
-- Vercel live: `https://zahavi-web.vercel.app` — Login + Dashboard + Productos + Inventario + SwitchContext OK (tras push)
-- Sesiones de admin@zahavi.local cerradas vía Supabase MCP (login libre ahora mismo).
-- limiteSimultaneo subido a 5 para ADMIN/SUPERADMIN (commit `fe69bf8`, push pendiente).
+- Vercel live: `https://zahavi-web.vercel.app` — Login + Dashboard + Productos + Inventario + SwitchContext OK
+- CI GitHub Actions: 3/3 jobs verdes (D-023 resuelto — GitHub secret actualizado).
+- limiteSimultaneo 5 para ADMIN/SUPERADMIN activo en producción.
 
 ---
 
@@ -107,11 +107,12 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 
 ### Próxima acción inmediata
 
-> **Paso 1 (usuario):** `git push origin main` — sube todos los commits de esta sesión.
-> **Paso 2 (usuario):** Esperar redeploy Render (~7 min) → cerrar sesión → volver a login.
-> **Paso 3 (usuario):** Verificar: Dashboard carga, Productos lista, Inventario muestra stock, SwitchContext aparece para ADMIN.
-> **Paso 4 (usuario):** Actualizar GitHub secret `SUPABASE_DB_PASSWORD` → re-trigger CI → verificar 3/3 verde (D-023).
-> **Paso 5 (Claude — opcional):** E2E tests con Playwright cuando Docker esté disponible (D-002/D-003).
+> **Piloto en producción completado y verificado (2026-05-18).** No hay acciones bloqueantes pendientes.
+>
+> Opciones de continuación (no urgentes):
+> - **D-001/D-002/D-003:** Habilitar virtualización BIOS → `docker compose up` → E2E con Playwright.
+> - **Siguiente BC:** Segundo punto de venta o módulo de producción avanzado.
+> - **D-010:** Offline-first SQLite para tablets (análisis separado).
 
 ### Reglas de la sesión
 
@@ -202,7 +203,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ `POST /identity/totp/iniciar` + `POST /identity/totp/confirmar`
 - ✅ `POST /identity/contexto/cambiar` — CambiarContexto (JWT nuevo con TTL residual)
 - ✅ Respuesta de login incluye `businessUnitId` (fix 2026-05-16, commit `392353e`)
-- ⬜ **Pendiente (D-021):** `GET /identity/unidades-de-negocio` — lista unidades del usuario actual (necesario para SwitchContext)
+- ✅ **D-021 resuelto:** `GET /identity/unidades-de-negocio` implementado (commit `bb98390`)
 
 ### Tests
 - ✅ 463+ tests unit/integration verdes (incluyendo CambiarContextoBusinessUnit)
@@ -366,20 +367,20 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ Rutas frontend corregidas: `/catalog/productos`, `/reporting/dashboard` (sin `/api/`)
 - ✅ `businessUnitId` incluido en respuesta de login (fix `392353e`)
 - ✅ GET `/catalog/productos` implementado con JOIN categorías + variantes
-- ⬜ **Pendiente push:** 6 commits de esta sesión → redeploy Render → verificar Inventario con `businessUnitId`
-- ⬜ **Bloque 6.7:** `GET /identity/unidades-de-negocio` → habilitar SwitchContext
+- ✅ Commits pusheados → redeploy Render → Inventario con `businessUnitId` verificado
+- ✅ **Bloque 6.7:** `GET /identity/unidades-de-negocio` + SwitchContext (commit `bb98390`)
 
 ### Bloque 6.7 — Completar SwitchContext ✅ (100%)
 - ✅ `GET /identity/unidades-de-negocio` — listar unidades del usuario autenticado (commit `feat(identity)`)
 - ✅ Habilitar query en `SwitchContext.tsx` (`enabled: rol === 'ADMIN' || rol === 'SUPERADMIN'`)
-- ⬜ Verificar cambio de contexto ADMIN end-to-end (pendiente redeploy)
+- ✅ Verificar cambio de contexto ADMIN end-to-end — verificado en producción (2026-05-18)
 
 ---
 
-## 🟡 Iteración 7 — Refinamiento
+## ✅ Iteración 7 — Refinamiento
 
 ```
-████████████████░░░░ 80%
+████████████████████ 100%
 ```
 
 ### Bloque 7.1 — Endurecimiento de seguridad ✅
@@ -403,9 +404,9 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 - ✅ D-017: ENUMs PostgreSQL nativos para estados
 - ✅ D-019: `PuntoDeVentaId` branded type
 
-### Bloque 7.5 — Limpieza post-piloto 🟡 (67%)
+### Bloque 7.5 — Limpieza post-piloto ✅ (100%)
 - ✅ D-022: Revertir debug logging en `error-handler.ts` — logs solo exponen `err.name` (commit `bb98390`)
-- ⬜ D-023: Actualizar GitHub secret `SUPABASE_DB_PASSWORD` + verificar CI verde (acción usuario)
+- ✅ D-023: GitHub secret `SUPABASE_DB_PASSWORD` actualizado + CI verde 3/3 (acción usuario 2026-05-18)
 - ✅ D-021: `GET /identity/unidades-de-negocio` implementado — SwitchContext funcional (commit `bb98390`)
 - ✅ D-024: Validación post-inserción de hash bcrypt en seed `02_users.sql`
 
@@ -446,7 +447,7 @@ Este archivo es la **fuente única de verdad**. Mantenerlo desactualizado es vio
 | D-020 | ~~Tipos duplicados en Dashboard.tsx~~ — **RESUELTO** importa desde `@zahavi/ports` | ~~Media~~ | ✅ |
 | D-021 | ~~`GET /identity/unidades-de-negocio` no implementado~~ — **RESUELTO** Bloque 6.7 (commit `feat(identity)`) | ~~Media~~ | ✅ |
 | D-022 | ~~`error-handler.ts` expone `err.code` + `err.msg` de pg en logs~~ — **RESUELTO** Bloque 7.5 (commit `fix(api)`) | ~~Baja~~ | ✅ |
-| D-023 | GitHub secret `SUPABASE_DB_PASSWORD` desactualizado tras reset — CI falla en deploy migrations | Media | ⬜ Bloque 7.5 |
+| D-023 | ~~GitHub secret `SUPABASE_DB_PASSWORD` desactualizado~~ — **RESUELTO** (actualizado por usuario 2026-05-18, CI 3/3 verde) | ~~Media~~ | ✅ |
 | D-024 | ~~Seed hash bcrypt incorrecto~~ — **RESUELTO** hash corregido + bloque DO $$ de validación post-inserción en `02_users.sql` (falla ruidosamente si el hash no coincide) | ~~Baja~~ | ✅ |
 
 ---
