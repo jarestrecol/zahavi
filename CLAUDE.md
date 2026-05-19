@@ -201,14 +201,18 @@ zahavi/
 - ✅ Fase 5 — README.md profesional con diagrama Mermaid y nueva estructura
 - ✅ Fase 6 — Validación final + subagentes + commit release
 
+**Fase Seguridad+Tests (2026-05-19 sesión 2):**
+- ✅ SEC-001 — Inventory: `businessUnitId` derivado del JWT (`bu_id`) en todos los endpoints; schemas limpios
+- ✅ TEST-001 — `vitest.config.ts` en 6 paquetes: excluye `dist/**` (vitest 4.x cambió defaults)
+- ✅ DOC-001 — `TODO.md` recreado limpio (eliminado localmente en sesión anterior)
+
 ### Próxima acción inmediata
 
-> Proyecto al 100% post-QA. No hay acciones bloqueantes pendientes.
+> Brechas críticas resueltas. Próximo bloque: **Fase 8 — POS Operativo**.
 >
-> Opciones de continuación:
-> - **D-030:** Crear tabla `audit.log` append-only con hash encadenado (scope futuro).
-> - **Siguiente BC:** Offline-first SQLite para tablets (D-010) o integración DIAN.
-> - **CLI admin** (`backend/cli/`): fuera de scope piloto.
+> - **Fase 8:** Vista de mesas, comandas, cobro y cierre desde tablet/smartphone (WORKER).
+> - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
+> - **D-010:** Offline-first SQLite para tablets (scope separado).
 
 ### Hitos completados en sesión actual
 
@@ -216,17 +220,16 @@ zahavi/
 |---|---|---|
 | QA Fase 1 | `ddc19a2` | Auditoría + resolución hallazgos críticos (FORCE RLS, PWA, accesibilidad, rate-limit) |
 | QA Fase 2 | `3a51e40` | Reorganización física backend/frontend/database/qa/info |
+| Seg+Tests | pendiente | SEC-001 JWT inventory + TEST-001 vitest dist + DOC-001 TODO.md |
 
-### Deuda técnica activa (D-025+)
+### Deuda técnica activa
 
 | ID | Descripción | Prioridad | Estado |
 |---|---|---|---|
-| D-025 | TSDoc incompleto en backend/ports/ y backend/domain/ post-reorganización | Media | ⬜ Fase 4 |
-| D-026 | README.md raíz no refleja nueva estructura de carpetas | Baja | ⬜ Fase 5 |
 | D-027 | docker/web.Dockerfile no actualizado con paths frontend/ | Media | ⬜ Verificar |
 | D-028 | E2E tests: playwright.config.ts apunta a qa/e2e/ — verificar rutas post-reorganización | Media | ⬜ Verificar |
-| D-029 | `backend/domain/catalog/dist/**` artefactos compilados en git — agregar `dist/` al .gitignore de dominio | Baja | ⬜ Higiene |
-| D-030 | Tabla `audit.log` global append-only con hash encadenado (CLAUDE.md §14) no implementada | Alta (futuro) | ⬜ Scope futuro |
+| D-029 | `backend/domain/*/dist/**` artefactos compilados en git — agregar `dist/` al .gitignore de dominio | Baja | ⬜ Higiene |
+| D-030 | Tabla `audit.log` global append-only con hash encadenado | Alta (futuro) | ⬜ Scope futuro |
 | D-008 | Tema oscuro en frontend | Baja | ⬜ Fuera de scope |
 | D-009 | i18n completo | Baja | ⬜ Fuera de scope |
 | D-010 | Offline-first SQLite para tablets | Alta operativa | ⬜ Scope separado |
@@ -573,3 +576,4 @@ En modo autónomo: si una decisión menor es ambigua, aplica el default más con
 | `34e0f19` | chore(estado): proyecto al 100% — D-001/D-002/D-003 resueltos |
 | `ddc19a2` | qa: auditoría pre-reorganización + resolución hallazgos críticos |
 | `3a51e40` | refactor(struct): reorganización física en 5 carpetas raíz |
+| pendiente | fix(security): inventory businessUnitId desde JWT; vitest excluye dist; TODO.md limpio |

@@ -21,8 +21,6 @@ export const crearProveedorSchema = z.object({
 
 export const registrarIngresoSchema = z.object({
   ingredienteId: z.string().uuid(),
-  // TODO(SEC): derivar businessUnitId del JWT (zahavi_business_unit_id) cuando se agregue al token
-  businessUnitId: z.string().uuid(),
   cantidad: z.number().positive(),
   costoUnitarioCop: z.number().int().min(0),
   supplierId: z.string().uuid(),
@@ -31,8 +29,6 @@ export const registrarIngresoSchema = z.object({
 
 export const registrarSalidaSchema = z.object({
   ingredienteId: z.string().uuid(),
-  // TODO(SEC): derivar businessUnitId del JWT cuando se agregue al token
-  businessUnitId: z.string().uuid(),
   cantidad: z.number().positive(),
   tipo: z.enum(['PRODUCTION_OUT', 'SALE_OUT']),
   referencia: z.string().min(1).max(500),
@@ -40,31 +36,24 @@ export const registrarSalidaSchema = z.object({
 
 export const registrarMermaSchema = z.object({
   ingredienteId: z.string().uuid(),
-  // TODO(SEC): derivar businessUnitId del JWT cuando se agregue al token
-  businessUnitId: z.string().uuid(),
   cantidad: z.number().positive(),
   motivo: z.string().min(1).max(500),
 });
 
 export const ajustarStockSchema = z.object({
   ingredienteId: z.string().uuid(),
-  // TODO(SEC): derivar businessUnitId del JWT cuando se agregue al token
-  businessUnitId: z.string().uuid(),
   cantidadNueva: z.number().min(0),
   motivo: z.string().min(1).max(500),
 });
 
 export const listarStockQuerySchema = z.object({
-  // TODO(SEC): derivar businessUnitId del JWT cuando se agregue al token
-  businessUnitId: z.string().uuid(),
+  ingredienteId: z.string().uuid().optional(),
 });
 
 const MAX_RANGO_HISTORICO_MS = 366 * 24 * 60 * 60 * 1000; // 366 días
 
 export const historicoQuerySchema = z
   .object({
-    // TODO(SEC): derivar businessUnitId del JWT cuando se agregue al token
-    businessUnitId: z.string().uuid(),
     ingredienteId: z.string().uuid().optional(),
     desde: z.string().datetime().optional(),
     hasta: z.string().datetime().optional(),

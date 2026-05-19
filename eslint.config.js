@@ -4,7 +4,7 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['node_modules', 'dist', '.turbo', 'coverage', '.husky'],
+    ignores: ['node_modules', 'dist', '.turbo', 'coverage', '.husky', '**/vitest.config.ts'],
   },
   {
     files: ['**/*.{ts,tsx}'],

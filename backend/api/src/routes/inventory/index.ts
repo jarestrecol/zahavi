@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import type { InventoryComposition } from '../../composition/inventory.js';
 import { authenticate, requireRole } from '../../plugins/jwt.js';
 import {
@@ -16,6 +16,19 @@ import {
 
 export interface InventoryRouteOptions {
   composition: InventoryComposition;
+}
+
+/** Extrae el bu_id del JWT validado o corta la respuesta con 400. */
+function requireBusinessUnit(request: FastifyRequest, reply: FastifyReply): string | null {
+  const buId = request.user.bu_id;
+  if (!buId) {
+    void reply.code(400).send({
+      error: 'CONTEXTO_REQUERIDO',
+      mensaje: 'Debe seleccionar una unidad de negocio antes de operar inventario',
+    });
+    return null;
+  }
+  return buId;
 }
 
 const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastify, opts) => {
@@ -85,10 +98,12 @@ const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastif
     url: '/movimientos/ingreso',
     preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
     handler: async (request, reply) => {
+      const businessUnitId = requireBusinessUnit(request, reply);
+      if (!businessUnitId) return;
       const body = registrarIngresoSchema.parse(request.body);
       const result = await composition.registrarIngreso.execute({
         ingredienteId: body.ingredienteId,
-        businessUnitId: body.businessUnitId,
+        businessUnitId,
         cantidad: body.cantidad,
         costoUnitarioCop: body.costoUnitarioCop,
         supplierId: body.supplierId,
@@ -106,9 +121,12 @@ const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastif
     url: '/movimientos/salida',
     preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
     handler: async (request, reply) => {
+      const businessUnitId = requireBusinessUnit(request, reply);
+      if (!businessUnitId) return;
       const body = registrarSalidaSchema.parse(request.body);
       const result = await composition.registrarSalida.execute({
         ...body,
+        businessUnitId,
         correlacionId: request.id,
       });
       if (!result.ok) throw result.error;
@@ -122,9 +140,12 @@ const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastif
     url: '/movimientos/merma',
     preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
     handler: async (request, reply) => {
+      const businessUnitId = requireBusinessUnit(request, reply);
+      if (!businessUnitId) return;
       const body = registrarMermaSchema.parse(request.body);
       const result = await composition.registrarMerma.execute({
         ...body,
+        businessUnitId,
         actorRol: request.user.zahavi_rol,
         correlacionId: request.id,
       });
@@ -139,9 +160,12 @@ const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastif
     url: '/ajustes',
     preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
     handler: async (request, reply) => {
+      const businessUnitId = requireBusinessUnit(request, reply);
+      if (!businessUnitId) return;
       const body = ajustarStockSchema.parse(request.body);
       const result = await composition.ajustarStock.execute({
         ...body,
+        businessUnitId,
         actorRol: request.user.zahavi_rol,
         correlacionId: request.id,
       });
@@ -156,9 +180,11 @@ const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastif
     url: '/stock',
     preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
     handler: async (request, reply) => {
-      const query = listarStockQuerySchema.parse(request.query);
+      const businessUnitId = requireBusinessUnit(request, reply);
+      if (!businessUnitId) return;
+      listarStockQuerySchema.parse(request.query);
       const result = await composition.listarStockActual.execute({
-        businessUnitId: query.businessUnitId,
+        businessUnitId,
         actorRol: request.user.zahavi_rol,
       });
       if (!result.ok) throw result.error;
@@ -172,9 +198,11 @@ const inventoryRoutes: FastifyPluginAsync<InventoryRouteOptions> = async (fastif
     url: '/historico',
     preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
     handler: async (request, reply) => {
+      const businessUnitId = requireBusinessUnit(request, reply);
+      if (!businessUnitId) return;
       const query = historicoQuerySchema.parse(request.query);
       const result = await composition.historicoMovimientos.execute({
-        businessUnitId: query.businessUnitId,
+        businessUnitId,
         ...(query.ingredienteId !== undefined && { ingredienteId: query.ingredienteId }),
         ...(query.desde !== undefined && { desde: query.desde }),
         ...(query.hasta !== undefined && { hasta: query.hasta }),
