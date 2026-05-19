@@ -220,7 +220,7 @@ zahavi/
 |---|---|---|
 | QA Fase 1 | `ddc19a2` | Auditoría + resolución hallazgos críticos (FORCE RLS, PWA, accesibilidad, rate-limit) |
 | QA Fase 2 | `3a51e40` | Reorganización física backend/frontend/database/qa/info |
-| Seg+Tests | pendiente | SEC-001 JWT inventory + TEST-001 vitest dist + DOC-001 TODO.md |
+| Seg+Tests | `f73a910` | SEC-001 JWT inventory + TEST-001 vitest dist + DOC-001 TODO.md |
 
 ### Deuda técnica activa
 
@@ -576,4 +576,4 @@ En modo autónomo: si una decisión menor es ambigua, aplica el default más con
 | `34e0f19` | chore(estado): proyecto al 100% — D-001/D-002/D-003 resueltos |
 | `ddc19a2` | qa: auditoría pre-reorganización + resolución hallazgos críticos |
 | `3a51e40` | refactor(struct): reorganización física en 5 carpetas raíz |
-| pendiente | fix(security): inventory businessUnitId desde JWT; vitest excluye dist; TODO.md limpio |
+| `f73a910` | fix(security): inventory businessUnitId desde JWT; vitest excluye dist; TODO.md limpio |

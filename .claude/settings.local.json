@@ -15,5 +15,6 @@
       "Bash(git -C \"c:/Users/Ing. Julian Restrepo/Proyectos/zahavi\" add PROYECTO_ESTADO.md)",
       "Bash(git -C 'c:/Users/Ing. Julian Restrepo/Proyectos/zahavi' commit -m ' *)"
     ]
-  }
+  },
+  "enabledPlugins": {}
 }

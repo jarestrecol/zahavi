@@ -1,5 +1,4 @@
 {
-  "model": "claude-sonnet-4-6",
   "permissions": {
     "allow": [
       "Read(./**)",
@@ -48,6 +47,7 @@
       "Bash(npm publish*)"
     ]
   },
+  "model": "claude-sonnet-4-6",
   "hooks": {
     "PostToolUse": [
       {
@@ -60,5 +60,6 @@
         ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {}
 }
