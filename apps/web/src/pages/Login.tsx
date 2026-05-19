@@ -58,7 +58,7 @@ export function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               autoComplete="email"
             />
           </div>
@@ -73,7 +73,7 @@ export function Login() {
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
               required
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               autoComplete="current-password"
             />
           </div>
@@ -88,14 +88,18 @@ export function Login() {
               value={totp}
               onChange={(e) => setTotp(e.target.value)}
               maxLength={6}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               autoComplete="one-time-code"
               inputMode="numeric"
             />
           </div>
 
           {error && (
-            <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded px-3 py-2">
+            <p
+              role="alert"
+              aria-live="assertive"
+              className="text-red-600 text-sm bg-red-50 border border-red-200 rounded px-3 py-2"
+            >
               {error}
             </p>
           )}

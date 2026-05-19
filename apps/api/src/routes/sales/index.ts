@@ -20,12 +20,10 @@ export interface SalesRouteOptions {
 function getBuId(request: FastifyRequest, reply: FastifyReply): string | null {
   const buId = request.user.bu_id;
   if (!buId) {
-    void reply
-      .code(403)
-      .send({
-        code: 'ERR_AUTH_NO_BU',
-        message: 'El usuario no tiene unidad de negocio asignada en el token.',
-      });
+    void reply.code(403).send({
+      code: 'ERR_AUTH_NO_BU',
+      message: 'El usuario no tiene unidad de negocio asignada en el token.',
+    });
     return null;
   }
   return buId;
@@ -187,6 +185,12 @@ const salesRoutes: FastifyPluginAsync<SalesRouteOptions> = async (fastify, opts)
   fastify.route({
     method: 'POST',
     url: '/cobros',
+    config: {
+      rateLimit: {
+        max: process.env['NODE_ENV'] === 'test' ? 10_000 : 60,
+        timeWindow: '1 minute',
+      },
+    },
     preHandler: [authenticate],
     handler: async (request, reply) => {
       const puntoDeVentaId = getBuId(request, reply);
@@ -210,6 +214,12 @@ const salesRoutes: FastifyPluginAsync<SalesRouteOptions> = async (fastify, opts)
   fastify.route({
     method: 'POST',
     url: '/facturas',
+    config: {
+      rateLimit: {
+        max: process.env['NODE_ENV'] === 'test' ? 10_000 : 60,
+        timeWindow: '1 minute',
+      },
+    },
     preHandler: [authenticate],
     handler: async (request, reply) => {
       const puntoDeVentaId = getBuId(request, reply);

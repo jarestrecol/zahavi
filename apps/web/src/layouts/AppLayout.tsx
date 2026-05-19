@@ -43,7 +43,10 @@ export function AppLayout() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Indicador offline */}
       {!online && (
-        <div role="alert" className="bg-yellow-500 text-white text-sm text-center py-1 px-4">
+        <div
+          role="alert"
+          className="bg-yellow-400 text-gray-900 text-sm text-center py-1 px-4 font-medium"
+        >
           Sin conexión — los datos pueden estar desactualizados
         </div>
       )}

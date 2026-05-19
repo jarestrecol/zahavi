@@ -16,6 +16,7 @@ export function SwitchContext() {
   const { rol, buId, setBuId } = useAuthStore();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const [switching, setSwitching] = useState(false);
 
   const { data: unidadesData } = useQuery<UnidadesResponse>({
     queryKey: ['business-units'],
@@ -28,8 +29,9 @@ export function SwitchContext() {
   if (rol === 'WORKER' || !unidades || unidades.length <= 1) return null;
 
   async function cambiar(nuevoId: string) {
-    if (nuevoId === buId) return;
+    if (nuevoId === buId || switching) return;
     setError(null);
+    setSwitching(true);
     try {
       const res = await api.post<{ token: string; businessUnitId: string }>(
         '/identity/contexto/cambiar',
@@ -39,6 +41,8 @@ export function SwitchContext() {
       await queryClient.invalidateQueries();
     } catch {
       setError('No se pudo cambiar la unidad');
+    } finally {
+      setSwitching(false);
     }
   }
 
@@ -47,8 +51,10 @@ export function SwitchContext() {
       <select
         value={buId ?? ''}
         onChange={(e) => void cambiar(e.target.value)}
+        disabled={switching}
         aria-label="Cambiar unidad de negocio"
-        className="text-sm border rounded px-2 py-1 bg-white text-gray-700"
+        aria-busy={switching}
+        className="text-sm border rounded px-2 py-1 bg-white text-gray-700 disabled:opacity-60"
       >
         {!buId && <option value="">Seleccionar unidad</option>}
         {unidades.map((u) => (
@@ -57,7 +63,11 @@ export function SwitchContext() {
           </option>
         ))}
       </select>
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {error && (
+        <span role="alert" aria-live="polite" className="text-xs text-red-500">
+          {error}
+        </span>
+      )}
     </div>
   );
 }
