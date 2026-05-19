@@ -175,7 +175,7 @@ zahavi/
 | Frontend (Vercel) | `https://zahavi-web.vercel.app` | ✅ Live |
 | Supabase cloud | proyecto `krubipnwqrsywmlyskja` (us-east-1) | ✅ 29 tablas, 5 schemas |
 
-**Credenciales piloto:** `admin@zahavi.local` / `Zahavi2026!`
+**Credenciales piloto:** `admin@zahavi.local` / ver `.env` (variable `SEED_ADMIN_PASSWORD`)
 
 **Despliegue API:** `render.yaml` → build `pnpm install --frozen-lockfile && pnpm build` → start `node backend/api/dist/index.js`
 
@@ -208,9 +208,9 @@ zahavi/
 
 ### Próxima acción inmediata
 
-> Fase 8 POS Operativo implementada. Prueba en UI real (pnpm dev en frontend/web).
+> Deudas técnicas D-027/D-028/D-029 resueltas. Sistema POS operativo completo.
 >
-> - **Siguiente:** Validar E2E en navegador + pruebas tablet. Ajustar según feedback.
+> - **Siguiente:** Fase 9 Producción+Vitrina — órdenes de producción, BOM, despacho a puntos.
 > - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
@@ -223,14 +223,15 @@ zahavi/
 | Seg+Tests | `f73a910` | SEC-001 JWT inventory + TEST-001 vitest dist + DOC-001 TODO.md |
 | Fase 8 POS | `5b96c5a` | ObtenerComanda UC + GET /comandas/:id + Mesas/Mesa pages + cobro + factura |
 | Sesiones | `a93500f` | ListarMisSesiones UC + GET /identity/sesiones + panel MisSesiones en header |
+| Seg+Deudas | `4f43790` | fix README credencial; D-027 Dockerfile; D-028 verificado; D-029 resuelto |
 
 ### Deuda técnica activa
 
 | ID | Descripción | Prioridad | Estado |
 |---|---|---|---|
-| D-027 | docker/web.Dockerfile no actualizado con paths frontend/ | Media | ⬜ Verificar |
-| D-028 | E2E tests: playwright.config.ts apunta a qa/e2e/ — verificar rutas post-reorganización | Media | ⬜ Verificar |
-| D-029 | `backend/domain/*/dist/**` artefactos compilados en git — agregar `dist/` al .gitignore de dominio | Baja | ⬜ Higiene |
+| D-027 | docker/web.Dockerfile paths frontend/ | Media | ✅ Resuelto `556e238` |
+| D-028 | playwright.config.ts apunta a qa/e2e/ — rutas verificadas post-reorganización | Media | ✅ Verificado OK |
+| D-029 | `dist/**` en git domain packages — .gitignore raíz ya los excluye | Baja | ✅ Resuelto (ya excluido) |
 | D-030 | Tabla `audit.log` global append-only con hash encadenado | Alta (futuro) | ⬜ Scope futuro |
 | D-008 | Tema oscuro en frontend | Baja | ⬜ Fuera de scope |
 | D-009 | i18n completo | Baja | ⬜ Fuera de scope |
