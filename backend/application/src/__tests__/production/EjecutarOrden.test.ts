@@ -9,9 +9,13 @@ import {
   UUID_CORRELACION,
 } from './helpers.js';
 
+const mockDescontador = {
+  descontarConsumoDeProduccion: async () => Promise.resolve(),
+};
+
 function makeUseCase(orden = makeOrdenEnEjecucion()) {
   const repo = makeMockOrdenRepo(orden);
-  return { uc: new EjecutarOrden(repo), repo };
+  return { uc: new EjecutarOrden(repo, mockDescontador), repo };
 }
 
 const entradaBase = {
@@ -33,7 +37,7 @@ describe('EjecutarOrden', () => {
   });
 
   it('rechaza si la orden no existe', async () => {
-    const uc = new EjecutarOrden(makeMockOrdenRepo(null));
+    const uc = new EjecutarOrden(makeMockOrdenRepo(null), mockDescontador);
     const result = await uc.execute(entradaBase, UUID_CORRELACION);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PRODUCTION_ORDEN_NO_ENCONTRADA');

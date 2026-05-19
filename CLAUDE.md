@@ -212,7 +212,7 @@ zahavi/
 >
 > - **Siguiente:** Validar E2E en navegador. Fase 10 (scope futuro): descuento automático de inventario al ejecutar orden (D-031).
 > - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
-> - **D-031:** Integración Inventory al ejecutar orden — port `IDescontadorDeInventario` + adapter.
+> - ~~**D-031:** Integración Inventory al ejecutar orden~~  ✅ Resuelto.
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
 ### Hitos completados en sesión actual

@@ -9,7 +9,7 @@ import {
   CodigoDeLoteInvalidoError,
   OrdenNoEncontradaError,
 } from '@zahavi/domain-production';
-import type { IOrdenDeProduccionRepository } from '@zahavi/ports';
+import type { IOrdenDeProduccionRepository, IDescontadorDeInventario } from '@zahavi/ports';
 
 export interface EntradaEjecutarOrden {
   readonly ordenId: string;
@@ -37,12 +37,14 @@ type ErrorEjecutarOrden =
   | OrdenNoEncontradaError;
 
 /**
- * Cierra la producción: produce el lote y calcula el consumo real de ingredientes
- * (BOM menos mermas reportadas). El consumoReal queda en el evento de dominio
- * `OrdenDeProduccionEjecutada` para que Inventory lo procese de forma eventual.
+ * Cierra la producción: produce el lote, calcula el consumo real (BOM − mermas)
+ * y descuenta los ingredientes del inventario de la planta central vía ACL.
  */
 export class EjecutarOrden {
-  constructor(private readonly reposOrdenes: IOrdenDeProduccionRepository) {}
+  constructor(
+    private readonly reposOrdenes: IOrdenDeProduccionRepository,
+    private readonly descontador: IDescontadorDeInventario,
+  ) {}
 
   async execute(
     entrada: EntradaEjecutarOrden,
@@ -71,7 +73,6 @@ export class EjecutarOrden {
 
     await this.reposOrdenes.update(res.value, correlacionId);
 
-    // Extraer consumoReal del evento de dominio para devolverlo en la salida
     const eventos = res.value.pullDomainEvents();
     const eventoEjecutada = eventos.find((e) => e.tipo === 'OrdenDeProduccionEjecutada');
     type EjecutadaPayload = {
@@ -86,6 +87,15 @@ export class EjecutarOrden {
     const consumoReal = eventoEjecutada
       ? (eventoEjecutada as unknown as EjecutadaPayload).payload.consumoReal
       : [];
+
+    if (consumoReal.length > 0) {
+      await this.descontador.descontarConsumoDeProduccion(
+        consumoReal,
+        orden.plantaCentralId.toString(),
+        entrada.ordenId,
+        correlacionId,
+      );
+    }
 
     return ok({
       ordenId: entrada.ordenId,

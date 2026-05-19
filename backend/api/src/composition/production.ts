@@ -37,7 +37,7 @@ export function createProductionComposition(adapters: ProductionAdapters): Produ
     calcularBOMYReservar: new CalcularBOMYReservar(repositorioDeOrdenes, consultorDeReceta),
     iniciarOrden: new IniciarOrden(repositorioDeOrdenes),
     registrarMerma: new RegistrarMermaEnOrden(repositorioDeOrdenes),
-    ejecutarOrden: new EjecutarOrden(repositorioDeOrdenes),
+    ejecutarOrden: new EjecutarOrden(repositorioDeOrdenes, adapters.descontadorDeInventario),
     cancelarOrden: new CancelarOrden(repositorioDeOrdenes),
     prepararDespacho: new PrepararDespacho(repositorioDeOrdenes, repositorioDeDespachos),
     enviarDespacho: new EnviarDespacho(repositorioDeDespachos),
