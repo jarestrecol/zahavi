@@ -91,6 +91,19 @@ const salesRoutes: FastifyPluginAsync<SalesRouteOptions> = async (fastify, opts)
     },
   });
 
+  // ── GET /comandas/:id ──────────────────────────────────────────────────────
+  fastify.route({
+    method: 'GET',
+    url: '/comandas/:id',
+    preHandler: [authenticate],
+    handler: async (request, reply) => {
+      const comandaId = uuidParam.parse((request.params as { id: string }).id);
+      const result = await composition.obtenerComanda.execute({ comandaId }, request.id);
+      if (!result.ok) throw result.error;
+      return reply.code(200).send(result.value);
+    },
+  });
+
   // ── POST /comandas ─────────────────────────────────────────────────────────
   fastify.route({
     method: 'POST',

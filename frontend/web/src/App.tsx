@@ -4,6 +4,8 @@ import { Login } from './pages/Login.js';
 import { Products } from './pages/Products.js';
 import { Inventory } from './pages/Inventory.js';
 import { Dashboard } from './pages/Dashboard.js';
+import { Mesas } from './pages/Mesas.js';
+import { Mesa } from './pages/Mesa.js';
 import { AppLayout } from './layouts/AppLayout.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -14,7 +16,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 
 function RequireRole({ children, roles }: { children: React.ReactNode; roles: Rol[] }) {
   const { rol } = useAuthStore();
-  if (!rol || !roles.includes(rol)) return <Navigate to="/productos" replace />;
+  if (!rol || !roles.includes(rol)) return <Navigate to="/mesas" replace />;
   return <>{children}</>;
 }
 
@@ -30,7 +32,9 @@ export default function App() {
             </RequireAuth>
           }
         >
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="/mesas" replace />} />
+          <Route path="/mesas" element={<Mesas />} />
+          <Route path="/mesas/:mesaId" element={<Mesa />} />
           <Route
             path="/dashboard"
             element={
@@ -49,7 +53,7 @@ export default function App() {
             }
           />
         </Route>
-        <Route path="*" element={<Navigate to="/productos" replace />} />
+        <Route path="*" element={<Navigate to="/mesas" replace />} />
       </Routes>
     </BrowserRouter>
   );

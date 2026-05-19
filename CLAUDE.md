@@ -208,9 +208,9 @@ zahavi/
 
 ### Próxima acción inmediata
 
-> Brechas críticas resueltas. Próximo bloque: **Fase 8 — POS Operativo**.
+> Fase 8 POS Operativo implementada. Prueba en UI real (pnpm dev en frontend/web).
 >
-> - **Fase 8:** Vista de mesas, comandas, cobro y cierre desde tablet/smartphone (WORKER).
+> - **Siguiente:** Validar E2E en navegador + pruebas tablet. Ajustar según feedback.
 > - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
@@ -221,6 +221,7 @@ zahavi/
 | QA Fase 1 | `ddc19a2` | Auditoría + resolución hallazgos críticos (FORCE RLS, PWA, accesibilidad, rate-limit) |
 | QA Fase 2 | `3a51e40` | Reorganización física backend/frontend/database/qa/info |
 | Seg+Tests | `f73a910` | SEC-001 JWT inventory + TEST-001 vitest dist + DOC-001 TODO.md |
+| Fase 8 POS | pendiente | ObtenerComanda UC + GET /comandas/:id + Mesas/Mesa pages + cobro + factura |
 
 ### Deuda técnica activa
 

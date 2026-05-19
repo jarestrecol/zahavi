@@ -25,8 +25,8 @@ function useOnline() {
 }
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2 rounded text-sm ${
-    isActive ? 'bg-brand-100 text-brand-700 font-medium' : 'hover:bg-gray-100 text-gray-700'
+  `px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+    isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-gray-100 text-gray-600'
   }`;
 
 export function AppLayout() {
@@ -39,57 +39,68 @@ export function AppLayout() {
     navigate('/login');
   }
 
+  const esMesaPage =
+    typeof window !== 'undefined' && window.location.pathname.startsWith('/mesas/');
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Indicador offline */}
+      {/* Banner offline */}
       {!online && (
         <div
           role="alert"
-          className="bg-yellow-400 text-gray-900 text-sm text-center py-1 px-4 font-medium"
+          className="bg-yellow-400 text-gray-900 text-sm text-center py-1.5 px-4 font-medium"
         >
           Sin conexión — los datos pueden estar desactualizados
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-brand-600 text-white px-4 py-3 flex items-center justify-between shadow">
-        <span className="font-bold text-lg tracking-wide">Zahavi POS</span>
+      <header className="bg-brand-600 text-white px-4 py-3 flex items-center justify-between shadow-sm">
+        <span className="font-bold text-lg tracking-wide select-none">Zahavi POS</span>
         <div className="flex items-center gap-3">
           <SwitchContext />
-          <span className="text-sm opacity-90">{ROL_LABEL[rol ?? ''] ?? rol}</span>
+          <span className="text-sm opacity-80 hidden sm:block">{ROL_LABEL[rol ?? ''] ?? rol}</span>
           <button
             onClick={handleLogout}
             aria-label="Cerrar sesión"
-            className="text-sm bg-white text-brand-700 px-4 py-2 rounded hover:bg-brand-50 min-w-[4rem]"
+            className="text-sm bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors"
           >
             Salir
           </button>
         </div>
       </header>
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
+      <div className="flex flex-1 min-h-0">
+        {/* Sidebar nav */}
         <nav
           aria-label="Navegación principal"
-          className="w-48 bg-white border-r flex flex-col gap-1 p-3"
+          className="w-44 bg-white border-r flex flex-col gap-1 p-2 flex-shrink-0"
         >
-          {rol !== 'WORKER' && (
-            <NavLink to="/dashboard" className={navLinkClass}>
-              Dashboard
-            </NavLink>
-          )}
+          {/* Mesas: todos los roles */}
+          <NavLink to="/mesas" end className={navLinkClass}>
+            Mesas
+          </NavLink>
+
+          {/* Productos: todos los roles */}
           <NavLink to="/productos" className={navLinkClass}>
             Productos
           </NavLink>
+
+          {/* Admin y Superadmin */}
           {rol !== 'WORKER' && (
-            <NavLink to="/inventario" className={navLinkClass}>
-              Inventario
-            </NavLink>
+            <>
+              <NavLink to="/inventario" className={navLinkClass}>
+                Inventario
+              </NavLink>
+              <NavLink to="/dashboard" className={navLinkClass}>
+                Dashboard
+              </NavLink>
+            </>
           )}
         </nav>
 
-        {/* Main content */}
-        <main className="flex-1 p-6">
+        {/* Contenido principal */}
+        <main className={`flex-1 overflow-y-auto ${esMesaPage ? 'p-4' : 'p-6'}`}>
           <Outlet />
         </main>
       </div>

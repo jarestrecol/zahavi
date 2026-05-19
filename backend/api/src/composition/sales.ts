@@ -10,6 +10,7 @@ import {
   ProcesarCobro,
   EmitirFactura,
   ListarMesas,
+  ObtenerComanda,
 } from '@zahavi/application';
 import type { SalesAdapters } from '@zahavi/adapter-persistence-supabase';
 
@@ -25,6 +26,7 @@ export interface SalesComposition {
   procesarCobro: ProcesarCobro;
   emitirFactura: EmitirFactura;
   listarMesas: ListarMesas;
+  obtenerComanda: ObtenerComanda;
 }
 
 export function createSalesComposition(adapters: SalesAdapters): SalesComposition {
@@ -56,5 +58,6 @@ export function createSalesComposition(adapters: SalesAdapters): SalesCompositio
       repositorioDeFacturas,
     ),
     listarMesas: new ListarMesas(repositorioDeMesas),
+    obtenerComanda: new ObtenerComanda(repositorioDeComandas),
   };
 }

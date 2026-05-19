@@ -40,3 +40,10 @@ export type {
   SalidaListarComandasActivas,
   ResumenComanda,
 } from './ListarComandasActivas.js';
+
+export { ObtenerComanda } from './ObtenerComanda.js';
+export type {
+  EntradaObtenerComanda,
+  SalidaObtenerComanda,
+  LineaComandaDetalle,
+} from './ObtenerComanda.js';
