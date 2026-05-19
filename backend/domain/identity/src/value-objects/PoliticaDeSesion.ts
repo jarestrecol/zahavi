@@ -1,14 +1,26 @@
 import { Duracion } from './Duracion.js';
 import { type Rol } from './enums.js';
 
+/** Props de construcción de una PoliticaDeSesion. */
 export interface PoliticaDeSesionProps {
-  readonly umbralBloqueo: Duracion; // solo efectivo si contextoDispositivo = compartido
-  readonly umbralCierre: Duracion; // cierre real por inactividad sostenida
-  readonly topeAbsoluto: Duracion; // máximo desde iniciadaEn
+  /** Tiempo de inactividad tras el cual se bloquea la pantalla (no cierra sesión). Solo en dispositivos compartidos. */
+  readonly umbralBloqueo: Duracion;
+  /** Tiempo de inactividad sostenida tras el cual se cierra la sesión definitivamente. */
+  readonly umbralCierre: Duracion;
+  /** Duración máxima absoluta desde la creación de la sesión, independientemente de actividad. */
+  readonly topeAbsoluto: Duracion;
+  /** Número máximo de sesiones simultáneas permitidas para el rol. */
   readonly limiteSimultaneo: number;
+  /** `true` si el rol requiere que la sesión se origine en un dispositivo autorizado (WORKER). */
   readonly requiereDispositivoAutorizado: boolean;
 }
 
+/**
+ * Value Object que encapsula las reglas de duración y restricciones de una sesión por rol.
+ *
+ * Las políticas canónicas se obtienen con `PoliticaDeSesion.porRol(rol)`.
+ * Invariante: `limiteSimultaneo` debe ser ≥ 1.
+ */
 export class PoliticaDeSesion {
   readonly umbralBloqueo: Duracion;
   readonly umbralCierre: Duracion;
@@ -24,13 +36,17 @@ export class PoliticaDeSesion {
     this.requiereDispositivoAutorizado = props.requiereDispositivoAutorizado;
   }
 
+  /**
+   * Construye una política personalizada.
+   * @throws {Error} Si `limiteSimultaneo` es menor que 1.
+   */
   static de(props: PoliticaDeSesionProps): PoliticaDeSesion {
     if (props.limiteSimultaneo < 1)
       throw new Error('PoliticaDeSesion: limiteSimultaneo debe ser ≥ 1');
     return new PoliticaDeSesion(props);
   }
 
-  // Políticas canónicas confirmadas por Julian
+  /** Devuelve la política canónica para el rol dado, confirmada con el negocio. */
   static porRol(rol: Rol): PoliticaDeSesion {
     const umbralBloqueo = Duracion.deMinutos(5);
     switch (rol) {

@@ -28,18 +28,23 @@ import {
 // Credencial interna (entidad anidada, no VO — su estado evoluciona)
 // ──────────────────────────────────────────────────────────────
 
+/** Credencial de acceso para ADMIN y SUPERADMIN, que usan navegador con contraseña (+ TOTP opcional/obligatorio). */
 export interface CredencialDeNavegador {
   readonly tipo: 'navegador';
   readonly hashDeContrasena: HashDeContrasena;
+  /** Secreto TOTP enrolado; `null` si el enrolamiento no ha iniciado. */
   readonly secretoTotp: SecretoTotp | null;
+  /** `true` solo cuando el usuario confirmó el código TOTP post-enrolamiento. */
   readonly totpVerificado: boolean;
 }
 
+/** Credencial de acceso para WORKER, que usa tablet con PIN numérico. */
 export interface CredencialDeTablet {
   readonly tipo: 'tablet';
   readonly hashDePin: HashDePin;
 }
 
+/** Unión discriminada de credenciales; el `tipo` determina el rol implícito. */
 export type Credencial = CredencialDeNavegador | CredencialDeTablet;
 
 function credencialCoherenteConRol(rol: Rol, credencial: Credencial): boolean {
@@ -51,6 +56,7 @@ function credencialCoherenteConRol(rol: Rol, credencial: Credencial): boolean {
 // Aggregate
 // ──────────────────────────────────────────────────────────────
 
+/** Props de reconstitución del aggregate `Usuario`. */
 export interface UsuarioProps {
   readonly id: UsuarioId;
   readonly email: Email;
@@ -59,9 +65,24 @@ export interface UsuarioProps {
   readonly estado: 'activo' | 'deshabilitado';
   readonly credencial: Credencial;
   readonly creadoEn: FechaHora;
+  /** `null` solo para el primer SUPERADMIN creado en bootstrap. */
   readonly creadoPor: UsuarioId | null;
 }
 
+/**
+ * Aggregate raíz del bounded context Identity.
+ *
+ * Invariantes clave:
+ * 1. El email es único por sistema (validado en la capa de persistencia).
+ * 2. El tipo de credencial debe ser coherente con el rol (`tablet` ↔ `WORKER`, `navegador` ↔ `ADMIN`/`SUPERADMIN`).
+ * 3. Un WORKER no puede tener TOTP.
+ * 4. SUPERADMIN debe tener TOTP enrolado y verificado para estar operativo.
+ * 5. No se puede deshabilitar al último SUPERADMIN del sistema.
+ * 6. Solo un SUPERADMIN puede crear o promover a otro SUPERADMIN.
+ * 7. Un actor no puede deshabilitarse a sí mismo.
+ *
+ * Todos los comandos devuelven nuevas instancias (inmutabilidad) y registran Domain Events.
+ */
 export class Usuario {
   readonly id: UsuarioId;
   readonly email: Email;
@@ -87,6 +108,13 @@ export class Usuario {
 
   // ── Factoría ────────────────────────────────────────────────
 
+  /**
+   * Crea un nuevo usuario y emite `UsuarioCreado`.
+   * @param props.actorRol - Rol del creador; `null` solo en el bootstrap del primer SUPERADMIN.
+   * @param eventoId - UUID único para el evento de dominio emitido.
+   * @returns `err(CredencialIncoherenteConRolError)` si credencial y rol no coinciden.
+   * @returns `err(RolNoAutorizadoParaCrearError)` si un no-SUPERADMIN intenta crear SUPERADMIN.
+   */
   static crear(
     props: {
       id: UsuarioId;
@@ -141,6 +169,11 @@ export class Usuario {
 
   // ── Comandos ────────────────────────────────────────────────
 
+  /**
+   * Cambia el rol del usuario y su credencial asociada. Emite `RolDeUsuarioCambiado`.
+   * @param estaEsElUltimoSuperadmin - Debe calcularse en la capa de aplicación antes de llamar.
+   * @returns `err(UltimoSuperadminProtegidoError)` si degradaría al único SUPERADMIN del sistema.
+   */
   cambiarRol(
     nuevoRol: Rol,
     nuevaCredencial: Credencial,
@@ -187,6 +220,11 @@ export class Usuario {
     return ok(nuevo);
   }
 
+  /**
+   * Deshabilita al usuario. Emite `UsuarioDeshabilitado`.
+   * @returns `err(AccionSobreSiMismoNoPermitidaError)` si `actorId` es el mismo usuario.
+   * @returns `err(UltimoSuperadminProtegidoError)` si es el único SUPERADMIN del sistema.
+   */
   deshabilitar(
     actorId: UsuarioId,
     motivo: string,
@@ -221,6 +259,10 @@ export class Usuario {
     return ok(nuevo);
   }
 
+  /**
+   * Reactiva un usuario deshabilitado. Emite `UsuarioRehabilitado`.
+   * @returns `err(UsuarioNoActivoError)` si el usuario ya está activo.
+   */
   rehabilitar(
     actorId: UsuarioId,
     ahora: FechaHora,
@@ -244,6 +286,10 @@ export class Usuario {
     return ok(nuevo);
   }
 
+  /**
+   * Actualiza el hash de contraseña para usuarios con credencial tipo `navegador`. Emite `ContrasenaDeUsuarioCambiada`.
+   * @returns `err(CredencialIncoherenteConRolError)` si el usuario es WORKER (usa PIN, no contraseña).
+   */
   cambiarContrasena(
     nuevoHash: HashDeContrasena,
     ahora: FechaHora,
@@ -270,6 +316,10 @@ export class Usuario {
     return ok(nuevo);
   }
 
+  /**
+   * Actualiza el hash de PIN para usuarios WORKER con credencial tipo `tablet`. Emite `PinDeUsuarioCambiado`.
+   * @returns `err(CredencialIncoherenteConRolError)` si el usuario es ADMIN/SUPERADMIN (usa contraseña, no PIN).
+   */
   cambiarPin(
     nuevoHash: HashDePin,
     ahora: FechaHora,
@@ -293,6 +343,11 @@ export class Usuario {
     return ok(nuevo);
   }
 
+  /**
+   * Registra un nuevo secreto TOTP e inicia el proceso de enrolamiento (pone `totpVerificado = false`).
+   * Emite `SecretoTotpRegenerado`. El usuario queda no-operativo hasta llamar `confirmarTotp`.
+   * @returns `err(CredencialIncoherenteConRolError)` si el usuario es WORKER.
+   */
   registrarSecretoTotp(
     secreto: SecretoTotp,
     ahora: FechaHora,
@@ -319,6 +374,11 @@ export class Usuario {
     return ok(nuevo);
   }
 
+  /**
+   * Confirma el enrolamiento TOTP (pone `totpVerificado = true`). Emite `TotpDeUsuarioVerificado`.
+   * Debe llamarse tras verificar el código TOTP generado desde el secreto de enrolamiento.
+   * @returns `err(CredencialIncoherenteConRolError)` si el usuario es WORKER.
+   */
   confirmarTotp(
     ahora: FechaHora,
     eventoId: string,
@@ -345,6 +405,14 @@ export class Usuario {
 
   // ── Consultas ───────────────────────────────────────────────
 
+  /**
+   * Indica si el usuario puede autenticarse en este momento.
+   *
+   * Retorna `false` si:
+   * - El estado es `deshabilitado`.
+   * - El TOTP está enrolado pero no confirmado (enrolamiento incompleto).
+   * - El rol es SUPERADMIN y no tiene TOTP enrolado.
+   */
   estaOperativo(): boolean {
     if (this.estado !== 'activo') return false;
     if (this.credencial.tipo === 'navegador') {
@@ -356,6 +424,7 @@ export class Usuario {
     return true;
   }
 
+  /** Devuelve una copia del buffer de Domain Events acumulados en esta instancia inmutable. */
   pullDomainEvents(): IdentityDomainEvent[] {
     return [...this._events];
   }

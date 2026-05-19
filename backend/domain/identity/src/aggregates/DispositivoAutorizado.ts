@@ -15,6 +15,7 @@ import {
   type IdentityDomainEvent,
 } from '../events/index.js';
 
+/** Entrada inmutable del historial de transiciones de estado de un dispositivo. */
 export interface CambioDeEstadoDispositivo {
   readonly estado: EstadoDeDispositivo;
   readonly cambiadoEn: FechaHora;
@@ -22,12 +23,23 @@ export interface CambioDeEstadoDispositivo {
   readonly motivo: string;
 }
 
+/** Props de reconstitución del aggregate `DispositivoAutorizado`. */
 export interface DispositivoAutorizadoProps {
   readonly id: DispositivoId;
   readonly nombre: string;
   readonly historialDeEstados: readonly CambioDeEstadoDispositivo[];
 }
 
+/**
+ * Aggregate que representa una tablet autorizada para operar como punto de venta.
+ *
+ * Invariantes:
+ * - El nombre no puede estar vacío.
+ * - La revocación es idempotente: revocar un dispositivo ya revocado retorna `ok(this)`.
+ * - Reautorizar un dispositivo activo es un error.
+ *
+ * Los comandos devuelven nuevas instancias (inmutabilidad funcional) y emiten Domain Events.
+ */
 export class DispositivoAutorizado {
   readonly id: DispositivoId;
   readonly nombre: string;
@@ -41,12 +53,19 @@ export class DispositivoAutorizado {
     this.historialDeEstados = props.historialDeEstados;
   }
 
+  /** Estado actual derivado de la última entrada del historial. */
   get estado(): EstadoDeDispositivo {
     const ultimo = this.historialDeEstados.at(-1);
     if (!ultimo) throw new Error('DispositivoAutorizado sin historial: estado inconsistente');
     return ultimo.estado;
   }
 
+  /**
+   * Crea un nuevo dispositivo en estado `activo` y emite `DispositivoAutorizadoCreado`.
+   * @param props.nombre - Nombre descriptivo del dispositivo (no vacío).
+   * @param eventoId - UUID único para el evento de dominio emitido.
+   * @returns `ok(DispositivoAutorizado)` o `err(NombreDeDispositivoVacioError)`.
+   */
   static autorizar(
     props: {
       id: DispositivoId;
@@ -87,6 +106,12 @@ export class DispositivoAutorizado {
     return ok(dispositivo);
   }
 
+  /**
+   * Revoca el dispositivo. Si ya está revocado, retorna `ok(this)` sin emitir evento (idempotente).
+   * El tipo de retorno incluye `DispositivoNoActivoError` por compatibilidad de firma; en la práctica
+   * nunca se emite porque la operación es idempotente.
+   * @param eventoId - UUID único para el evento de dominio emitido (solo cuando el estado cambia).
+   */
   revocar(
     props: {
       revocadoPor: UsuarioId;
@@ -126,6 +151,10 @@ export class DispositivoAutorizado {
     return ok(nuevo);
   }
 
+  /**
+   * Reactiva un dispositivo previamente revocado.
+   * @returns `err(DispositivoYaActivoError)` si el dispositivo ya está activo.
+   */
   reautorizar(
     props: {
       reautorizadoPor: UsuarioId;
@@ -193,10 +222,15 @@ export class DispositivoAutorizado {
     return ok(nuevo);
   }
 
+  /** Devuelve una copia del buffer de Domain Events acumulados en esta instancia inmutable. */
   pullDomainEvents(): IdentityDomainEvent[] {
     return [...this._events];
   }
 
+  /**
+   * Reconstruye el aggregate desde la persistencia sin emitir eventos.
+   * Solo debe invocarse desde repositorios.
+   */
   static reconstituir(props: DispositivoAutorizadoProps): DispositivoAutorizado {
     return new DispositivoAutorizado(props);
   }

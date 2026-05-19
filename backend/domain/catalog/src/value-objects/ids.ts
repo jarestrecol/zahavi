@@ -7,6 +7,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // ProductId
 // ──────────────────────────────────────────────────────────────
 
+/** Value Object que representa la identidad de un Producto del catálogo. Wrapper tipado sobre UUID v4. */
 export class ProductId {
   private constructor(private readonly _value: string) {}
 
@@ -28,6 +29,7 @@ export class ProductId {
 // ProductVariantId — único dentro del aggregate Producto
 // ──────────────────────────────────────────────────────────────
 
+/** Value Object que representa la identidad de una Variante de producto (tamaño, presentación, etc.). */
 export class ProductVariantId {
   private constructor(private readonly _value: string) {}
 
@@ -49,6 +51,7 @@ export class ProductVariantId {
 // CategoryId
 // ──────────────────────────────────────────────────────────────
 
+/** Value Object que representa la identidad de una Categoría del catálogo. */
 export class CategoryId {
   private constructor(private readonly _value: string) {}
 
@@ -70,6 +73,7 @@ export class CategoryId {
 // RecipeId
 // ──────────────────────────────────────────────────────────────
 
+/** Value Object que representa la identidad de una Receta (escandallo de ingredientes de un producto). */
 export class RecipeId {
   private constructor(private readonly _value: string) {}
 
@@ -112,6 +116,7 @@ export class RecipeLineId {
 // ComboId
 // ──────────────────────────────────────────────────────────────
 
+/** Value Object que representa la identidad de un Combo (agrupación de productos a precio especial). */
 export class ComboId {
   private constructor(private readonly _value: string) {}
 
@@ -155,6 +160,7 @@ export class ComboItemId {
 // Catalog NO importa el aggregate Ingrediente. Solo guarda el id.
 // ──────────────────────────────────────────────────────────────
 
+/** Referencia opaca al Ingrediente del BC Inventory; Catalog no importa ese aggregate (ACL). */
 export class IngredientId {
   private constructor(private readonly _value: string) {}
 

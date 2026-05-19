@@ -307,6 +307,7 @@ export class Sesion {
     return inactividad >= this.politica.umbralBloqueo.toMs();
   }
 
+  /** Devuelve una copia del buffer de Domain Events acumulados en esta instancia inmutable. */
   pullDomainEvents(): IdentityDomainEvent[] {
     return [...this._events];
   }
