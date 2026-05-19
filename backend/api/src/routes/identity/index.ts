@@ -61,6 +61,21 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
     },
   });
 
+  // ── GET /sesiones — ListarMisSesiones (usuario autenticado) ───────────────
+  fastify.route({
+    method: 'GET',
+    url: '/sesiones',
+    preHandler: [authenticate],
+    handler: async (request, reply) => {
+      const result = await composition.listarMisSesiones.execute(
+        { usuarioId: request.user.sub },
+        request.id,
+      );
+      if (!result.ok) throw result.error;
+      return reply.code(200).send(result.value);
+    },
+  });
+
   // ── POST /sesiones/:id/cerrar — CerrarSesion (propietario) ──────────────
   fastify.route({
     method: 'POST',

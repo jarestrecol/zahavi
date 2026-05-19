@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/auth.js';
 import { SwitchContext } from '../components/SwitchContext.js';
+import { MisSesiones } from '../components/MisSesiones.js';
 
 const ROL_LABEL: Record<string, string> = {
   SUPERADMIN: 'Super Admin',
@@ -33,6 +34,7 @@ export function AppLayout() {
   const { rol, logout } = useAuthStore();
   const navigate = useNavigate();
   const online = useOnline();
+  const [verSesiones, setVerSesiones] = useState(false);
 
   function handleLogout() {
     logout();
@@ -59,7 +61,13 @@ export function AppLayout() {
         <span className="font-bold text-lg tracking-wide select-none">Zahavi POS</span>
         <div className="flex items-center gap-3">
           <SwitchContext />
-          <span className="text-sm opacity-80 hidden sm:block">{ROL_LABEL[rol ?? ''] ?? rol}</span>
+          <button
+            onClick={() => setVerSesiones(true)}
+            aria-label="Ver mis sesiones activas"
+            className="text-sm opacity-80 hidden sm:block hover:opacity-100 transition-opacity"
+          >
+            {ROL_LABEL[rol ?? ''] ?? rol}
+          </button>
           <button
             onClick={handleLogout}
             aria-label="Cerrar sesión"
@@ -76,17 +84,12 @@ export function AppLayout() {
           aria-label="Navegación principal"
           className="w-44 bg-white border-r flex flex-col gap-1 p-2 flex-shrink-0"
         >
-          {/* Mesas: todos los roles */}
           <NavLink to="/mesas" end className={navLinkClass}>
             Mesas
           </NavLink>
-
-          {/* Productos: todos los roles */}
           <NavLink to="/productos" className={navLinkClass}>
             Productos
           </NavLink>
-
-          {/* Admin y Superadmin */}
           {rol !== 'WORKER' && (
             <>
               <NavLink to="/inventario" className={navLinkClass}>
@@ -104,6 +107,8 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      {verSesiones && <MisSesiones onCerrar={() => setVerSesiones(false)} />}
     </div>
   );
 }

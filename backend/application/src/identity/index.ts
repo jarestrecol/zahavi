@@ -27,3 +27,10 @@ export type {
   EntradaCambiarContextoBusinessUnit,
   SalidaCambiarContextoBusinessUnit,
 } from './CambiarContextoBusinessUnit.js';
+
+export { ListarMisSesiones } from './ListarMisSesiones.js';
+export type {
+  EntradaListarMisSesiones,
+  SalidaListarMisSesiones,
+  ResumenSesion,
+} from './ListarMisSesiones.js';
