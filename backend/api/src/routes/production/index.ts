@@ -10,7 +10,11 @@ import {
   ejecutarOrdenSchema,
   cancelarOrdenSchema,
   prepararDespachoSchema,
+  enviarDespachoSchema,
+  entregarDespachoSchema,
+  cancelarDespachoSchema,
   listarOrdenesQuerySchema,
+  listarDespachosQuerySchema,
 } from './schemas.js';
 
 export interface ProductionRouteOptions {
@@ -168,6 +172,70 @@ const productionRoutes: FastifyPluginAsync<ProductionRouteOptions> = async (fast
         ...(query.estado && { estado: query.estado as EstadoDeOrdenDeProduccion }),
       });
       return reply.code(200).send(result);
+    },
+  });
+
+  // ── POST /dispatches/:id/enviar ────────────────────────────────────────────
+  fastify.route({
+    method: 'POST',
+    url: '/dispatches/:id/enviar',
+    preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
+    handler: async (request, reply) => {
+      enviarDespachoSchema.parse(request.body);
+      const despachoId = uuidParam.parse((request.params as { id: string }).id);
+      const result = await composition.enviarDespacho.execute(
+        { despachoId, enviadoPor: request.user.sub },
+        request.id,
+      );
+      if (!result.ok) throw result.error;
+      return reply.code(200).send(result.value);
+    },
+  });
+
+  // ── POST /dispatches/:id/entregar ──────────────────────────────────────────
+  fastify.route({
+    method: 'POST',
+    url: '/dispatches/:id/entregar',
+    preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
+    handler: async (request, reply) => {
+      const body = entregarDespachoSchema.parse(request.body);
+      const despachoId = uuidParam.parse((request.params as { id: string }).id);
+      const result = await composition.entregarDespacho.execute(
+        { despachoId, entregadoPor: request.user.sub, recibidoPor: body.recibidoPor },
+        request.id,
+      );
+      if (!result.ok) throw result.error;
+      return reply.code(200).send(result.value);
+    },
+  });
+
+  // ── DELETE /dispatches/:id ─────────────────────────────────────────────────
+  fastify.route({
+    method: 'DELETE',
+    url: '/dispatches/:id',
+    preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
+    handler: async (request, reply) => {
+      const body = cancelarDespachoSchema.parse(request.body);
+      const despachoId = uuidParam.parse((request.params as { id: string }).id);
+      const result = await composition.cancelarDespacho.execute(
+        { despachoId, motivo: body.motivo, canceladoPor: request.user.sub },
+        request.id,
+      );
+      if (!result.ok) throw result.error;
+      return reply.code(200).send(result.value);
+    },
+  });
+
+  // ── GET /dispatches ────────────────────────────────────────────────────────
+  fastify.route({
+    method: 'GET',
+    url: '/dispatches',
+    preHandler: [authenticate, requireRole('ADMIN', 'SUPERADMIN')],
+    handler: async (request, reply) => {
+      const query = listarDespachosQuerySchema.parse(request.query);
+      const result = await composition.listarDespachos.execute({ ordenId: query.ordenId });
+      if (!result.ok) throw result.error;
+      return reply.code(200).send(result.value);
     },
   });
 };

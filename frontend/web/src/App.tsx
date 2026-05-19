@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard.js';
 import { Mesas } from './pages/Mesas.js';
 import { Mesa } from './pages/Mesa.js';
 import { AppLayout } from './layouts/AppLayout.js';
+import Produccion from './pages/Produccion.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
@@ -49,6 +50,14 @@ export default function App() {
             element={
               <RequireRole roles={['ADMIN', 'SUPERADMIN']}>
                 <Inventory />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/produccion"
+            element={
+              <RequireRole roles={['ADMIN', 'SUPERADMIN']}>
+                <Produccion />
               </RequireRole>
             }
           />

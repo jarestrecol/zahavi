@@ -43,3 +43,19 @@ export const prepararDespachoSchema = z.object({
 export const listarOrdenesQuerySchema = z.object({
   estado: z.enum(['PLANIFICADA', 'RESERVADA', 'EN_EJECUCION', 'EJECUTADA', 'CANCELADA']).optional(),
 });
+
+export const enviarDespachoSchema = z.object({
+  confirmar: z.boolean().default(true),
+});
+
+export const entregarDespachoSchema = z.object({
+  recibidoPor: z.string().uuid(),
+});
+
+export const cancelarDespachoSchema = z.object({
+  motivo: z.string().min(1).max(500),
+});
+
+export const listarDespachosQuerySchema = z.object({
+  ordenId: z.string().uuid(),
+});

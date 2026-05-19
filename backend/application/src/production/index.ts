@@ -21,3 +21,19 @@ export type { EntradaPrepararDespacho, SalidaPrepararDespacho } from './Preparar
 
 export { ListarOrdenes } from './ListarOrdenes.js';
 export type { EntradaListarOrdenes, SalidaListarOrdenes, ResumenOrden } from './ListarOrdenes.js';
+
+export { EnviarDespacho } from './EnviarDespacho.js';
+export type { EntradaEnviarDespacho, SalidaEnviarDespacho } from './EnviarDespacho.js';
+
+export { EntregarDespacho } from './EntregarDespacho.js';
+export type { EntradaEntregarDespacho, SalidaEntregarDespacho } from './EntregarDespacho.js';
+
+export { CancelarDespacho } from './CancelarDespacho.js';
+export type { EntradaCancelarDespacho, SalidaCancelarDespacho } from './CancelarDespacho.js';
+
+export { ListarDespachos } from './ListarDespachos.js';
+export type {
+  EntradaListarDespachos,
+  SalidaListarDespachos,
+  ResumenDespacho,
+} from './ListarDespachos.js';

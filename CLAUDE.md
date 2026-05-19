@@ -208,10 +208,11 @@ zahavi/
 
 ### Próxima acción inmediata
 
-> Deudas técnicas D-027/D-028/D-029 resueltas. Sistema POS operativo completo.
+> Fase 9 implementada: ciclo completo de despachos + UI de producción.
 >
-> - **Siguiente:** Fase 9 Producción+Vitrina — órdenes de producción, BOM, despacho a puntos.
+> - **Siguiente:** Validar E2E en navegador. Fase 10 (scope futuro): descuento automático de inventario al ejecutar orden (D-031).
 > - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
+> - **D-031:** Integración Inventory al ejecutar orden — port `IDescontadorDeInventario` + adapter.
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
 ### Hitos completados en sesión actual
@@ -224,6 +225,7 @@ zahavi/
 | Fase 8 POS | `5b96c5a` | ObtenerComanda UC + GET /comandas/:id + Mesas/Mesa pages + cobro + factura |
 | Sesiones | `a93500f` | ListarMisSesiones UC + GET /identity/sesiones + panel MisSesiones en header |
 | Seg+Deudas | `4f43790` | fix README credencial; D-027 Dockerfile; D-028 verificado; D-029 resuelto |
+| Fase 9 Prod | pendiente | EnviarDespacho/EntregarDespacho/CancelarDespacho/ListarDespachos UCs + 4 endpoints + Produccion.tsx |
 
 ### Deuda técnica activa
 

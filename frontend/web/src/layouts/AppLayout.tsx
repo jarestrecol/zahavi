@@ -95,6 +95,9 @@ export function AppLayout() {
               <NavLink to="/inventario" className={navLinkClass}>
                 Inventario
               </NavLink>
+              <NavLink to="/produccion" className={navLinkClass}>
+                Producción
+              </NavLink>
               <NavLink to="/dashboard" className={navLinkClass}>
                 Dashboard
               </NavLink>
