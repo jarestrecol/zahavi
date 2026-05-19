@@ -57,7 +57,7 @@ export function createSalesComposition(adapters: SalesAdapters): SalesCompositio
       repositorioDeComandas,
       repositorioDeFacturas,
     ),
-    listarMesas: new ListarMesas(repositorioDeMesas),
+    listarMesas: new ListarMesas(repositorioDeMesas, repositorioDeComandas),
     obtenerComanda: new ObtenerComanda(repositorioDeComandas),
   };
 }

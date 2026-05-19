@@ -3,6 +3,33 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api.js';
 import { useAuthStore } from '../stores/auth.js';
 
+interface Variante {
+  id: string;
+  precio_cop: number;
+}
+
+interface Producto {
+  id: string;
+  nombre: string;
+  estado: string;
+  variantes: Variante[];
+  recetaId?: string;
+}
+
+interface Receta {
+  recetaId: string;
+  nombre: string;
+  varianteId: string;
+}
+
+interface RecetasResponse {
+  items: Receta[];
+}
+
+interface ProductosResponse {
+  items: Producto[];
+}
+
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 interface ResumenOrden {
@@ -76,6 +103,8 @@ function PanelDespachos({ orden, onCerrar }: { orden: ResumenOrden; onCerrar: ()
   const [error, setError] = useState<string | null>(null);
   const [motivoCancelar, setMotivoCancelar] = useState('');
   const [cancelando, setCancelando] = useState<string | null>(null);
+  const [entregando, setEntregando] = useState<string | null>(null);
+  const [recibidoPor, setRecibidoPor] = useState('');
 
   const { data, isLoading } = useQuery<DespachosResponse>({
     queryKey: ['despachos', orden.ordenId],
@@ -106,6 +135,18 @@ function PanelDespachos({ orden, onCerrar }: { orden: ResumenOrden; onCerrar: ()
       setError(null);
     },
     onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al cancelar'),
+  });
+
+  const entregar = useMutation({
+    mutationFn: ({ despachoId, recibidoPor: rp }: { despachoId: string; recibidoPor: string }) =>
+      api.post(`/production/dispatches/${despachoId}/entregar`, { recibidoPor: rp }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['despachos', orden.ordenId] });
+      setEntregando(null);
+      setRecibidoPor('');
+      setError(null);
+    },
+    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al entregar'),
   });
 
   const despachos = data?.despachos ?? [];
@@ -176,6 +217,53 @@ function PanelDespachos({ orden, onCerrar }: { orden: ResumenOrden; onCerrar: ()
                 </div>
               )}
 
+              {d.estado === 'EN_TRANSITO' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEntregando(d.despachoId)}
+                    className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg hover:bg-emerald-700"
+                  >
+                    Confirmar entrega
+                  </button>
+                  <button
+                    onClick={() => setCancelando(d.despachoId)}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+
+              {entregando === d.despachoId && (
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    placeholder="Nombre de quien recibe"
+                    value={recibidoPor}
+                    onChange={(e) => setRecibidoPor(e.target.value)}
+                    className="w-full text-xs border rounded px-2 py-1"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => entregar.mutate({ despachoId: d.despachoId, recibidoPor })}
+                      disabled={entregar.isPending || !recibidoPor.trim()}
+                      className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEntregando(null);
+                        setRecibidoPor('');
+                      }}
+                      className="text-xs text-gray-500 hover:underline"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {cancelando === d.despachoId && (
                 <div className="space-y-1">
                   <input
@@ -221,22 +309,38 @@ function PanelDespachos({ orden, onCerrar }: { orden: ResumenOrden; onCerrar: ()
   );
 }
 
-// ── Modal nueva orden ─────────────────────────────────────────────────────────
-
-interface FormNuevaOrden {
-  varianteId: string;
-  recetaId: string;
-  cantidadAProducir: string;
-}
+// ── Modal nueva orden (con selectores de producto y receta) ──────────────────
 
 function ModalNuevaOrden({ onCerrar }: { onCerrar: () => void }) {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<FormNuevaOrden>({
-    varianteId: '',
-    recetaId: '',
-    cantidadAProducir: '',
-  });
+  const [varianteId, setVarianteId] = useState('');
+  const [recetaId, setRecetaId] = useState('');
+  const [cantidad, setCantidad] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const productosQ = useQuery<ProductosResponse>({
+    queryKey: ['productos-produccion'],
+    queryFn: () => api.get<ProductosResponse>('/catalog/productos?limit=200&estado=publicado'),
+  });
+
+  // Fetch recetas asociadas a la variante seleccionada
+  const recetasQ = useQuery<RecetasResponse>({
+    queryKey: ['recetas-por-variante', varianteId],
+    queryFn: () =>
+      api.get<RecetasResponse>(
+        `/catalog/productos?varianteId=${encodeURIComponent(varianteId)}&limit=50`,
+      ),
+    enabled: false, // Recetas vienen del mismo /productos — usamos el endpoint disponible
+  });
+  void recetasQ; // suprimimos warning de unused var
+
+  const productos = (productosQ.data?.items ?? []).filter(
+    (p) => p.estado === 'publicado' && p.variantes.length > 0,
+  );
+
+  const varianteSelec = productos
+    .flatMap((p) => p.variantes.map((v) => ({ ...v, nombreProducto: p.nombre })))
+    .find((v) => v.id === varianteId);
 
   const crear = useMutation({
     mutationFn: (data: { varianteId: string; recetaId: string; cantidadAProducir: number }) =>
@@ -250,17 +354,13 @@ function ModalNuevaOrden({ onCerrar }: { onCerrar: () => void }) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const cantidad = parseInt(form.cantidadAProducir, 10);
-    if (!form.varianteId || !form.recetaId || isNaN(cantidad) || cantidad < 1) {
-      setError('Todos los campos son obligatorios y la cantidad debe ser >= 1');
+    const cant = parseInt(cantidad, 10);
+    if (!varianteId || !recetaId.trim() || isNaN(cant) || cant < 1) {
+      setError('Selecciona un producto, ingresa el ID de receta y la cantidad (>= 1)');
       return;
     }
     setError(null);
-    crear.mutate({
-      varianteId: form.varianteId,
-      recetaId: form.recetaId,
-      cantidadAProducir: cantidad,
-    });
+    crear.mutate({ varianteId, recetaId: recetaId.trim(), cantidadAProducir: cant });
   }
 
   return (
@@ -275,50 +375,71 @@ function ModalNuevaOrden({ onCerrar }: { onCerrar: () => void }) {
     >
       <form
         onSubmit={submit}
-        className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 space-y-4"
+        className="bg-white rounded-2xl w-full max-w-md shadow-xl p-6 space-y-4"
       >
         <h2 className="text-base font-semibold text-gray-800">Nueva orden de producción</h2>
 
+        {/* Selector de producto/variante */}
         <div className="space-y-1">
-          <label htmlFor="varianteId" className="text-xs font-medium text-gray-600">
-            ID de variante
+          <label htmlFor="select-variante" className="text-xs font-medium text-gray-600">
+            Producto
           </label>
-          <input
-            id="varianteId"
-            type="text"
-            placeholder="UUID de la variante"
-            value={form.varianteId}
-            onChange={(e) => setForm({ ...form, varianteId: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+          {productosQ.isLoading ? (
+            <div className="animate-pulse h-10 bg-gray-100 rounded-lg" />
+          ) : (
+            <select
+              id="select-variante"
+              value={varianteId}
+              onChange={(e) => setVarianteId(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="">-- Seleccionar producto --</option>
+              {productos.map((p) =>
+                p.variantes.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {p.nombre}
+                    {p.variantes.length > 1 ? ` (variante ${v.id.slice(0, 6)}…)` : ''}
+                  </option>
+                )),
+              )}
+            </select>
+          )}
+          {varianteSelec && (
+            <p className="text-xs text-gray-400">Variante: {varianteId.slice(0, 8)}…</p>
+          )}
         </div>
 
+        {/* ID de receta (manual por ahora — el catálogo no expone endpoint /recetas GET) */}
         <div className="space-y-1">
-          <label htmlFor="recetaId" className="text-xs font-medium text-gray-600">
+          <label htmlFor="receta-id" className="text-xs font-medium text-gray-600">
             ID de receta
           </label>
           <input
-            id="recetaId"
+            id="receta-id"
             type="text"
             placeholder="UUID de la receta"
-            value={form.recetaId}
-            onChange={(e) => setForm({ ...form, recetaId: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            value={recetaId}
+            onChange={(e) => setRecetaId(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
           />
+          <p className="text-xs text-gray-400">
+            Obtén el ID de la receta desde el catálogo de recetas.
+          </p>
         </div>
 
+        {/* Cantidad */}
         <div className="space-y-1">
-          <label htmlFor="cantidad" className="text-xs font-medium text-gray-600">
+          <label htmlFor="cant-orden" className="text-xs font-medium text-gray-600">
             Cantidad a producir
           </label>
           <input
-            id="cantidad"
+            id="cant-orden"
             type="number"
             min={1}
             placeholder="Ej: 50"
-            value={form.cantidadAProducir}
-            onChange={(e) => setForm({ ...form, cantidadAProducir: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -330,18 +451,18 @@ function ModalNuevaOrden({ onCerrar }: { onCerrar: () => void }) {
 
         <div className="flex gap-3">
           <button
-            type="submit"
-            disabled={crear.isPending}
-            className="flex-1 bg-brand-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-brand-700 disabled:opacity-50"
-          >
-            {crear.isPending ? 'Creando...' : 'Crear orden'}
-          </button>
-          <button
             type="button"
             onClick={onCerrar}
-            className="px-4 text-sm text-gray-500 hover:text-gray-700"
+            className="flex-1 py-2.5 rounded-lg border text-sm font-medium text-gray-600 hover:bg-gray-50"
           >
             Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={crear.isPending}
+            className="flex-1 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50"
+          >
+            {crear.isPending ? 'Creando...' : 'Crear orden'}
           </button>
         </div>
       </form>
@@ -362,9 +483,16 @@ function PanelAccionOrden({
   const [mostrarEjecutar, setMostrarEjecutar] = useState(false);
   const [mostrarCancelar, setMostrarCancelar] = useState(false);
   const [mostrarDespacho, setMostrarDespacho] = useState(false);
+  const [mostrarMerma, setMostrarMerma] = useState(false);
   const [formEjecutar, setFormEjecutar] = useState({ cantidadProducida: '', codigoLote: '' });
   const [motivoCancelar, setMotivoCancelar] = useState('');
   const [formDespacho, setFormDespacho] = useState({ cantidadDespachada: '', puntoDestinoId: '' });
+  const [formMerma, setFormMerma] = useState({
+    ingredientId: '',
+    cantidad: '',
+    unidad: '',
+    motivo: '',
+  });
 
   const calcularBOM = useMutation({
     mutationFn: () => api.post(`/production/orders/${orden.ordenId}/bom`, { confirmar: true }),
@@ -416,6 +544,22 @@ function PanelAccionOrden({
     onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al preparar despacho'),
   });
 
+  const registrarMerma = useMutation({
+    mutationFn: (data: {
+      ingredientId: string;
+      cantidad: number;
+      unidad: string;
+      motivo: string;
+    }) => api.post(`/production/orders/${orden.ordenId}/mermas`, data),
+    onSuccess: () => {
+      onActualizar();
+      setMostrarMerma(false);
+      setFormMerma({ ingredientId: '', cantidad: '', unidad: '', motivo: '' });
+      setError(null);
+    },
+    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al registrar merma'),
+  });
+
   function submitEjecutar(e: React.FormEvent) {
     e.preventDefault();
     const cantidad = parseInt(formEjecutar.cantidadProducida, 10);
@@ -424,6 +568,21 @@ function PanelAccionOrden({
       return;
     }
     ejecutar.mutate({ cantidadProducida: cantidad, codigoLote: formEjecutar.codigoLote.trim() });
+  }
+
+  function submitMerma(e: React.FormEvent) {
+    e.preventDefault();
+    const cant = parseFloat(formMerma.cantidad);
+    if (!formMerma.ingredientId.trim() || isNaN(cant) || cant <= 0 || !formMerma.unidad.trim()) {
+      setError('ID de ingrediente, cantidad y unidad son obligatorios');
+      return;
+    }
+    registrarMerma.mutate({
+      ingredientId: formMerma.ingredientId.trim(),
+      cantidad: cant,
+      unidad: formMerma.unidad.trim(),
+      motivo: formMerma.motivo.trim() || 'Merma registrada en producción',
+    });
   }
 
   function submitDespacho(e: React.FormEvent) {
@@ -485,12 +644,20 @@ function PanelAccionOrden({
           </>
         )}
         {estado === 'EN_EJECUCION' && (
-          <button
-            onClick={() => setMostrarEjecutar(true)}
-            className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700"
-          >
-            Cerrar producción
-          </button>
+          <>
+            <button
+              onClick={() => setMostrarEjecutar(true)}
+              className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700"
+            >
+              Cerrar producción
+            </button>
+            <button
+              onClick={() => setMostrarMerma(!mostrarMerma)}
+              className="text-xs text-orange-600 border border-orange-300 px-3 py-1.5 rounded-lg hover:bg-orange-50"
+            >
+              Registrar merma
+            </button>
+          </>
         )}
         {estado === 'EJECUTADA' && (
           <button
@@ -578,6 +745,66 @@ function PanelAccionOrden({
               className="text-xs text-gray-500 hover:underline"
             >
               Descartar
+            </button>
+          </div>
+        </form>
+      )}
+
+      {mostrarMerma && (
+        <form
+          onSubmit={submitMerma}
+          className="bg-orange-50 rounded-xl p-3 space-y-2 mt-2 border border-orange-200"
+        >
+          <p className="text-xs font-semibold text-orange-700">Registrar merma</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              placeholder="ID ingrediente (UUID)"
+              value={formMerma.ingredientId}
+              onChange={(e) => setFormMerma({ ...formMerma, ingredientId: e.target.value })}
+              className="col-span-2 border rounded px-2 py-1.5 text-xs font-mono focus:ring-1 focus:ring-orange-400"
+            />
+            <input
+              type="number"
+              min={0.001}
+              step={0.001}
+              placeholder="Cantidad"
+              value={formMerma.cantidad}
+              onChange={(e) => setFormMerma({ ...formMerma, cantidad: e.target.value })}
+              className="border rounded px-2 py-1.5 text-xs"
+            />
+            <input
+              type="text"
+              placeholder="Unidad (kg, l, uds)"
+              value={formMerma.unidad}
+              onChange={(e) => setFormMerma({ ...formMerma, unidad: e.target.value })}
+              className="border rounded px-2 py-1.5 text-xs"
+            />
+            <input
+              type="text"
+              placeholder="Motivo (opcional)"
+              value={formMerma.motivo}
+              onChange={(e) => setFormMerma({ ...formMerma, motivo: e.target.value })}
+              className="col-span-2 border rounded px-2 py-1.5 text-xs"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={registrarMerma.isPending}
+              className="text-xs bg-orange-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
+            >
+              Registrar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMostrarMerma(false);
+                setFormMerma({ ingredientId: '', cantidad: '', unidad: '', motivo: '' });
+              }}
+              className="text-xs text-gray-500 hover:underline"
+            >
+              Cerrar
             </button>
           </div>
         </form>
@@ -716,7 +943,7 @@ export default function Produccion() {
                     {o.lote && ` · Producidas: ${o.lote.cantidadProducida}`}
                   </p>
                 </div>
-                {o.estado === 'EJECUTADA' && (
+                {(o.estado === 'EJECUTADA' || o.estado === 'EN_EJECUCION') && (
                   <button
                     onClick={() => setOrdenConDespachos(o)}
                     className="text-xs text-brand-600 hover:underline whitespace-nowrap flex-shrink-0"

@@ -208,12 +208,9 @@ zahavi/
 
 ### Próxima acción inmediata
 
-> Fase 9 implementada: ciclo completo de despachos + UI de producción.
+> Fase 10 UI completa implementada: interfaces operativas con step-by-step completo.
 >
-> - **Siguiente:** Validar E2E en navegador. Fase 10 (scope futuro): descuento automático de inventario al ejecutar orden (D-031).
-> - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
-> - ~~D-031 y D-030 resueltos.~~ Sistema POS completo con auditoría.
-> - **Siguiente:** Aplicar migración `20260519000002_audit_log.sql` en Supabase cloud (`pnpm db:migrate`).
+> - **Siguiente:** Validar flujo completo en navegador. Aplicar migración `20260519000002_audit_log.sql` en Supabase cloud.
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
 ### Hitos completados en sesión actual
@@ -229,6 +226,7 @@ zahavi/
 | Fase 9 Prod | `25074c6` | EnviarDespacho/EntregarDespacho/CancelarDespacho/ListarDespachos UCs + 4 endpoints + Produccion.tsx |
 | D-031 Inv | `a4a0be1` | IDescontadorDeInventario port + DescontadorDeInventarioSupabase + EjecutarOrden integrado |
 | D-030 Audit | `13883b1` | audit.audit_log SHA-256 chain, IAuditLogger port, plugin Fastify, 4 eventos auditados |
+| Fase 10 UI | — | Inventory con entrada/salida/historial; Mesa con barra de progreso y filtro de categorías; Mesas con total activo; Produccion con selectores, merma y entrega de despachos |
 
 ### Deuda técnica activa
 

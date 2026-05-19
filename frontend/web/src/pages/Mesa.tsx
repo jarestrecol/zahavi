@@ -59,14 +59,6 @@ const METODO_LABEL: Record<MetodoPago, string> = {
   DATAFONO: 'Datáfono',
 };
 
-const ESTADO_COMANDA_LABEL: Record<string, string> = {
-  ABIERTA: 'Abierta',
-  ENVIADA: 'Enviada',
-  EN_PREPARACION: 'En preparación',
-  LISTA: 'Lista',
-  COBRADA: 'Cobrada',
-};
-
 function formatCOP(v: number) {
   return `$ ${v.toLocaleString('es-CO')}`;
 }
@@ -278,6 +270,64 @@ function PanelFactura({ cobroId, onCerrar }: PanelFacturaProps) {
   );
 }
 
+// ── Barra de progreso de estado de comanda ────────────────────────────────
+
+const PASOS_COMANDA = [
+  { estado: 'ABIERTA', label: 'Abierta' },
+  { estado: 'ENVIADA', label: 'En cocina' },
+  { estado: 'EN_PREPARACION', label: 'Preparando' },
+  { estado: 'LISTA', label: 'Lista' },
+  { estado: 'COBRADA', label: 'Cobrada' },
+];
+
+function BarraProgreso({ estadoActual }: { estadoActual: string }) {
+  const idxActual = PASOS_COMANDA.findIndex((p) => p.estado === estadoActual);
+  if (idxActual < 0) return null;
+  return (
+    <div className="flex items-center gap-0 overflow-x-auto pb-1">
+      {PASOS_COMANDA.map((paso, i) => {
+        const activo = i === idxActual;
+        const completado = i < idxActual;
+        return (
+          <div key={paso.estado} className="flex items-center flex-shrink-0">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs ${
+                  completado
+                    ? 'bg-brand-600 border-brand-600 text-white'
+                    : activo
+                      ? 'bg-white border-brand-600 text-brand-600 font-bold'
+                      : 'bg-white border-gray-200 text-gray-300'
+                }`}
+              >
+                {completado ? '✓' : i + 1}
+              </div>
+              <span
+                className={`text-xs mt-0.5 whitespace-nowrap ${
+                  activo
+                    ? 'text-brand-700 font-semibold'
+                    : completado
+                      ? 'text-brand-500'
+                      : 'text-gray-300'
+                }`}
+              >
+                {paso.label}
+              </span>
+            </div>
+            {i < PASOS_COMANDA.length - 1 && (
+              <div
+                className={`h-0.5 w-8 mx-1 mb-4 flex-shrink-0 ${
+                  i < idxActual ? 'bg-brand-600' : 'bg-gray-200'
+                }`}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Componente principal: Mesa ─────────────────────────────────────────────
 
 export function Mesa() {
@@ -286,6 +336,8 @@ export function Mesa() {
   const queryClient = useQueryClient();
 
   const [busqueda, setBusqueda] = useState('');
+  const [categoriaActiva, setCategoriaActiva] = useState<string>('');
+  const [cantidadesSelec, setCantidadesSelec] = useState<Record<string, number>>({});
   const [comandaId, setComandaId] = useState<string | null>(null);
   const [panelCobro, setPanelCobro] = useState(false);
   const [cobroId, setCobroId] = useState<string | null>(null);
@@ -384,20 +436,32 @@ export function Mesa() {
     navigate('/mesas');
   }
 
-  function handleAgregarProducto(variante: Variante) {
+  function handleAgregarProducto(variante: Variante, cantidad: number) {
     setErrorAccion(null);
     if (!comandaId) {
       crearComanda.mutate(undefined, {
         onSuccess: (res) => {
           setTimeout(() => {
-            agregarLinea.mutate({ varianteId: variante.id, cantidad: 1 });
+            agregarLinea.mutate({ varianteId: variante.id, cantidad });
           }, 300);
           void res;
         },
       });
     } else {
-      agregarLinea.mutate({ varianteId: variante.id, cantidad: 1 });
+      agregarLinea.mutate({ varianteId: variante.id, cantidad });
     }
+  }
+
+  function getCantidad(varianteId: string) {
+    return cantidadesSelec[varianteId] ?? 1;
+  }
+
+  function setCantidad(varianteId: string, delta: number) {
+    setCantidadesSelec((prev) => {
+      const actual = prev[varianteId] ?? 1;
+      const nuevo = Math.max(1, actual + delta);
+      return { ...prev, [varianteId]: nuevo };
+    });
   }
 
   // ── Render helpers ────────────────────────────────────────────────────────
@@ -409,9 +473,17 @@ export function Mesa() {
   const puedeLista = estadoComanda === 'EN_PREPARACION';
   const puedeCobrar = ['ABIERTA', 'ENVIADA', 'EN_PREPARACION', 'LISTA'].includes(estadoComanda);
 
-  const productosPublicados = (productosQ.data?.items ?? []).filter(
+  const todosProductos = (productosQ.data?.items ?? []).filter(
     (p) => p.estado === 'publicado' && p.variantes.length > 0,
   );
+
+  const categorias = Array.from(
+    new Set(todosProductos.map((p) => p.categoria?.nombre).filter(Boolean)),
+  );
+
+  const productosPublicados = categoriaActiva
+    ? todosProductos.filter((p) => p.categoria?.nombre === categoriaActiva)
+    : todosProductos;
 
   if (mesaQ.isLoading) {
     return (
@@ -441,27 +513,23 @@ export function Mesa() {
   return (
     <div className="flex flex-col h-full gap-0">
       {/* Barra superior */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={() => navigate('/mesas')}
-          aria-label="Volver a mesas"
-          className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1"
-        >
-          ←
-        </button>
-        <div>
+      <div className="mb-4 space-y-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/mesas')}
+            aria-label="Volver a mesas"
+            className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1"
+          >
+            ←
+          </button>
           <h1 className="text-lg font-bold text-gray-800">Mesa {mesa.nombre}</h1>
-          {comanda && (
-            <span className="text-xs text-gray-500">
-              {ESTADO_COMANDA_LABEL[comanda.estado] ?? comanda.estado}
-            </span>
+          {errorAccion && (
+            <p role="alert" className="ml-auto text-xs text-red-600 max-w-xs text-right">
+              {errorAccion}
+            </p>
           )}
         </div>
-        {errorAccion && (
-          <p role="alert" className="ml-auto text-xs text-red-600 max-w-xs text-right">
-            {errorAccion}
-          </p>
-        )}
+        {comanda && <BarraProgreso estadoActual={comanda.estado} />}
       </div>
 
       {/* Tabs en móvil */}
@@ -485,21 +553,57 @@ export function Mesa() {
         <div
           className={`flex flex-col flex-1 min-w-0 ${tab === 'productos' ? '' : 'hidden'} lg:flex`}
         >
-          <div className="mb-3">
+          {/* Búsqueda */}
+          <div className="mb-2">
             <input
               type="search"
               aria-label="Buscar producto"
               placeholder="Buscar producto..."
               value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
+              onChange={(e) => {
+                setBusqueda(e.target.value);
+                setCategoriaActiva('');
+              }}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
+          {/* Filtro de categorías */}
+          {categorias.length > 0 && (
+            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+              <button
+                onClick={() => setCategoriaActiva('')}
+                className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap flex-shrink-0 ${
+                  categoriaActiva === ''
+                    ? 'bg-brand-600 text-white border-brand-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300'
+                }`}
+              >
+                Todos
+              </button>
+              {categorias.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setCategoriaActiva(cat ?? '');
+                    setBusqueda('');
+                  }}
+                  className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap flex-shrink-0 ${
+                    categoriaActiva === cat
+                      ? 'bg-brand-600 text-white border-brand-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
           {productosQ.isLoading && (
             <div className="animate-pulse grid grid-cols-2 gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-20 bg-gray-200 rounded-lg" />
+                <div key={i} className="h-24 bg-gray-200 rounded-lg" />
               ))}
             </div>
           )}
@@ -512,27 +616,54 @@ export function Mesa() {
               {productosPublicados.map((p) => {
                 const variante = p.variantes[0];
                 if (!variante) return null;
+                const cantidad = getCantidad(variante.id);
                 return (
-                  <button
+                  <div
                     key={p.id}
-                    onClick={() => {
-                      setErrorAccion(null);
-                      handleAgregarProducto(variante);
-                    }}
-                    disabled={!puedeAgregar || agregarLinea.isPending}
-                    className="flex flex-col items-start p-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 active:scale-95 transition-all disabled:opacity-50 text-left"
-                    aria-label={`Agregar ${p.nombre}, ${formatCOP(variante.precio_cop)}`}
+                    className="flex flex-col p-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 transition-all"
                   >
-                    <span className="text-xs text-gray-400 truncate w-full">
-                      {p.categoria?.nombre}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-800 leading-tight mt-0.5 line-clamp-2">
+                    <span className="text-xs text-gray-400 truncate">{p.categoria?.nombre}</span>
+                    <span className="text-sm font-semibold text-gray-800 leading-tight mt-0.5 line-clamp-2 flex-1">
                       {p.nombre}
                     </span>
                     <span className="text-sm font-bold text-brand-600 mt-1">
                       {formatCOP(variante.precio_cop)}
                     </span>
-                  </button>
+
+                    {/* Control cantidad + botón agregar */}
+                    <div className="flex items-center gap-1 mt-2">
+                      <button
+                        onClick={() => setCantidad(variante.id, -1)}
+                        disabled={cantidad <= 1}
+                        className="w-7 h-7 rounded-lg border text-gray-600 hover:bg-gray-100 disabled:opacity-30 text-base leading-none"
+                        aria-label="Disminuir cantidad"
+                      >
+                        −
+                      </button>
+                      <span className="flex-1 text-center text-sm font-semibold text-gray-700">
+                        {cantidad}
+                      </span>
+                      <button
+                        onClick={() => setCantidad(variante.id, 1)}
+                        className="w-7 h-7 rounded-lg border text-gray-600 hover:bg-gray-100 text-base leading-none"
+                        aria-label="Aumentar cantidad"
+                      >
+                        +
+                      </button>
+                      <button
+                        onClick={() => {
+                          setErrorAccion(null);
+                          handleAgregarProducto(variante, cantidad);
+                          setCantidadesSelec((prev) => ({ ...prev, [variante.id]: 1 }));
+                        }}
+                        disabled={!puedeAgregar || agregarLinea.isPending}
+                        className="ml-1 px-2 py-1 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 disabled:opacity-50 active:scale-95 transition-transform"
+                        aria-label={`Agregar ${cantidad} ${p.nombre}`}
+                      >
+                        Agregar
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>

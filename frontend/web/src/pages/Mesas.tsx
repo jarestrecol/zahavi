@@ -5,12 +5,22 @@ import { api, ApiError } from '../lib/api.js';
 
 type EstadoMesa = 'LIBRE' | 'OCUPADA' | 'RESERVADA' | 'EN_COBRO';
 
+interface ResumenComandaActiva {
+  totalConIVA: number;
+  numLineas: number;
+}
+
 interface Mesa {
   mesaId: string;
   nombre: string;
   tipo: string;
   estado: EstadoMesa;
   comandaActivaId: string | null;
+  resumenComanda: ResumenComandaActiva | null;
+}
+
+function formatCOP(v: number) {
+  return `$ ${v.toLocaleString('es-CO')}`;
 }
 
 interface MesasResponse {
@@ -161,7 +171,7 @@ export function Mesas() {
                   ${cfg.bg} ${cfg.texto}
                   ${interactiva ? 'cursor-pointer hover:shadow-md active:scale-95' : 'cursor-not-allowed opacity-60'}
                 `}
-                aria-label={`Mesa ${mesa.nombre}, estado: ${cfg.label}`}
+                aria-label={`Mesa ${mesa.nombre}, estado: ${cfg.label}${mesa.resumenComanda ? `, total: ${formatCOP(mesa.resumenComanda.totalConIVA)}` : ''}`}
               >
                 <span
                   className={`absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full ${cfg.punto}`}
@@ -171,6 +181,17 @@ export function Mesas() {
                 <span className="text-xs mt-1 font-normal opacity-75">{cfg.label}</span>
                 {mesa.tipo === 'AD_HOC' && (
                   <span className="text-xs opacity-50 mt-0.5">ad-hoc</span>
+                )}
+                {mesa.resumenComanda && mesa.resumenComanda.numLineas > 0 && (
+                  <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center">
+                    <span className="text-xs font-bold opacity-90">
+                      {formatCOP(mesa.resumenComanda.totalConIVA)}
+                    </span>
+                    <span className="text-xs opacity-60">
+                      {mesa.resumenComanda.numLineas} ítem
+                      {mesa.resumenComanda.numLineas !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                 )}
               </button>
             );
