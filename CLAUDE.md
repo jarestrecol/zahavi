@@ -228,6 +228,7 @@ zahavi/
 | Seg+Deudas | `4f43790` | fix README credencial; D-027 Dockerfile; D-028 verificado; D-029 resuelto |
 | Fase 9 Prod | `25074c6` | EnviarDespacho/EntregarDespacho/CancelarDespacho/ListarDespachos UCs + 4 endpoints + Produccion.tsx |
 | D-031 Inv | `a4a0be1` | IDescontadorDeInventario port + DescontadorDeInventarioSupabase + EjecutarOrden integrado |
+| D-030 Audit | `13883b1` | audit.audit_log SHA-256 chain, IAuditLogger port, plugin Fastify, 4 eventos auditados |
 
 ### Deuda técnica activa
 
