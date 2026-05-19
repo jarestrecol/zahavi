@@ -32,7 +32,7 @@ interface HistoricoResponse {
   movimientos: Movimiento[];
 }
 
-type AccionActiva = 'ingreso' | 'salida' | 'historico' | null;
+type AccionActiva = 'ingreso' | 'salida' | 'historico' | 'nuevoIngrediente' | null;
 
 function formatFecha(iso: string) {
   return new Date(iso).toLocaleString('es-CO', {
@@ -66,6 +66,7 @@ function PanelIngreso({
 }) {
   const [cantidad, setCantidad] = useState('');
   const [costo, setCosto] = useState('');
+  const [supplierId, setSupplierId] = useState('');
   const [referencia, setReferencia] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +75,7 @@ function PanelIngreso({
       ingredienteId: string;
       cantidad: number;
       costoUnitarioCop: number;
+      supplierId: string;
       referencia?: string;
     }) => api.post('/inventory/movimientos/ingreso', data),
     onSuccess: () => {
@@ -95,11 +97,16 @@ function PanelIngreso({
       setError('El costo unitario debe ser >= 0');
       return;
     }
+    if (!supplierId.trim()) {
+      setError('Selecciona o pega el ID del proveedor');
+      return;
+    }
     setError(null);
     registrar.mutate({
       ingredienteId: item.ingredienteId,
       cantidad: cant,
       costoUnitarioCop: costoNum,
+      supplierId: supplierId.trim(),
       ...(referencia.trim() ? { referencia: referencia.trim() } : {}),
     });
   }
@@ -165,6 +172,23 @@ function PanelIngreso({
 
           <div>
             <label
+              htmlFor="proveedor-ingreso"
+              className="block text-xs font-medium text-gray-700 mb-1"
+            >
+              Proveedor (UUID)
+            </label>
+            <input
+              id="proveedor-ingreso"
+              type="text"
+              value={supplierId}
+              onChange={(e) => setSupplierId(e.target.value)}
+              placeholder="ID del proveedor"
+              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <label
               htmlFor="referencia-ingreso"
               className="block text-xs font-medium text-gray-700 mb-1"
             >
@@ -221,12 +245,16 @@ function PanelSalida({
   onExito: () => void;
 }) {
   const [cantidad, setCantidad] = useState('');
-  const [motivo, setMotivo] = useState('');
+  const [referencia, setReferencia] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const registrar = useMutation({
-    mutationFn: (data: { ingredienteId: string; cantidad: number; motivo: string }) =>
-      api.post('/inventory/movimientos/salida', data),
+    mutationFn: (data: {
+      ingredienteId: string;
+      cantidad: number;
+      tipo: 'PRODUCTION_OUT' | 'SALE_OUT';
+      referencia: string;
+    }) => api.post('/inventory/movimientos/salida', data),
     onSuccess: () => {
       onExito();
       onCerrar();
@@ -241,8 +269,8 @@ function PanelSalida({
       setError('La cantidad debe ser mayor a cero');
       return;
     }
-    if (!motivo.trim()) {
-      setError('El motivo es obligatorio');
+    if (!referencia.trim()) {
+      setError('La referencia es obligatoria');
       return;
     }
     if (cant > item.cantidadDisponible) {
@@ -250,7 +278,12 @@ function PanelSalida({
       return;
     }
     setError(null);
-    registrar.mutate({ ingredienteId: item.ingredienteId, cantidad: cant, motivo: motivo.trim() });
+    registrar.mutate({
+      ingredienteId: item.ingredienteId,
+      cantidad: cant,
+      tipo: 'PRODUCTION_OUT',
+      referencia: referencia.trim(),
+    });
   }
 
   return (
@@ -300,14 +333,17 @@ function PanelSalida({
           </div>
 
           <div>
-            <label htmlFor="motivo-salida" className="block text-xs font-medium text-gray-700 mb-1">
-              Motivo
+            <label
+              htmlFor="referencia-salida"
+              className="block text-xs font-medium text-gray-700 mb-1"
+            >
+              Referencia
             </label>
             <input
-              id="motivo-salida"
+              id="referencia-salida"
               type="text"
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
+              value={referencia}
+              onChange={(e) => setReferencia(e.target.value)}
               placeholder="Ej: Uso en producción, evento especial..."
               maxLength={200}
               className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -425,6 +461,108 @@ function PanelHistorico({ item, onCerrar }: { item: StockItem; onCerrar: () => v
   );
 }
 
+function PanelNuevoIngrediente({
+  onCerrar,
+  onExito,
+}: {
+  onCerrar: () => void;
+  onExito: () => void;
+}) {
+  const [form, setForm] = useState({
+    nombre: '',
+    unidadNativa: 'unidad',
+    costoUnitarioCop: '',
+    umbralDeAlerta: '',
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  const crear = useMutation({
+    mutationFn: () =>
+      api.post('/inventory/ingredientes', {
+        nombre: form.nombre.trim(),
+        unidadNativa: form.unidadNativa.trim(),
+        costoUnitarioCop: Number(form.costoUnitarioCop),
+        ...(form.umbralDeAlerta ? { umbralDeAlerta: Number(form.umbralDeAlerta) } : {}),
+      }),
+    onSuccess: () => {
+      onExito();
+      onCerrar();
+    },
+    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al crear ingrediente'),
+  });
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.nombre.trim() || !form.unidadNativa.trim() || Number(form.costoUnitarioCop) < 0) {
+      setError('Completa nombre, unidad y costo');
+      return;
+    }
+    setError(null);
+    crear.mutate();
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCerrar();
+      }}
+    >
+      <form
+        onSubmit={submit}
+        className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-5 space-y-3"
+      >
+        <h2 className="text-base font-semibold text-gray-800">Nuevo ingrediente</h2>
+        <input
+          className="field"
+          value={form.nombre}
+          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+          placeholder="Nombre"
+          autoFocus
+        />
+        <select
+          className="field"
+          value={form.unidadNativa}
+          onChange={(e) => setForm({ ...form, unidadNativa: e.target.value })}
+        >
+          <option value="unidad">Unidad</option>
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L</option>
+          <option value="mL">mL</option>
+        </select>
+        <input
+          className="field"
+          type="number"
+          min={0}
+          value={form.costoUnitarioCop}
+          onChange={(e) => setForm({ ...form, costoUnitarioCop: e.target.value })}
+          placeholder="Costo unitario COP"
+        />
+        <input
+          className="field"
+          type="number"
+          min={0}
+          value={form.umbralDeAlerta}
+          onChange={(e) => setForm({ ...form, umbralDeAlerta: e.target.value })}
+          placeholder="Umbral de alerta"
+        />
+        {error && <p className="text-xs text-red-600">{error}</p>}
+        <div className="flex gap-3">
+          <button type="button" onClick={onCerrar} className="btn-secondary flex-1">
+            Cancelar
+          </button>
+          <button className="btn-primary flex-1" disabled={crear.isPending}>
+            {crear.isPending ? 'Creando...' : 'Crear'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 // ── Componente principal: Inventory ───────────────────────────────────────────
 
 export function Inventory() {
@@ -498,6 +636,9 @@ export function Inventory() {
             )}
           </p>
         </div>
+        <button onClick={() => setAccion('nuevoIngrediente')} className="btn-primary">
+          Nuevo ingrediente
+        </button>
       </div>
 
       {/* Banner de alertas */}
@@ -649,6 +790,9 @@ export function Inventory() {
       )}
       {accion === 'historico' && itemSeleccionado && (
         <PanelHistorico item={itemSeleccionado} onCerrar={cerrarAccion} />
+      )}
+      {accion === 'nuevoIngrediente' && (
+        <PanelNuevoIngrediente onCerrar={cerrarAccion} onExito={invalidarStock} />
       )}
     </div>
   );

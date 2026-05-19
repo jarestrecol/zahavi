@@ -210,7 +210,7 @@ zahavi/
 
 > Fase 10 UI completa implementada: interfaces operativas con step-by-step completo.
 >
-> - **Siguiente:** Validar flujo completo en navegador. Aplicar migración `20260519000002_audit_log.sql` en Supabase cloud.
+> - **Siguiente:** Validar flujo completo en navegador. Aplicar migraciones `20260519000002_audit_log.sql` y `20260519000003_inventory_jwt_bu_id_alignment.sql` en Supabase cloud.
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
 ### Hitos completados en sesión actual
@@ -227,6 +227,8 @@ zahavi/
 | D-031 Inv | `a4a0be1` | IDescontadorDeInventario port + DescontadorDeInventarioSupabase + EjecutarOrden integrado |
 | D-030 Audit | `13883b1` | audit.audit_log SHA-256 chain, IAuditLogger port, plugin Fastify, 4 eventos auditados |
 | Fase 10 UI | — | Inventory con entrada/salida/historial; Mesa con barra de progreso y filtro de categorías; Mesas con total activo; Produccion con selectores, merma y entrega de despachos |
+| SEC-002 RLS | — | Nueva migración `20260519000003_inventory_jwt_bu_id_alignment.sql` alinea `identity.jwt_bu_id()` con claim JWT `bu_id`; E2E inventory sin `businessUnitId` superficial |
+| UI Operativa | — | Shell rediseñado; Productos crea categoría/producto; Mesas crea mesa fija/rápida; Inventario crea ingrediente y corrige payloads; Producción usa productos con receta y despachos con selector de unidad |
 
 ### Deuda técnica activa
 

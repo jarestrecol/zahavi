@@ -34,7 +34,7 @@ export function Login() {
 
       const res = await api.post<LoginResponse>('/identity/sesiones', body);
       setAuth(res.token, res.usuarioId, res.rol, res.businessUnitId);
-      navigate('/productos');
+      navigate('/mesas');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Error al iniciar sesión');
     } finally {
@@ -43,9 +43,12 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-sm p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-brand-700 mb-6 text-center">Zahavi POS</h1>
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <div className="surface w-full max-w-sm p-8">
+        <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-brand-700">
+          Zahavi
+        </p>
+        <h1 className="text-3xl font-black text-slate-950 mb-6 text-center">POS operativo</h1>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           <div>
@@ -58,7 +61,7 @@ export function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+              className="field"
               autoComplete="email"
             />
           </div>
@@ -73,7 +76,7 @@ export function Login() {
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
               required
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+              className="field"
               autoComplete="current-password"
             />
           </div>
@@ -88,7 +91,7 @@ export function Login() {
               value={totp}
               onChange={(e) => setTotp(e.target.value)}
               maxLength={6}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+              className="field"
               autoComplete="one-time-code"
               inputMode="numeric"
             />
@@ -104,11 +107,7 @@ export function Login() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-brand-600 text-white py-2 rounded font-medium hover:bg-brand-700 disabled:opacity-60"
-          >
+          <button type="submit" disabled={loading} className="btn-primary">
             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
         </form>

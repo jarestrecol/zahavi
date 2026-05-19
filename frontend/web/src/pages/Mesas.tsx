@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api.js';
+import { useAuthStore } from '../stores/auth.js';
 
 type EstadoMesa = 'LIBRE' | 'OCUPADA' | 'RESERVADA' | 'EN_COBRO';
 
@@ -19,64 +20,67 @@ interface Mesa {
   resumenComanda: ResumenComandaActiva | null;
 }
 
-function formatCOP(v: number) {
-  return `$ ${v.toLocaleString('es-CO')}`;
-}
-
 interface MesasResponse {
   mesas: Mesa[];
 }
 
-const ESTADO_CONFIG: Record<
-  EstadoMesa,
-  { label: string; bg: string; texto: string; punto: string }
-> = {
-  LIBRE: {
-    label: 'Libre',
-    bg: 'bg-emerald-50 border-emerald-200',
-    texto: 'text-emerald-700',
-    punto: 'bg-emerald-400',
-  },
-  OCUPADA: {
-    label: 'Ocupada',
-    bg: 'bg-amber-50 border-amber-200',
-    texto: 'text-amber-700',
-    punto: 'bg-amber-400',
-  },
-  EN_COBRO: {
-    label: 'En cobro',
-    bg: 'bg-blue-50 border-blue-200',
-    texto: 'text-blue-700',
-    punto: 'bg-blue-400',
-  },
-  RESERVADA: {
-    label: 'Reservada',
-    bg: 'bg-gray-50 border-gray-200',
-    texto: 'text-gray-500',
-    punto: 'bg-gray-300',
-  },
-};
+const ESTADOS: Array<{ value: '' | EstadoMesa; label: string }> = [
+  { value: '', label: 'Todas' },
+  { value: 'LIBRE', label: 'Libres' },
+  { value: 'OCUPADA', label: 'Ocupadas' },
+  { value: 'EN_COBRO', label: 'En cobro' },
+  { value: 'RESERVADA', label: 'Reservadas' },
+];
 
-function SkeletonGrid() {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="animate-pulse h-28 bg-gray-200 rounded-xl" />
-      ))}
-    </div>
-  );
+const ESTADO_STYLE: Record<EstadoMesa, { label: string; card: string; dot: string; text: string }> =
+  {
+    LIBRE: {
+      label: 'Libre',
+      card: 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100',
+      dot: 'bg-emerald-500',
+      text: 'text-emerald-800',
+    },
+    OCUPADA: {
+      label: 'Ocupada',
+      card: 'border-amber-200 bg-amber-50 hover:bg-amber-100',
+      dot: 'bg-amber-500',
+      text: 'text-amber-800',
+    },
+    EN_COBRO: {
+      label: 'En cobro',
+      card: 'border-sky-200 bg-sky-50 hover:bg-sky-100',
+      dot: 'bg-sky-500',
+      text: 'text-sky-800',
+    },
+    RESERVADA: {
+      label: 'Reservada',
+      card: 'border-slate-200 bg-slate-50',
+      dot: 'bg-slate-400',
+      text: 'text-slate-600',
+    },
+  };
+
+function formatCOP(value: number): string {
+  return `$ ${value.toLocaleString('es-CO')}`;
+}
+
+function countByEstado(mesas: Mesa[], estado: EstadoMesa) {
+  return mesas.filter((mesa) => mesa.estado === estado).length;
 }
 
 export function Mesas() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [modalAdHoc, setModalAdHoc] = useState(false);
-  const [nombreAdHoc, setNombreAdHoc] = useState('');
-  const [errorAdHoc, setErrorAdHoc] = useState<string | null>(null);
+  const { rol } = useAuthStore();
+  const [estadoFiltro, setEstadoFiltro] = useState<'' | EstadoMesa>('');
+  const [modal, setModal] = useState<'adhoc' | 'configurar' | null>(null);
+  const [nombreMesa, setNombreMesa] = useState('');
+  const [errorMesa, setErrorMesa] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useQuery<MesasResponse>({
-    queryKey: ['mesas'],
-    queryFn: () => api.get<MesasResponse>('/sales/mesas'),
+  const mesasQ = useQuery<MesasResponse>({
+    queryKey: ['mesas', estadoFiltro],
+    queryFn: () =>
+      api.get<MesasResponse>(`/sales/mesas${estadoFiltro ? `?estado=${estadoFiltro}` : ''}`),
     refetchInterval: 15_000,
   });
 
@@ -85,175 +89,201 @@ export function Mesas() {
       api.post<{ mesaId: string; comandaId: string }>('/sales/mesas/adhoc', { nombre }),
     onSuccess: (res) => {
       void queryClient.invalidateQueries({ queryKey: ['mesas'] });
-      setModalAdHoc(false);
-      setNombreAdHoc('');
+      setModal(null);
+      setNombreMesa('');
       navigate(`/mesas/${res.mesaId}`);
     },
-    onError: (e) => {
-      setErrorAdHoc(e instanceof ApiError ? e.message : 'Error al abrir mesa');
-    },
+    onError: (e) => setErrorMesa(e instanceof ApiError ? e.message : 'No se pudo abrir la mesa'),
   });
 
-  function handleTapMesa(mesa: Mesa) {
-    if (mesa.estado === 'RESERVADA') return;
-    navigate(`/mesas/${mesa.mesaId}`);
-  }
+  const configurarMesa = useMutation({
+    mutationFn: (nombre: string) => api.post<{ mesaId: string }>('/sales/mesas', { nombre }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mesas'] });
+      setModal(null);
+      setNombreMesa('');
+      setErrorMesa(null);
+    },
+    onError: (e) => setErrorMesa(e instanceof ApiError ? e.message : 'No se pudo crear la mesa'),
+  });
 
-  function handleAbrirAdHoc(e: React.FormEvent) {
-    e.preventDefault();
-    if (!nombreAdHoc.trim()) return;
-    setErrorAdHoc(null);
-    abrirAdHoc.mutate(nombreAdHoc.trim());
-  }
+  const mesas = mesasQ.data?.mesas ?? [];
+  const totalActivo = useMemo(
+    () => mesas.reduce((sum, mesa) => sum + (mesa.resumenComanda?.totalConIVA ?? 0), 0),
+    [mesas],
+  );
+  const puedeConfigurar = rol === 'ADMIN' || rol === 'SUPERADMIN';
 
-  const mesas = data?.mesas ?? [];
-  const libres = mesas.filter((m) => m.estado === 'LIBRE').length;
-  const ocupadas = mesas.filter((m) => m.estado === 'OCUPADA').length;
-  const enCobro = mesas.filter((m) => m.estado === 'EN_COBRO').length;
+  function submitMesa(event: React.FormEvent) {
+    event.preventDefault();
+    if (!nombreMesa.trim()) {
+      setErrorMesa('Escribe un nombre de mesa');
+      return;
+    }
+    setErrorMesa(null);
+    if (modal === 'adhoc') abrirAdHoc.mutate(nombreMesa.trim());
+    if (modal === 'configurar') configurarMesa.mutate(nombreMesa.trim());
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header con resumen */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Mesas</h1>
-          {!isLoading && !isError && (
-            <p className="text-sm text-gray-500 mt-0.5">
-              {libres} libres · {ocupadas} ocupadas · {enCobro} en cobro
+    <div className="mx-auto flex max-w-7xl flex-col gap-5">
+      <section className="surface p-5">
+        <div className="grid gap-4 lg:grid-cols-[1fr_420px] lg:items-end">
+          <div>
+            <p className="section-title">Salon y caja</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+              Control vivo de mesas
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Abre comandas, toma pedidos y pasa a cobro desde una pantalla pensada para tablet.
             </p>
-          )}
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="rounded-lg bg-emerald-50 p-3 text-emerald-800">
+              <p className="text-xs font-semibold">Libres</p>
+              <p className="text-2xl font-black">{countByEstado(mesas, 'LIBRE')}</p>
+            </div>
+            <div className="rounded-lg bg-amber-50 p-3 text-amber-800">
+              <p className="text-xs font-semibold">Ocupadas</p>
+              <p className="text-2xl font-black">{countByEstado(mesas, 'OCUPADA')}</p>
+            </div>
+            <div className="rounded-lg bg-sky-50 p-3 text-sky-800">
+              <p className="text-xs font-semibold">Cobro</p>
+              <p className="text-2xl font-black">{countByEstado(mesas, 'EN_COBRO')}</p>
+            </div>
+            <div className="rounded-lg bg-slate-950 p-3 text-white">
+              <p className="text-xs font-semibold text-slate-300">Activo</p>
+              <p className="text-lg font-black">{formatCOP(totalActivo)}</p>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={() => {
-            setModalAdHoc(true);
-            setErrorAdHoc(null);
-          }}
-          className="bg-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-700 active:scale-95 transition-transform"
-          aria-label="Abrir mesa adicional"
-        >
-          + Mesa adicional
-        </button>
+      </section>
+
+      <section className="surface p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {ESTADOS.map((estado) => (
+              <button
+                key={estado.value || 'todas'}
+                className={`shrink-0 rounded-lg px-3 py-2 text-sm font-bold ${
+                  estadoFiltro === estado.value
+                    ? 'bg-slate-950 text-white'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+                onClick={() => setEstadoFiltro(estado.value)}
+              >
+                {estado.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {puedeConfigurar && (
+              <button className="btn-secondary" onClick={() => setModal('configurar')}>
+                Crear mesa fija
+              </button>
+            )}
+            <button className="btn-primary" onClick={() => setModal('adhoc')}>
+              Mesa rapida
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {mesasQ.isLoading && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="h-40 animate-pulse rounded-lg bg-slate-200" />
+          ))}
+        </div>
+      )}
+
+      {mesasQ.isError && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
+          No se pudieron cargar las mesas. Revisa la conexion con la API.
+        </div>
+      )}
+
+      {!mesasQ.isLoading && !mesasQ.isError && mesas.length === 0 && (
+        <div className="surface p-10 text-center">
+          <p className="text-lg font-black text-slate-800">No hay mesas en este filtro</p>
+          <p className="mt-1 text-sm text-slate-500">Crea mesas fijas o abre una mesa rapida.</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {mesas.map((mesa) => {
+          const cfg = ESTADO_STYLE[mesa.estado];
+          const interactiva = mesa.estado !== 'RESERVADA';
+          return (
+            <button
+              key={mesa.mesaId}
+              disabled={!interactiva}
+              onClick={() => navigate(`/mesas/${mesa.mesaId}`)}
+              className={`min-h-40 rounded-lg border p-4 text-left transition ${cfg.card} ${
+                interactiva ? 'active:scale-[0.98]' : 'cursor-not-allowed opacity-60'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                    {mesa.tipo === 'AD_HOC' ? 'Rapida' : 'Mesa'}
+                  </p>
+                  <h2 className={`mt-1 text-3xl font-black ${cfg.text}`}>{mesa.nombre}</h2>
+                </div>
+                <span className={`mt-1 h-3 w-3 rounded-full ${cfg.dot}`} />
+              </div>
+              <p className={`mt-4 text-sm font-bold ${cfg.text}`}>{cfg.label}</p>
+              {mesa.resumenComanda && mesa.resumenComanda.numLineas > 0 ? (
+                <div className="mt-3 rounded-lg bg-white/75 p-3">
+                  <p className="text-xl font-black text-slate-950">
+                    {formatCOP(mesa.resumenComanda.totalConIVA)}
+                  </p>
+                  <p className="text-xs font-semibold text-slate-500">
+                    {mesa.resumenComanda.numLineas} item
+                    {mesa.resumenComanda.numLineas !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs font-semibold text-slate-500">Sin comanda activa</p>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Grid de mesas */}
-      {isLoading && <SkeletonGrid />}
-
-      {isError && (
-        <div
-          role="alert"
-          className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm"
-        >
-          No se pudieron cargar las mesas. Verifica la conexión con la API.
-        </div>
-      )}
-
-      {!isLoading && !isError && mesas.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">No hay mesas configuradas.</p>
-          <p className="text-sm mt-1">Un administrador debe crear las mesas del local.</p>
-        </div>
-      )}
-
-      {!isLoading && !isError && mesas.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {mesas.map((mesa) => {
-            const cfg = ESTADO_CONFIG[mesa.estado] ?? ESTADO_CONFIG.LIBRE;
-            const interactiva = mesa.estado !== 'RESERVADA';
-            return (
-              <button
-                key={mesa.mesaId}
-                onClick={() => handleTapMesa(mesa)}
-                disabled={!interactiva}
-                className={`
-                  relative flex flex-col items-center justify-center
-                  h-28 rounded-xl border-2 font-medium
-                  transition-all duration-150
-                  ${cfg.bg} ${cfg.texto}
-                  ${interactiva ? 'cursor-pointer hover:shadow-md active:scale-95' : 'cursor-not-allowed opacity-60'}
-                `}
-                aria-label={`Mesa ${mesa.nombre}, estado: ${cfg.label}${mesa.resumenComanda ? `, total: ${formatCOP(mesa.resumenComanda.totalConIVA)}` : ''}`}
-              >
-                <span
-                  className={`absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full ${cfg.punto}`}
-                  aria-hidden
-                />
-                <span className="text-2xl font-bold">{mesa.nombre}</span>
-                <span className="text-xs mt-1 font-normal opacity-75">{cfg.label}</span>
-                {mesa.tipo === 'AD_HOC' && (
-                  <span className="text-xs opacity-50 mt-0.5">ad-hoc</span>
-                )}
-                {mesa.resumenComanda && mesa.resumenComanda.numLineas > 0 && (
-                  <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center">
-                    <span className="text-xs font-bold opacity-90">
-                      {formatCOP(mesa.resumenComanda.totalConIVA)}
-                    </span>
-                    <span className="text-xs opacity-60">
-                      {mesa.resumenComanda.numLineas} ítem
-                      {mesa.resumenComanda.numLineas !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Modal mesa ad-hoc */}
-      {modalAdHoc && (
+      {modal && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Abrir mesa adicional"
-          className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-4 sm:items-center"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setModalAdHoc(false);
+            if (e.target === e.currentTarget) setModal(null);
           }}
         >
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Mesa adicional</h2>
-            <form onSubmit={handleAbrirAdHoc} className="flex flex-col gap-4">
-              <div>
-                <label
-                  htmlFor="nombre-adhoc"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Nombre de la mesa
-                </label>
-                <input
-                  id="nombre-adhoc"
-                  type="text"
-                  value={nombreAdHoc}
-                  onChange={(e) => setNombreAdHoc(e.target.value)}
-                  placeholder="Ej: Terraza 1, Barra..."
-                  maxLength={100}
-                  className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  autoFocus
-                />
-              </div>
-              {errorAdHoc && (
-                <p role="alert" className="text-sm text-red-600">
-                  {errorAdHoc}
-                </p>
-              )}
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setModalAdHoc(false)}
-                  className="flex-1 py-2.5 rounded-lg border text-sm font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={!nombreAdHoc.trim() || abrirAdHoc.isPending}
-                  className="flex-1 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
-                >
-                  {abrirAdHoc.isPending ? 'Abriendo...' : 'Abrir mesa'}
-                </button>
-              </div>
-            </form>
-          </div>
+          <form onSubmit={submitMesa} className="surface w-full max-w-sm p-5">
+            <h2 className="text-lg font-black text-slate-950">
+              {modal === 'adhoc' ? 'Abrir mesa rapida' : 'Crear mesa fija'}
+            </h2>
+            <input
+              className="field mt-4"
+              value={nombreMesa}
+              onChange={(e) => setNombreMesa(e.target.value)}
+              placeholder={modal === 'adhoc' ? 'Ej: Terraza 1' : 'Ej: Mesa 12'}
+              autoFocus
+            />
+            {errorMesa && <p className="mt-3 text-sm font-semibold text-rose-600">{errorMesa}</p>}
+            <div className="mt-5 flex gap-2">
+              <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>
+                Cancelar
+              </button>
+              <button
+                className="btn-primary flex-1"
+                disabled={abrirAdHoc.isPending || configurarMesa.isPending}
+              >
+                {abrirAdHoc.isPending || configurarMesa.isPending ? 'Guardando...' : 'Confirmar'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

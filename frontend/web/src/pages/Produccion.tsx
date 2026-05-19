@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api.js';
-import { useAuthStore } from '../stores/auth.js';
 
 interface Variante {
   id: string;
+  nombre?: string;
   precio_cop: number;
+  recetaId: string | null;
 }
 
 interface Producto {
@@ -13,24 +14,22 @@ interface Producto {
   nombre: string;
   estado: string;
   variantes: Variante[];
-  recetaId?: string;
-}
-
-interface Receta {
-  recetaId: string;
-  nombre: string;
-  varianteId: string;
-}
-
-interface RecetasResponse {
-  items: Receta[];
 }
 
 interface ProductosResponse {
   items: Producto[];
 }
 
-// ── Tipos ─────────────────────────────────────────────────────────────────────
+interface UnidadDeNegocio {
+  id: string;
+  nombre: string;
+  tipo: string;
+  estado: string;
+}
+
+interface UnidadesResponse {
+  items: UnidadDeNegocio[];
+}
 
 interface ResumenOrden {
   ordenId: string;
@@ -46,813 +45,48 @@ interface OrdenesResponse {
   ordenes: ResumenOrden[];
 }
 
-interface ResumenDespacho {
-  despachoId: string;
-  codigoLote: string;
-  cantidadDespachada: number;
-  puntoDeVentaDestinoId: string;
-  estado: string;
-  creadoEn: string;
-}
+const ESTADOS = ['', 'PLANIFICADA', 'RESERVADA', 'EN_EJECUCION', 'EJECUTADA', 'CANCELADA'];
 
-interface DespachosResponse {
-  despachos: ResumenDespacho[];
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-const ESTADO_ORDEN_LABEL: Record<string, { label: string; color: string }> = {
-  PLANIFICADA: { label: 'Planificada', color: 'bg-gray-100 text-gray-700' },
-  RESERVADA: { label: 'Reservada', color: 'bg-yellow-100 text-yellow-700' },
-  EN_EJECUCION: { label: 'En ejecución', color: 'bg-blue-100 text-blue-700' },
-  EJECUTADA: { label: 'Ejecutada', color: 'bg-emerald-100 text-emerald-700' },
-  CANCELADA: { label: 'Cancelada', color: 'bg-red-100 text-red-700' },
+const ESTADO_LABEL: Record<string, { label: string; className: string }> = {
+  PLANIFICADA: { label: 'Planificada', className: 'bg-slate-100 text-slate-700' },
+  RESERVADA: { label: 'Reservada', className: 'bg-amber-100 text-amber-800' },
+  EN_EJECUCION: { label: 'En produccion', className: 'bg-sky-100 text-sky-800' },
+  EJECUTADA: { label: 'Terminada', className: 'bg-emerald-100 text-emerald-800' },
+  CANCELADA: { label: 'Cancelada', className: 'bg-rose-100 text-rose-700' },
 };
 
-const ESTADO_DESPACHO_LABEL: Record<string, { label: string; color: string }> = {
-  PREPARADO: { label: 'Preparado', color: 'bg-gray-100 text-gray-700' },
-  EN_TRANSITO: { label: 'En tránsito', color: 'bg-blue-100 text-blue-700' },
-  ENTREGADO: { label: 'Entregado', color: 'bg-emerald-100 text-emerald-700' },
-  CANCELADO: { label: 'Cancelado', color: 'bg-red-100 text-red-700' },
-};
-
-function Badge({ estado, map }: { estado: string; map: typeof ESTADO_ORDEN_LABEL }) {
-  const entry = map[estado] ?? { label: estado, color: 'bg-gray-100 text-gray-700' };
-  return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entry.color}`}>
-      {entry.label}
-    </span>
-  );
+function estadoLabel(estado: string) {
+  return ESTADO_LABEL[estado] ?? { label: estado, className: 'bg-slate-100 text-slate-700' };
 }
 
 function formatFecha(iso: string) {
   return new Date(iso).toLocaleString('es-CO', {
     day: '2-digit',
     month: '2-digit',
-    year: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   });
 }
 
-// ── Panel de despachos de una orden ──────────────────────────────────────────
-
-function PanelDespachos({ orden, onCerrar }: { orden: ResumenOrden; onCerrar: () => void }) {
-  const queryClient = useQueryClient();
-  const { token } = useAuthStore();
-  const [error, setError] = useState<string | null>(null);
-  const [motivoCancelar, setMotivoCancelar] = useState('');
-  const [cancelando, setCancelando] = useState<string | null>(null);
-  const [entregando, setEntregando] = useState<string | null>(null);
-  const [recibidoPor, setRecibidoPor] = useState('');
-
-  const { data, isLoading } = useQuery<DespachosResponse>({
-    queryKey: ['despachos', orden.ordenId],
-    queryFn: () =>
-      api.get<DespachosResponse>(
-        `/production/dispatches?ordenId=${encodeURIComponent(orden.ordenId)}`,
-      ),
-    enabled: !!token,
-  });
-
-  const enviar = useMutation({
-    mutationFn: (despachoId: string) =>
-      api.post(`/production/dispatches/${despachoId}/enviar`, { confirmar: true }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['despachos', orden.ordenId] });
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al enviar'),
-  });
-
-  const cancelar = useMutation({
-    mutationFn: ({ despachoId, motivo }: { despachoId: string; motivo: string }) =>
-      api.delete(`/production/dispatches/${despachoId}`, { motivo }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['despachos', orden.ordenId] });
-      setCancelando(null);
-      setMotivoCancelar('');
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al cancelar'),
-  });
-
-  const entregar = useMutation({
-    mutationFn: ({ despachoId, recibidoPor: rp }: { despachoId: string; recibidoPor: string }) =>
-      api.post(`/production/dispatches/${despachoId}/entregar`, { recibidoPor: rp }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['despachos', orden.ordenId] });
-      setEntregando(null);
-      setRecibidoPor('');
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al entregar'),
-  });
-
-  const despachos = data?.despachos ?? [];
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Despachos de la orden"
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCerrar();
-      }}
-    >
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl">
-        <div className="flex items-center justify-between p-5 border-b">
-          <div>
-            <h2 className="text-base font-semibold text-gray-800">Despachos</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Orden · {orden.lote?.codigo ?? '—'}</p>
-          </div>
-          <button
-            onClick={onCerrar}
-            aria-label="Cerrar panel"
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="p-5 space-y-3 max-h-96 overflow-y-auto">
-          {isLoading && (
-            <div className="animate-pulse space-y-2">
-              {[0, 1].map((i) => (
-                <div key={i} className="h-14 bg-gray-100 rounded-lg" />
-              ))}
-            </div>
-          )}
-
-          {!isLoading && despachos.length === 0 && (
-            <p className="text-center text-gray-400 text-sm py-6">Sin despachos para esta orden.</p>
-          )}
-
-          {despachos.map((d) => (
-            <div key={d.despachoId} className="bg-gray-50 rounded-xl p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-700">Lote {d.codigoLote}</span>
-                <Badge estado={d.estado} map={ESTADO_DESPACHO_LABEL} />
-              </div>
-              <p className="text-xs text-gray-500">
-                {d.cantidadDespachada} unidades · {formatFecha(d.creadoEn)}
-              </p>
-
-              {d.estado === 'PREPARADO' && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => enviar.mutate(d.despachoId)}
-                    disabled={enviar.isPending}
-                    className="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    Enviar
-                  </button>
-                  <button
-                    onClick={() => setCancelando(d.despachoId)}
-                    className="text-xs text-red-500 hover:underline"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
-
-              {d.estado === 'EN_TRANSITO' && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setEntregando(d.despachoId)}
-                    className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg hover:bg-emerald-700"
-                  >
-                    Confirmar entrega
-                  </button>
-                  <button
-                    onClick={() => setCancelando(d.despachoId)}
-                    className="text-xs text-red-500 hover:underline"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
-
-              {entregando === d.despachoId && (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    placeholder="Nombre de quien recibe"
-                    value={recibidoPor}
-                    onChange={(e) => setRecibidoPor(e.target.value)}
-                    className="w-full text-xs border rounded px-2 py-1"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => entregar.mutate({ despachoId: d.despachoId, recibidoPor })}
-                      disabled={entregar.isPending || !recibidoPor.trim()}
-                      className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
-                    >
-                      Confirmar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEntregando(null);
-                        setRecibidoPor('');
-                      }}
-                      className="text-xs text-gray-500 hover:underline"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {cancelando === d.despachoId && (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    placeholder="Motivo de cancelación"
-                    value={motivoCancelar}
-                    onChange={(e) => setMotivoCancelar(e.target.value)}
-                    className="w-full text-xs border rounded px-2 py-1"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        cancelar.mutate({ despachoId: d.despachoId, motivo: motivoCancelar })
-                      }
-                      disabled={cancelar.isPending || !motivoCancelar.trim()}
-                      className="text-xs bg-red-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
-                    >
-                      Confirmar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setCancelando(null);
-                        setMotivoCancelar('');
-                      }}
-                      className="text-xs text-gray-500 hover:underline"
-                    >
-                      Descartar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {error && (
-            <p role="alert" className="text-xs text-red-600">
-              {error}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+function compactId(id: string) {
+  return id.slice(0, 8);
 }
 
-// ── Modal nueva orden (con selectores de producto y receta) ──────────────────
-
-function ModalNuevaOrden({ onCerrar }: { onCerrar: () => void }) {
-  const queryClient = useQueryClient();
-  const [varianteId, setVarianteId] = useState('');
-  const [recetaId, setRecetaId] = useState('');
-  const [cantidad, setCantidad] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  const productosQ = useQuery<ProductosResponse>({
-    queryKey: ['productos-produccion'],
-    queryFn: () => api.get<ProductosResponse>('/catalog/productos?limit=200&estado=publicado'),
-  });
-
-  // Fetch recetas asociadas a la variante seleccionada
-  const recetasQ = useQuery<RecetasResponse>({
-    queryKey: ['recetas-por-variante', varianteId],
-    queryFn: () =>
-      api.get<RecetasResponse>(
-        `/catalog/productos?varianteId=${encodeURIComponent(varianteId)}&limit=50`,
-      ),
-    enabled: false, // Recetas vienen del mismo /productos — usamos el endpoint disponible
-  });
-  void recetasQ; // suprimimos warning de unused var
-
-  const productos = (productosQ.data?.items ?? []).filter(
-    (p) => p.estado === 'publicado' && p.variantes.length > 0,
-  );
-
-  const varianteSelec = productos
-    .flatMap((p) => p.variantes.map((v) => ({ ...v, nombreProducto: p.nombre })))
-    .find((v) => v.id === varianteId);
-
-  const crear = useMutation({
-    mutationFn: (data: { varianteId: string; recetaId: string; cantidadAProducir: number }) =>
-      api.post('/production/orders', data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['ordenes-produccion'] });
-      onCerrar();
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al crear orden'),
-  });
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const cant = parseInt(cantidad, 10);
-    if (!varianteId || !recetaId.trim() || isNaN(cant) || cant < 1) {
-      setError('Selecciona un producto, ingresa el ID de receta y la cantidad (>= 1)');
-      return;
-    }
-    setError(null);
-    crear.mutate({ varianteId, recetaId: recetaId.trim(), cantidadAProducir: cant });
-  }
-
+function ErrorText({ value }: { value: string | null }) {
+  if (!value) return null;
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Nueva orden de producción"
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCerrar();
-      }}
-    >
-      <form
-        onSubmit={submit}
-        className="bg-white rounded-2xl w-full max-w-md shadow-xl p-6 space-y-4"
-      >
-        <h2 className="text-base font-semibold text-gray-800">Nueva orden de producción</h2>
-
-        {/* Selector de producto/variante */}
-        <div className="space-y-1">
-          <label htmlFor="select-variante" className="text-xs font-medium text-gray-600">
-            Producto
-          </label>
-          {productosQ.isLoading ? (
-            <div className="animate-pulse h-10 bg-gray-100 rounded-lg" />
-          ) : (
-            <select
-              id="select-variante"
-              value={varianteId}
-              onChange={(e) => setVarianteId(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
-              <option value="">-- Seleccionar producto --</option>
-              {productos.map((p) =>
-                p.variantes.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {p.nombre}
-                    {p.variantes.length > 1 ? ` (variante ${v.id.slice(0, 6)}…)` : ''}
-                  </option>
-                )),
-              )}
-            </select>
-          )}
-          {varianteSelec && (
-            <p className="text-xs text-gray-400">Variante: {varianteId.slice(0, 8)}…</p>
-          )}
-        </div>
-
-        {/* ID de receta (manual por ahora — el catálogo no expone endpoint /recetas GET) */}
-        <div className="space-y-1">
-          <label htmlFor="receta-id" className="text-xs font-medium text-gray-600">
-            ID de receta
-          </label>
-          <input
-            id="receta-id"
-            type="text"
-            placeholder="UUID de la receta"
-            value={recetaId}
-            onChange={(e) => setRecetaId(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
-          />
-          <p className="text-xs text-gray-400">
-            Obtén el ID de la receta desde el catálogo de recetas.
-          </p>
-        </div>
-
-        {/* Cantidad */}
-        <div className="space-y-1">
-          <label htmlFor="cant-orden" className="text-xs font-medium text-gray-600">
-            Cantidad a producir
-          </label>
-          <input
-            id="cant-orden"
-            type="number"
-            min={1}
-            placeholder="Ej: 50"
-            value={cantidad}
-            onChange={(e) => setCantidad(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-        </div>
-
-        {error && (
-          <p role="alert" className="text-xs text-red-600">
-            {error}
-          </p>
-        )}
-
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onCerrar}
-            className="flex-1 py-2.5 rounded-lg border text-sm font-medium text-gray-600 hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={crear.isPending}
-            className="flex-1 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50"
-          >
-            {crear.isPending ? 'Creando...' : 'Crear orden'}
-          </button>
-        </div>
-      </form>
-    </div>
+    <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{value}</p>
   );
 }
-
-// ── Panel de acciones sobre una orden ────────────────────────────────────────
-
-function PanelAccionOrden({
-  orden,
-  onActualizar,
-}: {
-  orden: ResumenOrden;
-  onActualizar: () => void;
-}) {
-  const [error, setError] = useState<string | null>(null);
-  const [mostrarEjecutar, setMostrarEjecutar] = useState(false);
-  const [mostrarCancelar, setMostrarCancelar] = useState(false);
-  const [mostrarDespacho, setMostrarDespacho] = useState(false);
-  const [mostrarMerma, setMostrarMerma] = useState(false);
-  const [formEjecutar, setFormEjecutar] = useState({ cantidadProducida: '', codigoLote: '' });
-  const [motivoCancelar, setMotivoCancelar] = useState('');
-  const [formDespacho, setFormDespacho] = useState({ cantidadDespachada: '', puntoDestinoId: '' });
-  const [formMerma, setFormMerma] = useState({
-    ingredientId: '',
-    cantidad: '',
-    unidad: '',
-    motivo: '',
-  });
-
-  const calcularBOM = useMutation({
-    mutationFn: () => api.post(`/production/orders/${orden.ordenId}/bom`, { confirmar: true }),
-    onSuccess: () => {
-      onActualizar();
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al calcular BOM'),
-  });
-
-  const iniciar = useMutation({
-    mutationFn: () => api.post(`/production/orders/${orden.ordenId}/iniciar`, {}),
-    onSuccess: () => {
-      onActualizar();
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al iniciar'),
-  });
-
-  const ejecutar = useMutation({
-    mutationFn: (data: { cantidadProducida: number; codigoLote: string }) =>
-      api.post(`/production/orders/${orden.ordenId}/ejecutar`, data),
-    onSuccess: () => {
-      onActualizar();
-      setMostrarEjecutar(false);
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al ejecutar'),
-  });
-
-  const cancelar = useMutation({
-    mutationFn: (motivo: string) => api.delete(`/production/orders/${orden.ordenId}`, { motivo }),
-    onSuccess: () => {
-      onActualizar();
-      setMostrarCancelar(false);
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al cancelar'),
-  });
-
-  const prepararDespacho = useMutation({
-    mutationFn: (data: { cantidadDespachada: number; puntoDeVentaDestinoId: string }) =>
-      api.post('/production/dispatches', { ordenId: orden.ordenId, ...data }),
-    onSuccess: () => {
-      onActualizar();
-      setMostrarDespacho(false);
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al preparar despacho'),
-  });
-
-  const registrarMerma = useMutation({
-    mutationFn: (data: {
-      ingredientId: string;
-      cantidad: number;
-      unidad: string;
-      motivo: string;
-    }) => api.post(`/production/orders/${orden.ordenId}/mermas`, data),
-    onSuccess: () => {
-      onActualizar();
-      setMostrarMerma(false);
-      setFormMerma({ ingredientId: '', cantidad: '', unidad: '', motivo: '' });
-      setError(null);
-    },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'Error al registrar merma'),
-  });
-
-  function submitEjecutar(e: React.FormEvent) {
-    e.preventDefault();
-    const cantidad = parseInt(formEjecutar.cantidadProducida, 10);
-    if (isNaN(cantidad) || cantidad < 1 || !formEjecutar.codigoLote.trim()) {
-      setError('Cantidad y código de lote son obligatorios');
-      return;
-    }
-    ejecutar.mutate({ cantidadProducida: cantidad, codigoLote: formEjecutar.codigoLote.trim() });
-  }
-
-  function submitMerma(e: React.FormEvent) {
-    e.preventDefault();
-    const cant = parseFloat(formMerma.cantidad);
-    if (!formMerma.ingredientId.trim() || isNaN(cant) || cant <= 0 || !formMerma.unidad.trim()) {
-      setError('ID de ingrediente, cantidad y unidad son obligatorios');
-      return;
-    }
-    registrarMerma.mutate({
-      ingredientId: formMerma.ingredientId.trim(),
-      cantidad: cant,
-      unidad: formMerma.unidad.trim(),
-      motivo: formMerma.motivo.trim() || 'Merma registrada en producción',
-    });
-  }
-
-  function submitDespacho(e: React.FormEvent) {
-    e.preventDefault();
-    const cantidad = parseInt(formDespacho.cantidadDespachada, 10);
-    if (isNaN(cantidad) || cantidad < 1 || !formDespacho.puntoDestinoId.trim()) {
-      setError('Cantidad y punto destino son obligatorios');
-      return;
-    }
-    prepararDespacho.mutate({
-      cantidadDespachada: cantidad,
-      puntoDeVentaDestinoId: formDespacho.puntoDestinoId.trim(),
-    });
-  }
-
-  const { estado } = orden;
-
-  return (
-    <div className="space-y-2">
-      {error && (
-        <p role="alert" className="text-xs text-red-600">
-          {error}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-2">
-        {estado === 'PLANIFICADA' && (
-          <>
-            <button
-              onClick={() => calcularBOM.mutate()}
-              disabled={calcularBOM.isPending}
-              className="text-xs bg-yellow-500 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-600 disabled:opacity-50"
-            >
-              Calcular BOM
-            </button>
-            <button
-              onClick={() => setMostrarCancelar(true)}
-              className="text-xs text-red-500 hover:underline"
-            >
-              Cancelar
-            </button>
-          </>
-        )}
-        {estado === 'RESERVADA' && (
-          <>
-            <button
-              onClick={() => iniciar.mutate()}
-              disabled={iniciar.isPending}
-              className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              Iniciar ejecución
-            </button>
-            <button
-              onClick={() => setMostrarCancelar(true)}
-              className="text-xs text-red-500 hover:underline"
-            >
-              Cancelar
-            </button>
-          </>
-        )}
-        {estado === 'EN_EJECUCION' && (
-          <>
-            <button
-              onClick={() => setMostrarEjecutar(true)}
-              className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700"
-            >
-              Cerrar producción
-            </button>
-            <button
-              onClick={() => setMostrarMerma(!mostrarMerma)}
-              className="text-xs text-orange-600 border border-orange-300 px-3 py-1.5 rounded-lg hover:bg-orange-50"
-            >
-              Registrar merma
-            </button>
-          </>
-        )}
-        {estado === 'EJECUTADA' && (
-          <button
-            onClick={() => setMostrarDespacho(true)}
-            className="text-xs bg-brand-600 text-white px-3 py-1.5 rounded-lg hover:bg-brand-700"
-          >
-            Preparar despacho
-          </button>
-        )}
-      </div>
-
-      {mostrarEjecutar && (
-        <form onSubmit={submitEjecutar} className="bg-gray-50 rounded-xl p-3 space-y-2 mt-2">
-          <p className="text-xs font-medium text-gray-700">Cerrar producción</p>
-          <input
-            type="number"
-            min={1}
-            placeholder="Cantidad producida"
-            value={formEjecutar.cantidadProducida}
-            onChange={(e) =>
-              setFormEjecutar({ ...formEjecutar, cantidadProducida: e.target.value })
-            }
-            className="w-full border rounded px-2 py-1 text-xs"
-          />
-          <input
-            type="text"
-            placeholder="Código de lote (ej: LOTE-2026-001)"
-            value={formEjecutar.codigoLote}
-            onChange={(e) => setFormEjecutar({ ...formEjecutar, codigoLote: e.target.value })}
-            className="w-full border rounded px-2 py-1 text-xs"
-          />
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={ejecutar.isPending}
-              className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
-            >
-              Confirmar
-            </button>
-            <button
-              type="button"
-              onClick={() => setMostrarEjecutar(false)}
-              className="text-xs text-gray-500 hover:underline"
-            >
-              Descartar
-            </button>
-          </div>
-        </form>
-      )}
-
-      {mostrarDespacho && (
-        <form onSubmit={submitDespacho} className="bg-gray-50 rounded-xl p-3 space-y-2 mt-2">
-          <p className="text-xs font-medium text-gray-700">
-            Preparar despacho · lote {orden.lote?.codigo}
-          </p>
-          <input
-            type="number"
-            min={1}
-            max={orden.lote?.cantidadProducida ?? undefined}
-            placeholder={`Cantidad (máx ${orden.lote?.cantidadProducida ?? '?'})`}
-            value={formDespacho.cantidadDespachada}
-            onChange={(e) =>
-              setFormDespacho({ ...formDespacho, cantidadDespachada: e.target.value })
-            }
-            className="w-full border rounded px-2 py-1 text-xs"
-          />
-          <input
-            type="text"
-            placeholder="UUID del punto de venta destino"
-            value={formDespacho.puntoDestinoId}
-            onChange={(e) => setFormDespacho({ ...formDespacho, puntoDestinoId: e.target.value })}
-            className="w-full border rounded px-2 py-1 text-xs"
-          />
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={prepararDespacho.isPending}
-              className="text-xs bg-brand-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
-            >
-              Preparar
-            </button>
-            <button
-              type="button"
-              onClick={() => setMostrarDespacho(false)}
-              className="text-xs text-gray-500 hover:underline"
-            >
-              Descartar
-            </button>
-          </div>
-        </form>
-      )}
-
-      {mostrarMerma && (
-        <form
-          onSubmit={submitMerma}
-          className="bg-orange-50 rounded-xl p-3 space-y-2 mt-2 border border-orange-200"
-        >
-          <p className="text-xs font-semibold text-orange-700">Registrar merma</p>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              placeholder="ID ingrediente (UUID)"
-              value={formMerma.ingredientId}
-              onChange={(e) => setFormMerma({ ...formMerma, ingredientId: e.target.value })}
-              className="col-span-2 border rounded px-2 py-1.5 text-xs font-mono focus:ring-1 focus:ring-orange-400"
-            />
-            <input
-              type="number"
-              min={0.001}
-              step={0.001}
-              placeholder="Cantidad"
-              value={formMerma.cantidad}
-              onChange={(e) => setFormMerma({ ...formMerma, cantidad: e.target.value })}
-              className="border rounded px-2 py-1.5 text-xs"
-            />
-            <input
-              type="text"
-              placeholder="Unidad (kg, l, uds)"
-              value={formMerma.unidad}
-              onChange={(e) => setFormMerma({ ...formMerma, unidad: e.target.value })}
-              className="border rounded px-2 py-1.5 text-xs"
-            />
-            <input
-              type="text"
-              placeholder="Motivo (opcional)"
-              value={formMerma.motivo}
-              onChange={(e) => setFormMerma({ ...formMerma, motivo: e.target.value })}
-              className="col-span-2 border rounded px-2 py-1.5 text-xs"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={registrarMerma.isPending}
-              className="text-xs bg-orange-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
-            >
-              Registrar
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMostrarMerma(false);
-                setFormMerma({ ingredientId: '', cantidad: '', unidad: '', motivo: '' });
-              }}
-              className="text-xs text-gray-500 hover:underline"
-            >
-              Cerrar
-            </button>
-          </div>
-        </form>
-      )}
-
-      {mostrarCancelar && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2 mt-2">
-          <p className="text-xs font-medium text-red-700">Cancelar orden</p>
-          <input
-            type="text"
-            placeholder="Motivo de cancelación"
-            value={motivoCancelar}
-            onChange={(e) => setMotivoCancelar(e.target.value)}
-            className="w-full border rounded px-2 py-1 text-xs"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={() => cancelar.mutate(motivoCancelar)}
-              disabled={cancelar.isPending || !motivoCancelar.trim()}
-              className="text-xs bg-red-600 text-white px-3 py-1 rounded-lg disabled:opacity-50"
-            >
-              Confirmar
-            </button>
-            <button
-              onClick={() => {
-                setMostrarCancelar(false);
-                setMotivoCancelar('');
-              }}
-              className="text-xs text-gray-500 hover:underline"
-            >
-              Descartar
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Página principal ──────────────────────────────────────────────────────────
 
 export default function Produccion() {
   const queryClient = useQueryClient();
-  const [filtroEstado, setFiltroEstado] = useState<string>('');
-  const [ordenConDespachos, setOrdenConDespachos] = useState<ResumenOrden | null>(null);
-  const [mostrarNuevaOrden, setMostrarNuevaOrden] = useState(false);
+  const [filtroEstado, setFiltroEstado] = useState('');
+  const [modalNuevaOrden, setModalNuevaOrden] = useState(false);
+  const [ordenActiva, setOrdenActiva] = useState<ResumenOrden | null>(null);
+  const [errorGlobal, setErrorGlobal] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useQuery<OrdenesResponse>({
+  const ordenesQ = useQuery<OrdenesResponse>({
     queryKey: ['ordenes-produccion', filtroEstado],
     queryFn: () =>
       api.get<OrdenesResponse>(
@@ -861,110 +95,464 @@ export default function Produccion() {
     refetchInterval: 30_000,
   });
 
+  const ordenes = ordenesQ.data?.ordenes ?? [];
+  const resumen = useMemo(
+    () => ({
+      planeadas: ordenes.filter((o) => o.estado === 'PLANIFICADA').length,
+      enProceso: ordenes.filter((o) => o.estado === 'RESERVADA' || o.estado === 'EN_EJECUCION')
+        .length,
+      terminadas: ordenes.filter((o) => o.estado === 'EJECUTADA').length,
+      unidades: ordenes.reduce((sum, o) => sum + (o.lote?.cantidadProducida ?? 0), 0),
+    }),
+    [ordenes],
+  );
+
   function invalidar() {
     void queryClient.invalidateQueries({ queryKey: ['ordenes-produccion'] });
   }
 
-  const ordenes = data?.ordenes ?? [];
-
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-800">Producción</h1>
-        <button
-          onClick={() => setMostrarNuevaOrden(true)}
-          className="text-sm bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700"
-        >
-          Nueva orden
-        </button>
-      </div>
+    <div className="mx-auto flex max-w-7xl flex-col gap-5">
+      <section className="surface p-5">
+        <div className="grid gap-4 lg:grid-cols-[1fr_460px] lg:items-end">
+          <div>
+            <p className="section-title">Planta central</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+              Produccion diaria
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Crea ordenes desde productos con receta, reserva inventario, cierra lotes y prepara
+              despachos a puntos de venta.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Kpi label="Planificadas" value={resumen.planeadas} tone="slate" />
+            <Kpi label="En curso" value={resumen.enProceso} tone="sky" />
+            <Kpi label="Terminadas" value={resumen.terminadas} tone="emerald" />
+            <Kpi label="Unidades" value={resumen.unidades} tone="amber" />
+          </div>
+        </div>
+      </section>
 
-      {/* Filtro de estado */}
-      <div className="flex gap-2 flex-wrap">
-        {['', 'PLANIFICADA', 'RESERVADA', 'EN_EJECUCION', 'EJECUTADA', 'CANCELADA'].map((e) => (
-          <button
-            key={e}
-            onClick={() => setFiltroEstado(e)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              filtroEstado === e
-                ? 'bg-brand-600 text-white border-brand-600'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-brand-400'
-            }`}
-          >
-            {e === '' ? 'Todas' : (ESTADO_ORDEN_LABEL[e]?.label ?? e)}
+      <section className="surface p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {ESTADOS.map((estado) => (
+              <button
+                key={estado || 'TODAS'}
+                onClick={() => setFiltroEstado(estado)}
+                className={`shrink-0 rounded-lg px-3 py-2 text-sm font-bold ${
+                  filtroEstado === estado
+                    ? 'bg-slate-950 text-white'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {estado ? estadoLabel(estado).label : 'Todas'}
+              </button>
+            ))}
+          </div>
+          <button className="btn-primary" onClick={() => setModalNuevaOrden(true)}>
+            Nueva orden
           </button>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      {/* Lista de órdenes */}
-      {isLoading && (
-        <div className="animate-pulse space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-xl" />
+      <ErrorText value={errorGlobal} />
+
+      {ordenesQ.isLoading && (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-44 animate-pulse rounded-lg bg-slate-200" />
           ))}
         </div>
       )}
 
-      {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
-          Error al cargar órdenes. Verifica que la API esté corriendo.
+      {ordenesQ.isError && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
+          No se pudieron cargar las ordenes de produccion.
         </div>
       )}
 
-      {!isLoading && !isError && ordenes.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-base">Sin órdenes de producción.</p>
-          <p className="text-sm mt-1">Crea una nueva orden para comenzar.</p>
+      {!ordenesQ.isLoading && !ordenesQ.isError && ordenes.length === 0 && (
+        <div className="surface p-10 text-center">
+          <p className="text-lg font-black text-slate-800">No hay ordenes en este estado</p>
+          <p className="mt-1 text-sm text-slate-500">Crea una orden para comenzar produccion.</p>
         </div>
       )}
 
-      <div className="space-y-3">
-        {ordenes.map((o) => {
-          const estadoInfo = ESTADO_ORDEN_LABEL[o.estado] ?? {
-            label: o.estado,
-            color: 'bg-gray-100 text-gray-700',
-          };
-          return (
-            <div key={o.ordenId} className="bg-white border rounded-xl p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-gray-800 truncate">
-                      {o.lote ? `Lote ${o.lote.codigo}` : `Orden ${o.ordenId.slice(0, 8)}…`}
-                    </span>
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${estadoInfo.color}`}
-                    >
-                      {estadoInfo.label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {o.cantidadAProducir} uds · {formatFecha(o.creadaEn)}
-                    {o.lote && ` · Producidas: ${o.lote.cantidadProducida}`}
-                  </p>
-                </div>
-                {(o.estado === 'EJECUTADA' || o.estado === 'EN_EJECUCION') && (
-                  <button
-                    onClick={() => setOrdenConDespachos(o)}
-                    className="text-xs text-brand-600 hover:underline whitespace-nowrap flex-shrink-0"
-                  >
-                    Ver despachos
-                  </button>
-                )}
-              </div>
-
-              {o.estado !== 'EJECUTADA' && o.estado !== 'CANCELADA' && (
-                <PanelAccionOrden orden={o} onActualizar={invalidar} />
-              )}
-            </div>
-          );
-        })}
+      <div className="grid gap-3 lg:grid-cols-2">
+        {ordenes.map((orden) => (
+          <OrdenCard
+            key={orden.ordenId}
+            orden={orden}
+            onActualizar={invalidar}
+            onError={setErrorGlobal}
+            onDespacho={() => setOrdenActiva(orden)}
+          />
+        ))}
       </div>
 
-      {mostrarNuevaOrden && <ModalNuevaOrden onCerrar={() => setMostrarNuevaOrden(false)} />}
-      {ordenConDespachos && (
-        <PanelDespachos orden={ordenConDespachos} onCerrar={() => setOrdenConDespachos(null)} />
+      {modalNuevaOrden && <ModalNuevaOrden onCerrar={() => setModalNuevaOrden(false)} />}
+      {ordenActiva && (
+        <PanelDespacho
+          orden={ordenActiva}
+          onCerrar={() => setOrdenActiva(null)}
+          onActualizar={invalidar}
+          onError={setErrorGlobal}
+        />
       )}
+    </div>
+  );
+}
+
+function Kpi({ label, value, tone }: { label: string; value: number; tone: string }) {
+  const classes: Record<string, string> = {
+    slate: 'bg-slate-950 text-white',
+    sky: 'bg-sky-50 text-sky-800',
+    emerald: 'bg-emerald-50 text-emerald-800',
+    amber: 'bg-amber-50 text-amber-800',
+  };
+  return (
+    <div className={`rounded-lg p-3 ${classes[tone] ?? classes.slate}`}>
+      <p className="text-xs font-semibold opacity-80">{label}</p>
+      <p className="text-2xl font-black">{value}</p>
+    </div>
+  );
+}
+
+function ModalNuevaOrden({ onCerrar }: { onCerrar: () => void }) {
+  const queryClient = useQueryClient();
+  const [varianteId, setVarianteId] = useState('');
+  const [cantidad, setCantidad] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const productosQ = useQuery<ProductosResponse>({
+    queryKey: ['productos-produccion'],
+    queryFn: () => api.get<ProductosResponse>('/catalog/productos?limit=200'),
+  });
+
+  const variantes = (productosQ.data?.items ?? [])
+    .filter((p) => p.estado === 'publicado' || p.estado === 'activo')
+    .flatMap((p) => p.variantes.map((v) => ({ ...v, nombreProducto: p.nombre })));
+  const variantesConReceta = variantes.filter((v) => Boolean(v.recetaId));
+  const variante = variantesConReceta.find((v) => v.id === varianteId);
+
+  const crear = useMutation({
+    mutationFn: (data: { varianteId: string; recetaId: string; cantidadAProducir: number }) =>
+      api.post('/production/orders', data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['ordenes-produccion'] });
+      onCerrar();
+    },
+    onError: (e) => setError(e instanceof ApiError ? e.message : 'No se pudo crear la orden'),
+  });
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    const cantidadAProducir = Number(cantidad);
+    if (!variante?.recetaId || !Number.isInteger(cantidadAProducir) || cantidadAProducir < 1) {
+      setError('Selecciona un producto con receta y una cantidad valida');
+      return;
+    }
+    setError(null);
+    crear.mutate({ varianteId: variante.id, recetaId: variante.recetaId, cantidadAProducir });
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-4 sm:items-center"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCerrar();
+      }}
+    >
+      <form onSubmit={submit} className="surface w-full max-w-md p-5">
+        <h2 className="text-lg font-black text-slate-950">Nueva orden de produccion</h2>
+        <div className="mt-4 space-y-3">
+          <select
+            className="field"
+            value={varianteId}
+            onChange={(e) => setVarianteId(e.target.value)}
+          >
+            <option value="">Producto con receta</option>
+            {variantesConReceta.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.nombreProducto}
+                {v.nombre ? ` - ${v.nombre}` : ''}
+              </option>
+            ))}
+          </select>
+          {!productosQ.isLoading && variantesConReceta.length === 0 && (
+            <p className="text-sm font-semibold text-amber-700">
+              No hay productos con receta vinculada. Crea recetas desde Catalogo antes de producir.
+            </p>
+          )}
+          <input
+            className="field"
+            type="number"
+            min={1}
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            placeholder="Cantidad a producir"
+          />
+        </div>
+        <ErrorText value={error} />
+        <div className="mt-5 flex gap-2">
+          <button type="button" className="btn-secondary flex-1" onClick={onCerrar}>
+            Cancelar
+          </button>
+          <button className="btn-primary flex-1" disabled={crear.isPending}>
+            {crear.isPending ? 'Creando...' : 'Crear orden'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function OrdenCard({
+  orden,
+  onActualizar,
+  onError,
+  onDespacho,
+}: {
+  orden: ResumenOrden;
+  onActualizar: () => void;
+  onError: (error: string | null) => void;
+  onDespacho: () => void;
+}) {
+  const [lote, setLote] = useState('');
+  const [cantidadProducida, setCantidadProducida] = useState('');
+  const [motivoCancelacion, setMotivoCancelacion] = useState('');
+  const estado = estadoLabel(orden.estado);
+
+  const calcularBOM = useOrdenMutation(
+    `/production/orders/${orden.ordenId}/bom`,
+    onActualizar,
+    onError,
+  );
+  const iniciar = useOrdenMutation(
+    `/production/orders/${orden.ordenId}/iniciar`,
+    onActualizar,
+    onError,
+  );
+  const ejecutar = useMutation({
+    mutationFn: () =>
+      api.post(`/production/orders/${orden.ordenId}/ejecutar`, {
+        codigoLote: lote.trim(),
+        cantidadProducida: Number(cantidadProducida),
+      }),
+    onSuccess: () => {
+      setLote('');
+      setCantidadProducida('');
+      onActualizar();
+      onError(null);
+    },
+    onError: (e) => onError(e instanceof ApiError ? e.message : 'No se pudo cerrar produccion'),
+  });
+  const cancelar = useMutation({
+    mutationFn: () =>
+      api.delete(`/production/orders/${orden.ordenId}`, { motivo: motivoCancelacion }),
+    onSuccess: () => {
+      setMotivoCancelacion('');
+      onActualizar();
+      onError(null);
+    },
+    onError: (e) => onError(e instanceof ApiError ? e.message : 'No se pudo cancelar'),
+  });
+
+  return (
+    <article className="surface p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+            Orden {compactId(orden.ordenId)}
+          </p>
+          <h2 className="mt-1 text-xl font-black text-slate-950">
+            {orden.lote ? `Lote ${orden.lote.codigo}` : `${orden.cantidadAProducir} unidades`}
+          </h2>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            Creada {formatFecha(orden.creadaEn)}
+          </p>
+        </div>
+        <span className={`rounded-full px-2 py-1 text-xs font-bold ${estado.className}`}>
+          {estado.label}
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-slate-50 p-3">
+          <p className="text-xs text-slate-500">Plan</p>
+          <p className="text-lg font-black text-slate-900">{orden.cantidadAProducir}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 p-3">
+          <p className="text-xs text-slate-500">Producido</p>
+          <p className="text-lg font-black text-slate-900">{orden.lote?.cantidadProducida ?? 0}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {orden.estado === 'PLANIFICADA' && (
+          <button className="btn-secondary" onClick={() => calcularBOM.mutate({ confirmar: true })}>
+            Reservar insumos
+          </button>
+        )}
+        {orden.estado === 'RESERVADA' && (
+          <button className="btn-primary" onClick={() => iniciar.mutate({ confirmar: true })}>
+            Iniciar
+          </button>
+        )}
+        {orden.estado === 'EJECUTADA' && (
+          <button className="btn-primary" onClick={onDespacho}>
+            Preparar despacho
+          </button>
+        )}
+      </div>
+
+      {orden.estado === 'EN_EJECUCION' && (
+        <div className="mt-4 grid gap-2 rounded-lg bg-emerald-50 p-3 sm:grid-cols-[1fr_1fr_auto]">
+          <input
+            className="field"
+            value={lote}
+            onChange={(e) => setLote(e.target.value)}
+            placeholder="Codigo de lote"
+          />
+          <input
+            className="field"
+            type="number"
+            min={1}
+            value={cantidadProducida}
+            onChange={(e) => setCantidadProducida(e.target.value)}
+            placeholder="Cantidad final"
+          />
+          <button
+            className="btn-primary"
+            disabled={ejecutar.isPending || !lote.trim() || Number(cantidadProducida) < 1}
+            onClick={() => ejecutar.mutate()}
+          >
+            Cerrar lote
+          </button>
+        </div>
+      )}
+
+      {orden.estado !== 'EJECUTADA' && orden.estado !== 'CANCELADA' && (
+        <div className="mt-3 flex gap-2">
+          <input
+            className="field"
+            value={motivoCancelacion}
+            onChange={(e) => setMotivoCancelacion(e.target.value)}
+            placeholder="Motivo para cancelar"
+          />
+          <button
+            className="btn-danger"
+            disabled={cancelar.isPending || !motivoCancelacion.trim()}
+            onClick={() => cancelar.mutate()}
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function useOrdenMutation(
+  path: string,
+  onActualizar: () => void,
+  onError: (error: string | null) => void,
+) {
+  return useMutation({
+    mutationFn: (body: unknown) => api.post(path, body),
+    onSuccess: () => {
+      onActualizar();
+      onError(null);
+    },
+    onError: (e) => onError(e instanceof ApiError ? e.message : 'No se pudo completar la accion'),
+  });
+}
+
+function PanelDespacho({
+  orden,
+  onCerrar,
+  onActualizar,
+  onError,
+}: {
+  orden: ResumenOrden;
+  onCerrar: () => void;
+  onActualizar: () => void;
+  onError: (error: string | null) => void;
+}) {
+  const [cantidad, setCantidad] = useState('');
+  const [destinoId, setDestinoId] = useState('');
+  const unidadesQ = useQuery<UnidadesResponse>({
+    queryKey: ['unidades-negocio'],
+    queryFn: () => api.get<UnidadesResponse>('/identity/unidades-de-negocio'),
+  });
+  const destinos = (unidadesQ.data?.items ?? []).filter((u) => u.estado === 'activo');
+  const preparar = useMutation({
+    mutationFn: () =>
+      api.post('/production/dispatches', {
+        ordenId: orden.ordenId,
+        cantidadDespachada: Number(cantidad),
+        puntoDeVentaDestinoId: destinoId,
+      }),
+    onSuccess: () => {
+      onActualizar();
+      onCerrar();
+      onError(null);
+    },
+    onError: (e) => onError(e instanceof ApiError ? e.message : 'No se pudo preparar despacho'),
+  });
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-4 sm:items-center"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCerrar();
+      }}
+    >
+      <div className="surface w-full max-w-md p-5">
+        <h2 className="text-lg font-black text-slate-950">Preparar despacho</h2>
+        <p className="mt-1 text-sm text-slate-500">Lote {orden.lote?.codigo}</p>
+        <div className="mt-4 space-y-3">
+          <input
+            className="field"
+            type="number"
+            min={1}
+            max={orden.lote?.cantidadProducida ?? undefined}
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            placeholder={`Cantidad max ${orden.lote?.cantidadProducida ?? '?'}`}
+          />
+          <select
+            className="field"
+            value={destinoId}
+            onChange={(e) => setDestinoId(e.target.value)}
+          >
+            <option value="">Punto de venta destino</option>
+            {destinos.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.nombre} - {u.tipo}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-5 flex gap-2">
+          <button className="btn-secondary flex-1" onClick={onCerrar}>
+            Cancelar
+          </button>
+          <button
+            className="btn-primary flex-1"
+            disabled={preparar.isPending || !destinoId || Number(cantidad) < 1}
+            onClick={() => preparar.mutate()}
+          >
+            Preparar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

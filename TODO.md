@@ -1,19 +1,19 @@
-# TODO — Deuda técnica activa
+# TODO - Deuda tecnica activa
 
-> Deuda aceptada conscientemente. Cada item tiene un ID rastreable en `CLAUDE.md §7`.
+> Lista breve de trabajo pendiente. El estado canonico vive en `CLAUDE.md §7`.
 
-## Alta prioridad (seguridad / corrección)
+## Alta prioridad operativa
 
-- **D-030** — Tabla `audit.log` global append-only con hash encadenado (scope futuro).
+- **D-010** - Offline-first con SQLite local para tablets.
 
-## Media prioridad (calidad / operaciones)
+## Baja prioridad / futuro
 
-- **D-027** — `docker/web.Dockerfile` no actualizado con paths `frontend/`.
-- **D-028** — Verificar rutas Playwright post-reorganización (`qa/e2e/`).
-- **D-029** — Artefactos `backend/domain/*/dist/**` en git; agregar `dist/` al `.gitignore` de dominio.
+- **D-008** - Tema oscuro en frontend.
+- **D-009** - i18n completo. Actualmente la interfaz esta hardcodeada en espanol Colombia.
 
-## Baja prioridad (cosméticos / futuro)
+## Cerrado en `CLAUDE.md §7`
 
-- **D-008** — Tema oscuro en frontend.
-- **D-009** — i18n completo (actualmente hardcodeado en español Colombia).
-- **D-010** — Offline-first con SQLite local para tablets.
+- **D-027** - Dockerfile web actualizado a `frontend/web`.
+- **D-028** - Rutas Playwright verificadas contra `qa/e2e`.
+- **D-029** - `dist/**` resuelto mediante `.gitignore` raiz.
+- **D-030** - Auditoria append-only con hash encadenado implementada.

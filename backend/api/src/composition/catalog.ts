@@ -15,7 +15,7 @@ export interface ProductoListItem {
   nombre: string;
   estado: string;
   categoria: { id: string; nombre: string } | null;
-  variantes: Array<{ id: string; nombre: string; precio_cop: number }>;
+  variantes: Array<{ id: string; nombre: string; precio_cop: number; recetaId: string | null }>;
 }
 
 export interface CatalogComposition {
@@ -72,6 +72,7 @@ export function createCatalogComposition(adapters: CatalogAdapters): CatalogComp
           'v.id as var_id',
           'v.nombre as var_nombre',
           'v.precio_cop',
+          'v.receta_id',
         ])
         .where('p.nombre', 'ilike', `%${search}%`)
         .orderBy('p.nombre')
@@ -97,6 +98,7 @@ export function createCatalogComposition(adapters: CatalogAdapters): CatalogComp
               id: row.var_id,
               nombre: row.var_nombre ?? '',
               precio_cop: row.precio_cop ?? 0,
+              recetaId: row.receta_id ?? null,
             });
           }
         }

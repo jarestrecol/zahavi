@@ -4,7 +4,6 @@ import {
   generateSaTotp,
   SA_EMAIL,
   SA_PASSWORD,
-  BU_ID,
   WORKER_EMAIL,
   WORKER_PIN,
   DEVICE_ID,
@@ -167,19 +166,19 @@ test('WORKER no puede crear ingrediente → 403', async ({ request }) => {
 test('GET /inventory/stock requiere ADMIN o SUPERADMIN → WORKER recibe 403', async ({
   request,
 }) => {
-  const res = await request.get(`/inventory/stock?businessUnitId=${BU_ID}`, {
+  const res = await request.get('/inventory/stock', {
     headers: { Authorization: `Bearer ${workerToken}` },
   });
   expect(res.status()).toBe(403);
 });
 
 test('GET /inventory/stock sin token → 401', async ({ request }) => {
-  const res = await request.get(`/inventory/stock?businessUnitId=${BU_ID}`);
+  const res = await request.get('/inventory/stock');
   expect(res.status()).toBe(401);
 });
 
 test('GET /inventory/stock para SUPERADMIN → 200 con array', async ({ request }) => {
-  const res = await request.get(`/inventory/stock?businessUnitId=${BU_ID}`, {
+  const res = await request.get('/inventory/stock', {
     headers: { Authorization: `Bearer ${saToken}` },
   });
   expect(res.status()).toBe(200);
