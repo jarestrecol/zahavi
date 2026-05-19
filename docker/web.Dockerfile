@@ -5,12 +5,12 @@ WORKDIR /app
 
 # Copiar manifiestos primero para cache de dependencias
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY apps/web/package.json ./apps/web/
+COPY frontend/web/package.json ./frontend/web/
 
 RUN pnpm install --frozen-lockfile
 
 # Copiar código fuente del frontend
-COPY apps/web ./apps/web
+COPY frontend/web ./frontend/web
 
 EXPOSE 5173
 
