@@ -226,6 +226,7 @@ zahavi/
 | Sesiones | `a93500f` | ListarMisSesiones UC + GET /identity/sesiones + panel MisSesiones en header |
 | Seg+Deudas | `4f43790` | fix README credencial; D-027 Dockerfile; D-028 verificado; D-029 resuelto |
 | Fase 9 Prod | `25074c6` | EnviarDespacho/EntregarDespacho/CancelarDespacho/ListarDespachos UCs + 4 endpoints + Produccion.tsx |
+| D-031 Inv | `a4a0be1` | IDescontadorDeInventario port + DescontadorDeInventarioSupabase + EjecutarOrden integrado |
 
 ### Deuda técnica activa
 
