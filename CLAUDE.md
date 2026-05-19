@@ -225,7 +225,7 @@ zahavi/
 | Fase 8 POS | `5b96c5a` | ObtenerComanda UC + GET /comandas/:id + Mesas/Mesa pages + cobro + factura |
 | Sesiones | `a93500f` | ListarMisSesiones UC + GET /identity/sesiones + panel MisSesiones en header |
 | Seg+Deudas | `4f43790` | fix README credencial; D-027 Dockerfile; D-028 verificado; D-029 resuelto |
-| Fase 9 Prod | pendiente | EnviarDespacho/EntregarDespacho/CancelarDespacho/ListarDespachos UCs + 4 endpoints + Produccion.tsx |
+| Fase 9 Prod | `25074c6` | EnviarDespacho/EntregarDespacho/CancelarDespacho/ListarDespachos UCs + 4 endpoints + Produccion.tsx |
 
 ### Deuda técnica activa
 
