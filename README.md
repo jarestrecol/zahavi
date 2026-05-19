@@ -28,7 +28,7 @@ La app queda disponible en `http://localhost:5173`.
 | Email | Contraseña | Rol |
 |---|---|---|
 | julian@zahavi.local | Ver `.env` | SUPERADMIN |
-| admin@zahavi.local | `Zahavi2026!` | ADMIN |
+| admin@zahavi.local | Ver `.env` | ADMIN |
 | worker@zahavi.local | PIN en tablet | WORKER |
 
 ---
