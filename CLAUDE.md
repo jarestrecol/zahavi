@@ -221,7 +221,7 @@ zahavi/
 | QA Fase 1 | `ddc19a2` | Auditoría + resolución hallazgos críticos (FORCE RLS, PWA, accesibilidad, rate-limit) |
 | QA Fase 2 | `3a51e40` | Reorganización física backend/frontend/database/qa/info |
 | Seg+Tests | `f73a910` | SEC-001 JWT inventory + TEST-001 vitest dist + DOC-001 TODO.md |
-| Fase 8 POS | pendiente | ObtenerComanda UC + GET /comandas/:id + Mesas/Mesa pages + cobro + factura |
+| Fase 8 POS | `5b96c5a` | ObtenerComanda UC + GET /comandas/:id + Mesas/Mesa pages + cobro + factura |
 
 ### Deuda técnica activa
 
