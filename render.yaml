@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm build
-    startCommand: node apps/api/dist/index.js
+    startCommand: node backend/api/dist/index.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:
