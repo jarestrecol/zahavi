@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import jwtPlugin from './plugins/jwt.js';
+import auditPlugin from './plugins/audit.js';
 import { errorHandler } from './plugins/error-handler.js';
 import identityRoutes from './routes/identity/index.js';
 import catalogRoutes from './routes/catalog/index.js';
@@ -19,6 +20,7 @@ import type { ProductionComposition } from './composition/production.js';
 import type { SalesComposition } from './composition/sales.js';
 import type { ReportingComposition } from './composition/reporting.js';
 import type { HealthCheckResult } from '@zahavi/adapter-persistence-supabase';
+import type { IAuditLogger } from '@zahavi/ports';
 
 export function buildServer(
   env: Env,
@@ -29,6 +31,7 @@ export function buildServer(
   salesComposition: SalesComposition,
   reportingComposition: ReportingComposition,
   checkDb: () => Promise<HealthCheckResult>,
+  auditLogger: IAuditLogger,
 ) {
   const isProd = env.NODE_ENV === 'production';
 
@@ -91,6 +94,7 @@ export function buildServer(
   });
 
   fastify.register(jwtPlugin, { jwtSecret: env.JWT_SECRET });
+  fastify.register(auditPlugin, { auditLogger });
 
   fastify.setErrorHandler(errorHandler);
 

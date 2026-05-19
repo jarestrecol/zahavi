@@ -25,3 +25,6 @@ export type { SalesAdapters } from './sales/factory.js';
 export * from './reporting/index.js';
 export { createReportingAdapters } from './reporting/factory.js';
 export type { ReportingAdapters } from './reporting/factory.js';
+
+export { AuditLoggerSupabase } from './audit/index.js';
+export { createAuditLogger } from './audit/factory.js';

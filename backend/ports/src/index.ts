@@ -4,3 +4,4 @@ export * from './inventory/index.js';
 export * from './production/index.js';
 export * from './sales/index.js';
 export * from './reporting/index.js';
+export * from './audit/index.js';

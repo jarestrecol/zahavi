@@ -212,7 +212,8 @@ zahavi/
 >
 > - **Siguiente:** Validar E2E en navegador. Fase 10 (scope futuro): descuento automático de inventario al ejecutar orden (D-031).
 > - **D-030:** Tabla `audit.log` append-only con hash encadenado (scope futuro).
-> - ~~**D-031:** Integración Inventory al ejecutar orden~~  ✅ Resuelto.
+> - ~~D-031 y D-030 resueltos.~~ Sistema POS completo con auditoría.
+> - **Siguiente:** Aplicar migración `20260519000002_audit_log.sql` en Supabase cloud (`pnpm db:migrate`).
 > - **D-010:** Offline-first SQLite para tablets (scope separado).
 
 ### Hitos completados en sesión actual
@@ -235,7 +236,7 @@ zahavi/
 | D-027 | docker/web.Dockerfile paths frontend/ | Media | ✅ Resuelto `556e238` |
 | D-028 | playwright.config.ts apunta a qa/e2e/ — rutas verificadas post-reorganización | Media | ✅ Verificado OK |
 | D-029 | `dist/**` en git domain packages — .gitignore raíz ya los excluye | Baja | ✅ Resuelto (ya excluido) |
-| D-030 | Tabla `audit.log` global append-only con hash encadenado | Alta (futuro) | ⬜ Scope futuro |
+| D-030 | Tabla `audit.log` global append-only con hash encadenado | Alta | ✅ Resuelto — ver commit |
 | D-008 | Tema oscuro en frontend | Baja | ⬜ Fuera de scope |
 | D-009 | i18n completo | Baja | ⬜ Fuera de scope |
 | D-010 | Offline-first SQLite para tablets | Alta operativa | ⬜ Scope separado |

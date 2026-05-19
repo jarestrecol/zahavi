@@ -219,6 +219,14 @@ const salesRoutes: FastifyPluginAsync<SalesRouteOptions> = async (fastify, opts)
         request.id,
       );
       if (!result.ok) throw result.error;
+      void fastify.auditLogger.log(
+        {
+          eventType: 'COBRO_REGISTRADO',
+          actorId: request.user.sub,
+          payload: { cobroId: result.value.cobroId, comandaId: body.comandaId, puntoDeVentaId },
+        },
+        request.id,
+      );
       return reply.code(201).send(result.value);
     },
   });

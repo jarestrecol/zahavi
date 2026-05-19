@@ -49,6 +49,15 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
         { expiresIn: ttlSeconds },
       );
 
+      void fastify.auditLogger.log(
+        {
+          eventType: 'SESION_INICIADA',
+          actorId: result.value.usuarioId,
+          payload: { sesionId: result.value.sesionId, rol: result.value.rol },
+        },
+        request.id,
+      );
+
       return reply.code(201).send({
         token,
         sesionId: result.value.sesionId,
@@ -143,6 +152,14 @@ const identityRoutes: FastifyPluginAsync<IdentityRouteOptions> = async (fastify,
         ...body,
       });
       if (!result.ok) throw result.error;
+      void fastify.auditLogger.log(
+        {
+          eventType: 'ROL_ASIGNADO',
+          actorId: request.user.sub,
+          payload: { usuarioObjetivoId: id, nuevoRol: body.nuevoRol },
+        },
+        request.id,
+      );
       return reply.code(204).send();
     },
   });

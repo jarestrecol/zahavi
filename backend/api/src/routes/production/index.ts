@@ -118,6 +118,18 @@ const productionRoutes: FastifyPluginAsync<ProductionRouteOptions> = async (fast
         request.id,
       );
       if (!result.ok) throw result.error;
+      void fastify.auditLogger.log(
+        {
+          eventType: 'ORDEN_EJECUTADA',
+          actorId: request.user.sub,
+          payload: {
+            ordenId,
+            codigoLote: result.value.codigoLote,
+            cantidadProducida: result.value.cantidadProducida,
+          },
+        },
+        request.id,
+      );
       return reply.code(200).send(result.value);
     },
   });
